@@ -45,13 +45,13 @@ function Base() {
       <mesh position={[W / 2, 0.01, 0]} material={glow(PALETTE.neonCyan, 1.2)}>
         <boxGeometry args={[0.05, 0.02, D]} />
       </mesh>
-      {/* 木地板 */}
+      {/* 石墨地板 */}
       <mesh rotation-x={-Math.PI / 2} position={[0, 0.001, 0]} receiveShadow>
         <planeGeometry args={[W, D]} />
-        <meshStandardMaterial map={wood} roughness={0.55} metalness={0.02} />
+        <meshStandardMaterial map={wood} roughness={0.48} metalness={0.18} />
       </mesh>
       {/* 电梯厅石材地面 */}
-      <mesh rotation-x={-Math.PI / 2} position={[(ELEVATOR.coreMinX + FLOOR.maxX) / 2, 0.006, -3.6]} receiveShadow material={std('#c9c3bb', 0.3, 0.1)}>
+      <mesh rotation-x={-Math.PI / 2} position={[(ELEVATOR.coreMinX + FLOOR.maxX) / 2, 0.006, -3.6]} receiveShadow material={std('#34455f', 0.3, 0.1)}>
         <planeGeometry args={[FLOOR.maxX - ELEVATOR.coreMinX, 2.0]} />
       </mesh>
       {/* 地毯 */}
@@ -59,7 +59,7 @@ function Base() {
         <circleGeometry args={[2.3, 48]} />
         <meshStandardMaterial map={rugTexture()} roughness={0.95} />
       </mesh>
-      <mesh rotation-x={-Math.PI / 2} position={[LOUNGE.x, 0.008, LOUNGE.z + 0.3]} receiveShadow material={std('#e3b23c', 0.95)}>
+      <mesh rotation-x={-Math.PI / 2} position={[LOUNGE.x, 0.008, LOUNGE.z + 0.3]} receiveShadow material={std('#3e275d', 0.95)}>
         <planeGeometry args={[3.4, 2.2]} />
       </mesh>
     </group>
@@ -139,7 +139,7 @@ function ElevatorCore() {
   const cz = (FLOOR.minZ + ELEVATOR.doorZ) / 2;
   const wall = std(PALETTE.wall, 0.8);
   const accent = std(PALETTE.wallAccent, 0.7);
-  const doorMat = std('#d4d9e2', 0.3, 0.55);
+  const doorMat = std('#637993', 0.3, 0.55);
   const left = useRef<THREE.Mesh>(null);
   const right = useRef<THREE.Mesh>(null);
   const arrow = useRef<THREE.MeshBasicMaterial>(null);
@@ -184,13 +184,13 @@ function ElevatorCore() {
         <boxGeometry args={[0.04, WALL_H, coreD]} />
       </mesh>
       {/* 轿厢内部（开门可见） */}
-      <mesh position={[ELEVATOR.x, 1.15, FLOOR.minZ + 0.06]} material={std('#e9d7b8', 0.3, 0.6)}>
+      <mesh position={[ELEVATOR.x, 1.15, FLOOR.minZ + 0.06]} material={std('#34415d', 0.3, 0.6)}>
         <boxGeometry args={[DOOR_W, 2.3, 0.05]} />
       </mesh>
-      <mesh position={[ELEVATOR.x, 0.01, cz]} rotation-x={-Math.PI / 2} material={std('#3a3530', 0.4)}>
+      <mesh position={[ELEVATOR.x, 0.01, cz]} rotation-x={-Math.PI / 2} material={std('#111a31', 0.4)}>
         <planeGeometry args={[DOOR_W, coreD]} />
       </mesh>
-      <pointLight ref={cabLight} position={[ELEVATOR.x, 2.1, cz]} color="#ffe2b0" intensity={2} distance={3} decay={2} />
+      <pointLight ref={cabLight} position={[ELEVATOR.x, 2.1, cz]} color="#b8e7ff" intensity={2} distance={3} decay={2} />
       {/* 门框 */}
       <mesh position={[ELEVATOR.x, 2.33, doorFrontZ + 0.04]} material={std('#9aa3b2', 0.25, 0.9)}>
         <boxGeometry args={[DOOR_W + 0.24, 0.08, 0.1]} />

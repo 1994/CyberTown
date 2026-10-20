@@ -200,7 +200,7 @@ export const Character = forwardRef<Rig, { look: Look; scale?: number }>(functio
             </mesh>
           )}
           {/* 工牌 */}
-          <mesh position={[0.08, 0.2, 0.2]} material={std('#ffffff', 0.4)}>
+          <mesh position={[0.08, 0.2, 0.2]} material={std('#91eeff', 0.4, 0.2, { emissive: '#38b9d1', emissiveIntensity: 0.45 })}>
             <boxGeometry args={[0.07, 0.09, 0.01]} />
           </mesh>
           {/* 手臂（肩部为枢轴） */}

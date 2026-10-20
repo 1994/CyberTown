@@ -3,6 +3,7 @@ import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { rng } from '../../shared/rules.ts';
 import { buildingWindows, cityGround, neonText } from './textures.ts';
+import { glow } from './materials.ts';
 
 const GROUND_Y = -34;
 
@@ -15,9 +16,9 @@ function Sky() {
         depthWrite: false,
         fog: false,
         uniforms: {
-          top: { value: new THREE.Color('#80b8cc') },
-          mid: { value: new THREE.Color('#c2dedb') },
-          horizon: { value: new THREE.Color('#f4d8b2') },
+          top: { value: new THREE.Color('#05091d') },
+          mid: { value: new THREE.Color('#191536') },
+          horizon: { value: new THREE.Color('#44234e') },
         },
         vertexShader: `varying vec3 vP; void main(){ vP = normalize(position); gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }`,
         fragmentShader: `uniform vec3 top; uniform vec3 mid; uniform vec3 horizon; varying vec3 vP;
@@ -54,14 +55,14 @@ function Sky() {
           size={1.3}
           sizeAttenuation={false}
           transparent
-          opacity={0}
+          opacity={0.6}
           fog={false}
         />
       </points>
       <mesh position={[-140, 120, -210]}>
         <sphereGeometry args={[11, 32, 16]} />
         <meshBasicMaterial
-          color={new THREE.Color('#fff4d6').multiplyScalar(1.6)}
+          color={new THREE.Color('#c9e6ff').multiplyScalar(1.6)}
           toneMapped={false}
           fog={false}
         />
@@ -116,16 +117,16 @@ function Buildings() {
         t.repeat.set(1 + (i % 2), 2 + (i % 3));
         return new THREE.MeshStandardMaterial({
           color: [
-            '#96aeb2',
-            '#afb8b2',
-            '#8fa9ad',
-            '#b1aaa7',
-            '#93afab',
-            '#b6aaa5',
+            '#243555',
+            '#2c3155',
+            '#223b52',
+            '#3b2e54',
+            '#1b3e4b',
+            '#453151',
           ][i],
           emissive: '#ffffff',
           emissiveMap: t,
-          emissiveIntensity: 0.12,
+          emissiveIntensity: 0.75,
           roughness: 0.6,
           metalness: 0.3,
         });
@@ -161,6 +162,10 @@ function Buildings() {
               <boxGeometry args={[b.w * 0.6, 2.4, b.d * 0.6]} />
             </mesh>
           )}
+          {i % 9 === 0 && <mesh
+            position={[b.w / 2 + 0.015, b.h / 2, b.d / 2]}
+            material={glow(i % 2 ? '#ff4fca' : '#48eeff', 1.5)}
+          ><boxGeometry args={[0.14, b.h, 0.14]}/></mesh>}
         </group>
       ))}
       <group ref={beacons}>

@@ -1,0 +1,73 @@
+{
+  "players": [
+    {
+      "id": "wang",
+      "coins": 2140,
+      "rank": "团队主管"
+    },
+    {
+      "id": "li",
+      "coins": 652,
+      "rank": "职场新人"
+    },
+    {
+      "id": "liu",
+      "coins": 600,
+      "rank": "职场新人"
+    },
+    {
+      "id": "mei",
+      "coins": 600,
+      "rank": "职场新人"
+    }
+  ],
+  "career": {
+    "rank": 2,
+    "name": "团队主管",
+    "performance": 640,
+    "completedProjects": 3,
+    "incomePct": 10,
+    "next": {
+      "rank": 3,
+      "name": "部门经理",
+      "requiredPerformance": 600,
+      "requiredProjects": 6,
+      "incomePct": 15
+    },
+    "canPromote": false
+  },
+  "year": {
+    "number": 2,
+    "completed": 0,
+    "required": 3,
+    "base": 650,
+    "estimate": 845,
+    "teamPct": 30,
+    "playPct": 0,
+    "friendPct": 0,
+    "lastAward": {
+      "year": 1,
+      "base": 300,
+      "teamPct": 28,
+      "playPct": 20,
+      "friendPct": 0,
+      "total": 444
+    }
+  },
+  "boss": [
+    {
+      "id": "c-zhang",
+      "ownerId": "wang",
+      "price": 600
+    }
+  ],
+  "audit": {
+    "audit": {
+      "mismatches": [],
+      "doubleOwned": 0,
+      "negative": 0,
+      "overfull": 0
+    },
+    "systemPool": 488
+  }
+}

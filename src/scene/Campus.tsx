@@ -63,7 +63,7 @@ function PathTile({
       receiveShadow
     >
       <planeGeometry args={[w, d]} />
-      <meshStandardMaterial color="#c8bfb1" roughness={0.8} map={map} />
+      <meshStandardMaterial color="#889dbb" roughness={0.8} map={map} />
     </mesh>
   );
 }
@@ -80,7 +80,7 @@ function Ground({
       <mesh
         position={[0, -0.82, 0]}
         receiveShadow
-        material={std('#b4bdad', 0.85, 0)}
+        material={std('#17213a', 0.85, 0)}
       >
         <boxGeometry args={[W + 1.2, 1.5, D + 1.2]} />
       </mesh>
@@ -99,11 +99,11 @@ function Ground({
       {/* 广场圆形铺装 */}
       <mesh rotation-x={-Math.PI / 2} position={[0, -0.015, 13]} receiveShadow>
         <circleGeometry args={[7.2, 64]} />
-        <meshStandardMaterial color="#d9cdb8" roughness={0.75} />
+        <meshStandardMaterial color="#303f5d" roughness={0.75} />
       </mesh>
       <mesh rotation-x={-Math.PI / 2} position={[0, 0, 13]}>
-        <ringGeometry args={[6.4, 6.7, 64]} />
-        <meshStandardMaterial color="#b98d5a" roughness={0.7} />
+        <ringGeometry args={[6.58, 6.66, 64]} />
+        <meshBasicMaterial color="#48eeff" toneMapped={false} />
       </mesh>
       {/* 项目区深色地台 */}
       <mesh
@@ -112,7 +112,7 @@ function Ground({
         receiveShadow
       >
         <planeGeometry args={[19, 13]} />
-        <meshStandardMaterial color="#d2dcd5" roughness={0.85} />
+        <meshStandardMaterial color="#26354f" roughness={0.85} />
       </mesh>
       {/* 咖啡区木平台 */}
       <mesh
@@ -121,10 +121,31 @@ function Ground({
         receiveShadow
       >
         <planeGeometry args={[14, 11]} />
-        <meshStandardMaterial color="#8a5d3b" roughness={0.7} />
+        <meshStandardMaterial color="#34415c" roughness={0.7} />
       </mesh>
     </group>
   );
+}
+
+/** Emissive geometry stays legible with lowfx=1 and adds no dynamic lights. */
+function Wayfinding() {
+  return <group>
+    {PATHS.flatMap((path, index) => {
+      // The front connector already lies inside the circular plaza.
+      if (index === 7) return [];
+      const w = path.maxX - path.minX;
+      const d = path.maxZ - path.minZ;
+      const horizontal = w > d;
+      const sections = index === 0 ? [[path.minX, -6.8], [6.8, path.maxX]] : [[horizontal ? path.minX : path.minZ, horizontal ? path.maxX : path.maxZ]];
+      return sections.flatMap(([from, to], section) => [-1, 1].map(side => <mesh
+        key={`${index}-${section}-${side}`}
+        position={horizontal
+          ? [(from + to) / 2, 0.018, (path.minZ + path.maxZ) / 2 + side * (d / 2 - 0.13)]
+          : [(path.minX + path.maxX) / 2 + side * (w / 2 - 0.13), 0.018, (from + to) / 2]}
+        material={glow(index === 3 ? PALETTE.neonPink : PALETTE.neonCyan, 1.35)}
+      ><boxGeometry args={horizontal ? [to - from, 0.018, 0.035] : [0.035, 0.018, to - from]}/></mesh>));
+    })}
+  </group>;
 }
 
 function Railing() {
@@ -154,7 +175,7 @@ function Railing() {
           </mesh>
           <mesh
             position={[0, 0.02, 0.06]}
-            material={glow(PALETTE.neonCyan, 1.5)}
+            material={glow(i % 2 ? PALETTE.neonPink : PALETTE.neonCyan, 1.5)}
           >
             <boxGeometry args={[s.len, 0.03, 0.02]} />
           </mesh>
@@ -225,7 +246,7 @@ function Bench({
   position: P3;
   rotation?: number;
 }) {
-  const wood = std('#b07a4a', 0.6);
+  const wood = std('#3c506b', 0.6);
   const metal = std('#2c313d', 0.4, 0.6);
   return (
     <group position={position} rotation-y={rotation}>
@@ -307,7 +328,7 @@ function Plaza() {
       <group position={[0, 0, 16]}>
         <mesh
           position={[0, 0.25, 0]}
-          material={std('#e7e0d4', 0.5)}
+          material={std('#5a6f89', 0.5)}
           castShadow
           receiveShadow
         >
@@ -324,7 +345,7 @@ function Plaza() {
             metalness={0.15}
           />
         </mesh>
-        <mesh position={[0, 1.0, 0]} material={std('#e7e0d4', 0.5)} castShadow>
+        <mesh position={[0, 1.0, 0]} material={std('#5a6f89', 0.5)} castShadow>
           <cylinderGeometry args={[0.25, 0.4, 1.1, 16]} />
         </mesh>
         <mesh position={[0, 1.7, 0]} material={std('#e9bf65', 0.3, 0.5)}>
@@ -348,8 +369,8 @@ function Plaza() {
         <planeGeometry args={[12, 3]} />
         <meshBasicMaterial
           map={neonText([
-            { text: '今天老板给我打工', color: '#fff5d8', size: 104 },
-            { text: '工作交给老板，快乐留给自己', color: '#ffe3a1', size: 46 },
+            { text: '今天老板给我打工', color: '#66f4ff', size: 104 },
+            { text: '工作交给老板，快乐留给自己', color: '#ffa0e0', size: 46 },
           ])}
           transparent
           toneMapped={false}
@@ -371,7 +392,7 @@ function CafeTable({ position }: { position: P3 }) {
     <group position={position}>
       <mesh
         position={[0, 0.72, 0]}
-        material={std('#f4f1ec', 0.35)}
+        material={std('#61738b', 0.35)}
         castShadow
         receiveShadow
       >
@@ -457,7 +478,7 @@ function CoffeeZone() {
           args={[4.2, 2.6, 3.2]}
           radius={0.08}
           position={[0, 1.3, 0]}
-          material={std('#f0e6d6', 0.7)}
+          material={std('#35435e', 0.7)}
           castShadow
           receiveShadow
         />
@@ -519,7 +540,7 @@ function CoffeeZone() {
       <Sign
         position={[-11.6, 0, 7.4]}
         text="午后咖啡馆"
-        color="#b16b58"
+        color="#e57bd1"
         rotation={0.3}
       />
     </group>
@@ -558,7 +579,7 @@ function Booth({
         args={[2.6, 0.95, 1.2]}
         radius={0.05}
         position={[0, 0.475, 0]}
-        material={std('#efe8dc', 0.6)}
+        material={std('#3a4b65', 0.6)}
         castShadow
         receiveShadow
       />
@@ -811,7 +832,7 @@ function ProjectZone() {
       <Sign
         position={[11.4, 0, 7.6]}
         text="小游戏俱乐部"
-        color="#c58443"
+        color="#dc9bfc"
         rotation={-0.3}
       />
     </group>
@@ -845,7 +866,7 @@ function Garden() {
       <group position={[18, 0, -13.2]}>
         <mesh
           position={[0, 0.12, 0]}
-          material={std('#d8cfc0', 0.6)}
+          material={std('#4c6080', 0.6)}
           receiveShadow
         >
           <cylinderGeometry args={[2.5, 2.6, 0.24, 40]} />
@@ -878,7 +899,7 @@ function Garden() {
             args={[3.2, 0.45, 1.4]}
             radius={0.06}
             position={[0, 0.22, 0]}
-            material={std('#c76b4a', 0.7)}
+            material={std('#4c335d', 0.7)}
             castShadow
             receiveShadow
           />
@@ -895,14 +916,14 @@ function Garden() {
           <mesh
             key={x}
             position={[x, 1.4, 0.5]}
-            material={std('#f0e6d6', 0.7)}
+            material={std('#35435e', 0.7)}
             castShadow
           >
             <boxGeometry args={[0.14, 2.8, 0.14]} />
           </mesh>
         ))}
         {[-0.9, -0.3, 0.3, 0.9].map((z) => (
-          <mesh key={z} position={[0, 2.85, z]} material={std('#f0e6d6', 0.7)}>
+          <mesh key={z} position={[0, 2.85, z]} material={std('#35435e', 0.7)}>
             <boxGeometry args={[7, 0.1, 0.1]} />
           </mesh>
         ))}
@@ -995,6 +1016,7 @@ export function Campus({
   return (
     <group>
       <Ground onGround={onGround} />
+      <Wayfinding />
       <Railing />
       <Plaza />
       <CoffeeZone />

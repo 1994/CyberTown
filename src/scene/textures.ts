@@ -37,13 +37,13 @@ export function woodFloor() {
       let x = -Math.floor(r() * 300);
       while (x < 1024) {
         const w = 260 + Math.floor(r() * 220);
-        const l = 52 + r() * 10;
-        g.fillStyle = `hsl(${26 + r() * 6}, ${38 + r() * 8}%, ${l}%)`;
+        const l = 28 + r() * 8;
+        g.fillStyle = `hsl(${214 + r() * 8}, 22%, ${l}%)`;
         g.fillRect(x, y, w, plankH);
-        // 木纹
+        // 细密金属拉丝
         g.globalAlpha = 0.12;
         for (let i = 0; i < 7; i++) {
-          g.strokeStyle = r() > 0.5 ? '#5a3a20' : '#f3d2a8';
+          g.strokeStyle = r() > 0.5 ? '#1f2e48' : '#8da8c4';
           g.lineWidth = 1 + r() * 2;
           g.beginPath();
           const yy = y + 6 + r() * (plankH - 12);
@@ -52,11 +52,11 @@ export function woodFloor() {
           g.stroke();
         }
         g.globalAlpha = 1;
-        g.fillStyle = 'rgba(40,22,10,0.55)';
+        g.fillStyle = 'rgba(8,15,32,0.6)';
         g.fillRect(x, y, 2, plankH);
         x += w;
       }
-      g.fillStyle = 'rgba(40,22,10,0.5)';
+      g.fillStyle = 'rgba(8,15,32,0.6)';
       g.fillRect(0, y, 1024, 2);
     }
     const t = tex(c);
@@ -275,11 +275,11 @@ export function signTexture(text: string, bg: string, fg = '#ffffff', w = 512, h
 export function lawnTexture() {
   return cached('lawn', () => {
     const [c, g] = canvas(512, 512);
-    g.fillStyle = '#3f6b3c';
+    g.fillStyle = '#183e39';
     g.fillRect(0, 0, 512, 512);
     const r = rng(77);
     for (let i = 0; i < 5000; i++) {
-      g.fillStyle = r() > 0.5 ? 'rgba(120,170,90,0.25)' : 'rgba(30,60,30,0.3)';
+      g.fillStyle = r() > 0.5 ? 'rgba(81,161,146,0.25)' : 'rgba(12,39,36,0.3)';
       g.fillRect(r() * 512, r() * 512, 2, 3 + r() * 3);
     }
     const t = tex(c);
@@ -293,12 +293,12 @@ export function lawnTexture() {
 export function paverTexture() {
   return cached('paver', () => {
     const [c, g] = canvas(256, 256);
-    g.fillStyle = '#b9b1a4';
+    g.fillStyle = '#34465e';
     g.fillRect(0, 0, 256, 256);
     const r = rng(12);
     for (let y = 0; y < 256; y += 32) {
       for (let x = (y / 32) % 2 ? -32 : 0; x < 256; x += 64) {
-        g.fillStyle = `hsl(35, 10%, ${62 + r() * 12}%)`;
+        g.fillStyle = `hsl(216, 22%, ${36 + r() * 10}%)`;
         g.fillRect(x + 2, y + 2, 60, 28);
       }
     }

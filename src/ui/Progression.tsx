@@ -466,7 +466,7 @@ function ShopPanel() {
                   style={
                     {
                       '--item-color':
-                        i.kind === 'accessory' ? '#69796e' : i.value,
+                        i.kind === 'accessory' ? '#9fcae6' : i.value,
                     } as React.CSSProperties
                   }
                 >

@@ -36,8 +36,17 @@ export function Portrait({
     >
       <Suspense fallback={null}>
         <ambientLight intensity={1.8} />
-        <hemisphereLight args={['#f2f8ff', '#d7c5a5', 1.5]} />
-        <directionalLight position={[4, 6, 5]} intensity={3} color="#fff3df" />
+        <hemisphereLight args={['#ecf4ff', '#28314d', 1.3]} />
+        <directionalLight position={[4, 6, 5]} intensity={3} color="#fff0e9" />
+        <directionalLight position={[-3, 3, -3]} intensity={2} color="#69e9ff" />
+        <mesh position={[0, -0.055, 0]} receiveShadow>
+          <cylinderGeometry args={[0.83, 0.9, 0.1, 48]} />
+          <meshStandardMaterial color="#25304e" metalness={0.4} roughness={0.45}/>
+        </mesh>
+        <mesh rotation-x={-Math.PI / 2} position={[0, 0.002, 0]}>
+          <ringGeometry args={[0.72, 0.75, 64]}/>
+          <meshBasicMaterial color="#66f4ff" transparent opacity={0.8}/>
+        </mesh>
         <Model look={look} wave={wave} />
         {aura && (
           <mesh rotation-x={-Math.PI / 2} position={[0, 0.015, 0]}>

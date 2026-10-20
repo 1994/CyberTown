@@ -41,8 +41,8 @@ function Sun() {
   return (
     <directionalLight
       ref={light}
-      intensity={2.7}
-      color="#fff0d6"
+      intensity={1.8}
+      color="#e2ebff"
       castShadow={!LOW_FX}
       shadow-mapSize={[2048, 2048]}
       shadow-camera-left={-22}
@@ -60,12 +60,12 @@ function Sun() {
 function Lights() {
   return (
     <>
-      <hemisphereLight args={['#d7efff', '#b5aa86', 1.65]} />
+      <hemisphereLight args={['#b0baff', '#17223e', 1.25]} />
       <Sun />
       <directionalLight
         position={[-24, 12, -18]}
-        intensity={1.25}
-        color="#c3e4e7"
+        intensity={1.1}
+        color="#a56dff"
       />
       {[-3.3, 0, 3.3].map((x) => (
         <pointLight
@@ -82,7 +82,7 @@ function Lights() {
         intensity={6}
         distance={5}
         decay={2}
-        color="#ffc47a"
+        color="#ff88d0"
       />
     </>
   );
@@ -140,7 +140,7 @@ export function OfficeCanvas({ myId }: { myId: string | null }) {
       onCreated={({ gl, scene }) => {
         gl.toneMapping = THREE.ACESFilmicToneMapping;
         gl.toneMappingExposure = 1.05;
-        scene.fog = new THREE.Fog('#d7e1d7', 65, 230);
+        scene.fog = new THREE.Fog('#10142e', 65, 230);
       }}
     >
       <Suspense fallback={null}>
@@ -149,14 +149,14 @@ export function OfficeCanvas({ myId }: { myId: string | null }) {
           <Lightformer
             form="rect"
             intensity={2.3}
-            color="#fff1d9"
+            color="#e3ecff"
             position={[0, 6, 6]}
             scale={[10, 3, 1]}
           />
           <Lightformer
             form="rect"
             intensity={1.8}
-            color="#bde0e0"
+            color="#777dff"
             position={[-8, 3, -8]}
             scale={[12, 4, 1]}
           />
@@ -176,7 +176,7 @@ export function OfficeCanvas({ myId }: { myId: string | null }) {
               mipmapBlur
               luminanceThreshold={1.4}
               luminanceSmoothing={0.3}
-              intensity={0.25}
+              intensity={0.42}
               radius={0.5}
             />
             <Vignette offset={0.3} darkness={0.22} />

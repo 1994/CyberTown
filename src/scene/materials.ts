@@ -1,24 +1,24 @@
 import * as THREE from 'three';
 
-// 统一材质系统：所有家具/角色共享同一套低饱和暖色调 + 霓虹点缀的调色板与粗糙度规则。
+// 统一材质系统：所有家具/角色共享同一套午夜蓝材质 + 青紫霓虹的调色板与粗糙度规则。
 export const PALETTE = {
-  oak: '#d9b38a',
-  walnut: '#7a4e32',
-  wall: '#ece4d8',
-  wallAccent: '#c96f4a',
-  metal: '#2c313d',
-  steel: '#9aa3b2',
-  fabricBlue: '#3c4f7d',
-  fabricTeal: '#2f7c7a',
+  oak: '#3b4b67',
+  walnut: '#202d46',
+  wall: '#28354f',
+  wallAccent: '#573058',
+  metal: '#1c2940',
+  steel: '#8c9fba',
+  fabricBlue: '#435d97',
+  fabricTeal: '#247f88',
   fabricMustard: '#d9a441',
-  leaf: '#4f9a4a',
-  leafDark: '#2f6b3a',
-  pot: '#e7e2da',
-  terracotta: '#c76b4a',
+  leaf: '#398d80',
+  leafDark: '#22574f',
+  pot: '#35475f',
+  terracotta: '#4c335d',
   base: '#1b2030',
-  neonPink: '#e5ac97',
-  neonCyan: '#92c4ad',
-  warmLight: '#ffd29a',
+  neonPink: '#ff4fca',
+  neonCyan: '#48eeff',
+  warmLight: '#b8e7ff',
 };
 
 const mats = new Map<string, THREE.Material>();
