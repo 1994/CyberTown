@@ -35,8 +35,9 @@ JSON 错误统一为 `{ "error": { "code": "...", "message": "..." } }`。普通
 | 方法 | 路径 | 请求/结果 |
 | --- | --- | --- |
 | GET | `/api/health` | `ok,time,version,runtime:"go"` |
-| GET | `/api/identities` | 四个测试身份及明确的非 SSO 声明 |
-| POST | `/api/auth/test-login` | `{playerId:"wang"/"li"/"mei"/"liu"}` → `{token,playerId}` |
+| GET | `/api/identities` | Demo 返回四个测试身份；注入身份 SPI 后返回空列表；含 `mode,provider,notice` |
+| POST | `/api/auth/login` | 通用 SPI 登录：`{playerId}`（Demo）或 `{code/accessToken,redirectUri?}` → `{token,playerId}` |
+| POST | `/api/auth/test-login` | 原 Demo 登录兼容入口，仅内置 Demo 开放 |
 | GET | `/api/state` | 完整状态；前端类型见 `shared/types.ts` |
 | POST | `/api/profile/avatar` | `{avatarUrl:"https://.../avatar.png"}` 更新自己的头像面具；空字符串还原占位图 |
 | GET | `/api/events` | SSE `hello` 与 `sync`，含交易详情用于动画 |
@@ -54,6 +55,8 @@ JSON 错误统一为 `{ "error": { "code": "...", "message": "..." } }`。普通
 
 ## 头像面具接入
 
+SSO 接入已抽成独立 [身份 SPI](IDENTITY-SPI.md)：注入 `identity.Provider` 即可替换 Demo，提供本地 Mock 模式与 `make test-auth`。公司协议适配器尚未接入；SPI 登录会自动同步可信资料和头像。
+
 统一的 3D `Character` 头部包含实体圆形面具、白色边框、侧绑带与正面头像贴图，会跟随头部动画转动；眼镜/墨镜位于面具外侧。未提供头像、图片加载失败或跨域受限时，继续显示本地生成的姓名肖像，不会让整个场景卡在加载状态。界面上的二维头像也使用同一 URL，加载失败回退原有卡通头像。
 
 获取用户 avatar 后，在当前登录会话下调用：
@@ -66,7 +69,7 @@ Content-Type: application/json
 {"avatarUrl":"/avatars/wang.png"}
 ```
 
-前端已提供 `api.setAvatar(avatarUrl)`。服务端身份接入也可在认证后调用 `Game.SetAvatar(playerID, avatarURL)`；通过此内部方法更新后，调用方需广播 `kind:"avatar"` 以即时刷新在线客户端。HTTP 接口已完成广播。这里只提供接入能力，不额外增加上传入口或读取真实公司头像。
+前端已提供 `api.setAvatar(avatarUrl)`。身份 SPI 的 `User.AvatarURL` 会在登录事务中更新并广播；其他内部调用也可使用 `Game.SetAvatar(playerID, avatarURL)`，直接调用该方法后需广播 `kind:"avatar"`。HTTP 接口已完成广播。这里只提供接入能力，不额外增加上传入口或读取真实公司头像。
 
 头像 URL 保存在该身份分身的 `colleagues.look.avatarUrl` 中，使用现有 JSON 字段，无需清空旧数据库；`avatarName` 随快照提供真实游戏姓名。`/api/state` 的 `me.avatarUrl`、`players[].avatarUrl` 及对应 `colleagues[].look.avatarUrl` 一致，`/api/identities` 也返回头像 URL。更新只作用于当前认证玩家，不接受覆盖其他玩家ID，分身被雇佣后仍显示分身本人的头像，刷新和重启保留。传 `{"avatarUrl":""}` 可还原默认面具。
 

@@ -1,0 +1,12 @@
+{
+  "local-alice-token": {
+    "subject": "employee-alice",
+    "name": "小艾",
+    "title": "园区体验官"
+  },
+  "local-bob-token": {
+    "subject": "employee-bob",
+    "name": "阿博",
+    "title": "快乐打工人"
+  }
+}

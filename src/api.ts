@@ -83,13 +83,28 @@ export interface Identity {
   avatarColleagueId: string | null;
 }
 
+/** 凭证由身份适配器验证；code / accessToken 按公司协议选择，不传姓名或头像。 */
+export interface LoginCredentials {
+  code?: string;
+  accessToken?: string;
+  redirectUri?: string;
+  playerId?: string; // 仅内置 Demo 适配器使用
+}
+
 export const api = {
   identities: () =>
-    call<{ identities: Identity[]; notice: string }>('GET', '/api/identities'),
+    call<{
+      identities: Identity[];
+      notice: string;
+      mode?: 'demo' | 'sso' | 'mock';
+      provider?: string;
+    }>('GET', '/api/identities'),
   login: (playerId: string) =>
     call<{ token: string; playerId: string }>('POST', '/api/auth/test-login', {
       playerId,
     }),
+  authenticate: (credentials: LoginCredentials) =>
+    call<{ token: string; playerId: string }>('POST', '/api/auth/login', credentials),
   logout: () => call<{ ok: true }>('POST', '/api/logout'),
   state: () => call<StateSnapshot>('GET', '/api/state'),
   setAvatar: (avatarUrl: string) =>

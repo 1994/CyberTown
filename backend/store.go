@@ -92,9 +92,12 @@ func (g *Game) seed(reset bool) error {
 			return err
 		}
 		if count > 0 && !reset {
+			if err := ensureDemoBindings(tx); err != nil {
+				return err
+			}
 			return ensureProgress(tx)
 		}
-		for _, t := range []string{"sessions", "trades", "ledger", "project_runs", "social_rewards", "player_items", "player_styles", "year_awards", "player_years", "player_careers", "messages", "colleagues", "players", "meta"} {
+		for _, t := range []string{"identity_sessions", "sessions", "identity_bindings", "trades", "ledger", "project_runs", "social_rewards", "player_items", "player_styles", "year_awards", "player_years", "player_careers", "messages", "colleagues", "players", "meta"} {
 			if _, err := tx.Exec("DELETE FROM " + t); err != nil {
 				return err
 			}
@@ -136,6 +139,9 @@ func (g *Game) seed(reset bool) error {
 			return err
 		}
 		if _, err := tx.Exec("INSERT INTO meta(key,value) VALUES('version','1')"); err != nil {
+			return err
+		}
+		if err := ensureDemoBindings(tx); err != nil {
 			return err
 		}
 		return ensureProgress(tx)
@@ -235,6 +241,9 @@ func noRow(err error, code, msg string) error {
 	}
 	return err
 }
+
+// Login creates a legacy Demo-only session for internal callers. HTTP login
+// must authenticate through Options.IdentityProvider, not this helper.
 func (g *Game) Login(player string) (string, error) {
 	var id string
 	if err := g.DB.QueryRow("SELECT id FROM players WHERE id=?", player).Scan(&id); err != nil {
@@ -246,12 +255,12 @@ func (g *Game) Login(player string) (string, error) {
 }
 func (g *Game) Auth(token string) (string, error) {
 	if token == "" {
-		return "", fail(401, "NO_SESSION", "请先选择测试身份登录")
+		return "", fail(401, "NO_SESSION", "请先登录")
 	}
 	var id string
 	err := g.DB.QueryRow("SELECT player_id FROM sessions WHERE token=?", token).Scan(&id)
 	if err == sql.ErrNoRows {
-		return "", fail(401, "BAD_SESSION", "登录已失效，请重新选择测试身份")
+		return "", fail(401, "BAD_SESSION", "登录已失效，请重新登录")
 	}
 	return id, err
 }

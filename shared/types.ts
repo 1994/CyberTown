@@ -127,7 +127,7 @@ export type GameEvent =
   | HighfiveEvent
   | PromotionEvent
   | {
-      kind: 'reset' | 'presence' | 'shop' | 'style' | 'avatar';
+      kind: 'reset' | 'presence' | 'shop' | 'style' | 'avatar' | 'identity';
       at: number;
       playerId?: string;
     };

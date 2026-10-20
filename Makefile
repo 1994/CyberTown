@@ -1,6 +1,6 @@
 .DEFAULT_GOAL := up
 
-.PHONY: help check deps build up lan stop down restart status logs dev test
+.PHONY: help check deps build up lan stop down restart status logs dev test test-auth
 
 help:
 	@printf '%s\n' \
@@ -13,6 +13,7 @@ help:
 	  'make dev      启动前后端热更新开发环境' \
 	  'make build    安装依赖并构建前后端' \
 	  'make test     运行 Go 测试与规则契约校验' \
+	  'make test-auth 仅运行身份 SPI / Mock / 会话隔离测试，无需 Node' \
 	  '配置：.env 或 HOST=0.0.0.0 PORT=9000 make up'
 
 check:
@@ -52,3 +53,6 @@ dev: deps
 
 test: deps
 	npm test
+
+test-auth:
+	go test ./identity/... ./backend ./cmd/boss-server -run 'Identity|Mock|AuthProvider' -count=1

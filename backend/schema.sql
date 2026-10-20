@@ -31,6 +31,18 @@ CREATE TABLE IF NOT EXISTS sessions (
   player_id TEXT NOT NULL REFERENCES players(id),
   created_at INTEGER NOT NULL
 );
+CREATE TABLE IF NOT EXISTS identity_bindings (
+  provider TEXT NOT NULL,
+  subject TEXT NOT NULL,
+  player_id TEXT NOT NULL REFERENCES players(id),
+  PRIMARY KEY(provider, subject),
+  UNIQUE(provider, player_id)
+);
+-- Separate table keeps old databases compatible. Unscoped legacy sessions are Demo only.
+CREATE TABLE IF NOT EXISTS identity_sessions (
+  token TEXT PRIMARY KEY REFERENCES sessions(token) ON DELETE CASCADE,
+  provider TEXT NOT NULL
+);
 CREATE TABLE IF NOT EXISTS trades (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   colleague_id TEXT NOT NULL,

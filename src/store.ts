@@ -2,7 +2,7 @@ import { sound } from './audio.ts';
 import { create } from 'zustand';
 import type { StateSnapshot, TradeEvent, GameEvent } from '../shared/types.ts';
 import { api, ApiError, session } from './api.ts';
-import type { Identity } from './api.ts';
+import type { Identity, LoginCredentials } from './api.ts';
 import { useWorld } from './world/runtime.ts';
 import { useCinema } from './scene/cinema.ts';
 
@@ -40,6 +40,8 @@ interface GameStore {
   phase: Phase;
   bootError: string | null;
   identities: Identity[];
+  identityMode: 'demo' | 'sso' | 'mock';
+  identityNotice: string;
   snapshot: StateSnapshot | null;
   conn: 'connecting' | 'live' | 'offline';
   lastSyncAt: number;
@@ -73,6 +75,7 @@ interface GameStore {
 
   boot: () => Promise<void>;
   loginAs: (playerId: string) => Promise<void>;
+  loginWithCredentials: (credentials: LoginCredentials) => Promise<void>;
   logout: () => Promise<void>;
   refresh: () => Promise<void>;
   toast: (t: Omit<Toast, 'id' | 'ttl'> & { ttl?: number }) => void;
@@ -100,6 +103,8 @@ export const useGame = create<GameStore>((set, get) => ({
   phase: 'boot',
   bootError: null,
   identities: [],
+  identityMode: 'demo',
+  identityNotice: '',
   snapshot: null,
   conn: 'connecting',
   lastSyncAt: 0,
@@ -133,8 +138,8 @@ export const useGame = create<GameStore>((set, get) => ({
   async boot() {
     set({ bootError: null });
     try {
-      const { identities } = await api.identities();
-      set({ identities });
+      const { identities, mode, notice } = await api.identities();
+      set({ identities, identityMode: mode ?? 'demo', identityNotice: notice });
       if (session.get()) {
         try {
           const snap = await api.state();
@@ -158,9 +163,17 @@ export const useGame = create<GameStore>((set, get) => ({
   },
 
   async loginAs(playerId) {
-    const { token } = await api.login(playerId);
-    session.set(token);
+    await get().loginWithCredentials({ playerId });
     localStorage.setItem('boss.lastIdentity', playerId); // 仅用于登录页默认高亮，非游戏数据
+  },
+
+  async loginWithCredentials(credentials) {
+    // Keep Demo compatible with a running pre-SPI server during deployment.
+    const { token } =
+      credentials.playerId && !credentials.code && !credentials.accessToken
+        ? await api.login(credentials.playerId)
+        : await api.authenticate(credentials);
+    session.set(token);
     const snap = await api.state();
     set({
       snapshot: snap,

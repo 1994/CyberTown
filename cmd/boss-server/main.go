@@ -49,7 +49,13 @@ func main() {
 	static := flag.String("static", env("STATIC_DIR", "dist"), "frontend directory")
 	reset := flag.Bool("reset", false, "reset only this demo database and exit")
 	seedOnly := flag.Bool("seed", false, "initialize demo data if absent and exit")
+	authMode := flag.String("auth", env("AUTH_MODE", "demo"), "identity provider: demo or mock; company SSO is injected via backend.Options")
+	mockFile := flag.String("mock-identities", env("MOCK_IDENTITIES_FILE", ""), "mock token-to-user JSON fixture file")
 	flag.Parse()
+	provider, err := identityProvider(*authMode, *mockFile)
+	if err != nil {
+		log.Fatal(err)
+	}
 	game, err := backend.Open(*db, nil)
 	if err != nil {
 		log.Fatal(err)
@@ -66,7 +72,7 @@ func main() {
 		fmt.Println("演示数据已就绪（已有数据保留）")
 		return
 	}
-	app := backend.NewApp(game, backend.Options{StaticDir: *static, AllowReset: os.Getenv("ALLOW_DEMO_RESET") == "1"})
+	app := backend.NewApp(game, backend.Options{StaticDir: *static, AllowReset: os.Getenv("ALLOW_DEMO_RESET") == "1", IdentityProvider: provider})
 	defer app.Close()
 	server := &http.Server{Addr: net.JoinHostPort(*host, *port), Handler: app, ReadHeaderTimeout: 5 * time.Second, IdleTimeout: 60 * time.Second, MaxHeaderBytes: 16 * 1024}
 	listener, err := net.Listen("tcp", server.Addr)
@@ -85,7 +91,14 @@ func main() {
 	}()
 	fmt.Println("🏢 今天老板给我打工 · Go 服务已启动")
 	printAddresses(*host, fmt.Sprint(listener.Addr().(*net.TCPAddr).Port))
-	fmt.Printf("数据库: %s\n测试身份 Demo（非真实SSO）\n", *db)
+	identityLabel := "demo（体验身份，非真实 SSO）"
+	if provider != nil {
+		identityLabel = provider.ID()
+		if identityLabel == "mock" {
+			identityLabel += "（本地测试凭证，非真实 SSO）"
+		}
+	}
+	fmt.Printf("数据库: %s\n身份提供方: %s\n", *db, identityLabel)
 	if err = server.Serve(listener); err != nil && err != http.ErrServerClosed {
 		log.Fatal(err)
 	}

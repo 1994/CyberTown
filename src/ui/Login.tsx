@@ -5,6 +5,8 @@ import { ArrowRight, Crown, Sparkles } from 'lucide-react';
 
 export function Login() {
   const identities = useGame((s) => s.identities);
+  const identityMode = useGame((s) => s.identityMode);
+  const identityNotice = useGame((s) => s.identityNotice);
   const loginAs = useGame((s) => s.loginAs);
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -44,7 +46,13 @@ export function Login() {
           <Crown size={17} />
           <span>工作交给老板，快乐留给自己。</span>
         </div>
-        <span className="login-pick">选一个身份，开始你的快乐营业</span>
+        <span className="login-pick">
+          {identityMode === 'demo'
+            ? '选一个身份，开始你的快乐营业'
+            : identityMode === 'mock'
+              ? '本地 Mock 联调模式'
+              : '请从已配置的身份认证入口进入园区'}
+        </span>
         <div className="identity-grid" role="group" aria-label="选择测试身份">
           {identities.map((p) => (
             <button
@@ -69,7 +77,7 @@ export function Login() {
           </p>
         )}
         <p className="sso-line">
-          体验账号 · 非真实SSO · 可在不同标签页与自己联机
+          {identityMode === 'demo' ? '体验账号 · 非真实SSO · 可在不同标签页与自己联机' : identityNotice}
         </p>
       </div>
     </div>

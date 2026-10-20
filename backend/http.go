@@ -14,28 +14,37 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/1994/boss-works-for-me/identity"
 )
 
 type Options struct {
 	StaticDir  string
 	AllowReset bool
+	// Nil selects the built-in Demo adapter. Inject company SSO or a mock here.
+	IdentityProvider identity.Provider
 }
 type subscriber struct {
 	player, token string
 	events        chan []byte
 }
 type App struct {
-	Game     *Game
-	Options  Options
-	mu       sync.Mutex
-	clients  map[*subscriber]bool
-	closed   bool
-	world    map[string]WorldPlayer
-	socialAt map[string]int64
+	Game             *Game
+	Options          Options
+	mu               sync.Mutex
+	clients          map[*subscriber]bool
+	closed           bool
+	world            map[string]WorldPlayer
+	socialAt         map[string]int64
+	identityProvider identity.Provider
 }
 
 func NewApp(game *Game, opts Options) *App {
-	return &App{Game: game, Options: opts, clients: map[*subscriber]bool{}, world: map[string]WorldPlayer{}, socialAt: map[string]int64{}}
+	provider := opts.IdentityProvider
+	if provider == nil {
+		provider = &demoIdentityProvider{game}
+	}
+	return &App{Game: game, Options: opts, identityProvider: provider, clients: map[*subscriber]bool{}, world: map[string]WorldPlayer{}, socialAt: map[string]int64{}}
 }
 func (a *App) Online() map[string]bool {
 	a.mu.Lock()
@@ -147,29 +156,36 @@ func (a *App) handle(w http.ResponseWriter, r *http.Request) error {
 		respond(w, 200, map[string]any{"ok": true, "time": a.Game.Now(), "version": a.Game.Version(), "runtime": "go"})
 		return nil
 	}
+	if !providerIDPattern.MatchString(a.identityProvider.ID()) || (!a.demoAuth() && a.identityProvider.ID() == "demo") {
+		return fail(503, "IDENTITY_UNAVAILABLE", "身份服务配置无效")
+	}
 	if path == "/api/identities" && method == "GET" {
-		ids, err := a.Game.Identities()
+		if !a.demoAuth() {
+			mode, notice := "sso", "请通过公司身份服务登录"
+			if a.identityProvider.ID() == "mock" {
+				mode, notice = "mock", "本地 Mock 身份（非真实 SSO），请使用配置的测试凭证登录"
+			}
+			respond(w, 200, map[string]any{"identities": []Identity{}, "notice": notice, "provider": a.identityProvider.ID(), "mode": mode})
+			return nil
+		}
+		ids, err := a.Game.demoIdentities()
 		if err != nil {
 			return err
 		}
-		respond(w, 200, map[string]any{"identities": ids, "notice": "测试身份登录（演示用，非真实 SSO）"})
+		respond(w, 200, map[string]any{"identities": ids, "notice": "测试身份登录（演示用，非真实 SSO）", "provider": "demo", "mode": "demo"})
 		return nil
+	}
+	if path == "/api/auth/login" && method == "POST" {
+		return a.login(w, r)
 	}
 	if path == "/api/auth/test-login" && method == "POST" {
-		body, err := readBody(w, r)
-		if err != nil {
-			return err
+		if !a.demoAuth() {
+			return fail(404, "NOT_FOUND", "测试登录未开启")
 		}
-		id := stringField(body, "playerId")
-		token, err := a.Game.Login(id)
-		if err != nil {
-			return err
-		}
-		respond(w, 200, map[string]string{"token": token, "playerId": id})
-		return nil
+		return a.login(w, r)
 	}
 	if path == "/api/demo/reset" && method == "POST" {
-		if !a.Options.AllowReset {
+		if !a.Options.AllowReset || !a.demoAuth() {
 			return fail(403, "FORBIDDEN", "演示重置未开启（ALLOW_DEMO_RESET=1）")
 		}
 		if err := a.Game.Reset(); err != nil {
@@ -190,7 +206,7 @@ func (a *App) handle(w http.ResponseWriter, r *http.Request) error {
 	if path == "/api/events" && token == "" {
 		token = r.URL.Query().Get("token")
 	}
-	player, err := a.Game.Auth(token)
+	player, err := a.Game.authProvider(token, a.identityProvider.ID())
 	if err != nil {
 		return err
 	}
