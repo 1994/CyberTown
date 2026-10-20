@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import {
-  ArrowLeft, ArrowUpRight, BatteryFull, CheckCheck, ChevronRight, Coins,
-  Crown, Gamepad2, Gift, Map, MessageCircle, Search, Shield, ShoppingBag,
-  Sparkles, Timer, Trophy, Users, Wifi, WifiOff, X,
+  ArrowUpRight, BatteryFull, Bell, Briefcase, Check, CheckCheck, ChevronLeft, ChevronRight, Coffee, Coins,
+  Crown, Gamepad2, Gift, ListTodo, Map, Search, Shield, ShoppingBag,
+  Signal, Timer, Trophy, Users, Wifi, WifiOff, X,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { api } from '../api.ts';
@@ -17,19 +17,27 @@ import { ZONES } from '../../shared/world.ts';
 import { Avatar } from './Avatar.tsx';
 import { Minimap } from './Minimap.tsx';
 import { fmt } from './common.tsx';
+import { buildPhoneTasks } from './phoneTasks.ts';
+import type { KimTask } from './phoneTasks.ts';
 
-const APPS: { id: string; label: string; Icon: LucideIcon; tone: string; page?: PhonePage; feature?: PhoneFeature }[] = [
-  { id: 'play', label: '玩一局', Icon: Gamepad2, tone: 'coral', page: 'play' },
-  { id: 'contacts', label: '园区同事', Icon: Users, tone: 'mint', page: 'contacts' },
-  { id: 'messages', label: '消息盒子', Icon: MessageCircle, tone: 'blue', page: 'messages' },
-  { id: 'squad', label: '我的小队', Icon: Crown, tone: 'gold', feature: 'squad' },
-  { id: 'shop', label: '年终好物', Icon: ShoppingBag, tone: 'pink', feature: 'shop' },
-  { id: 'career', label: '晋升手册', Icon: Sparkles, tone: 'purple', feature: 'career' },
-  { id: 'map', label: '园区地图', Icon: Map, tone: 'lime', page: 'map' },
-  { id: 'ranking', label: '风云榜', Icon: Trophy, tone: 'sand', page: 'ranking' },
+const KIM_ICON = '/icons/kim.jpg';
+
+type App = { id: string; label: string; Icon?: LucideIcon; tone: string; page?: PhonePage; feature?: PhoneFeature };
+/** 桌面四个 + Dock 四个，每个功能只出现一次 */
+const GRID_APPS: App[] = [
+  { id: 'squad', label: '打工小队', Icon: Crown, tone: 'sun', feature: 'squad' },
+  { id: 'shop', label: '剁手好物', Icon: ShoppingBag, tone: 'rose', feature: 'shop' },
+  { id: 'career', label: '升职加薪', Icon: Briefcase, tone: 'violet', feature: 'career' },
+  { id: 'ranking', label: '卷王榜', Icon: Trophy, tone: 'amber', page: 'ranking' },
+];
+const DOCK_APPS: App[] = [
+  { id: 'play', label: '带薪游戏', Icon: Gamepad2, tone: 'neon', page: 'play' },
+  { id: 'messages', label: 'KIM', tone: 'kim', page: 'messages' },
+  { id: 'contacts', label: '找搭子', Icon: Coffee, tone: 'mint', page: 'contacts' },
+  { id: 'map', label: '通勤地图', Icon: Map, tone: 'sky', page: 'map' },
 ];
 const TITLES: Record<PhonePage, string> = {
-  home: '我的手机', play: '玩一局', contacts: '园区同事', messages: '消息盒子', map: '园区地图', ranking: '园区风云榜',
+  home: '我的手机', play: '带薪游戏', contacts: '找搭子', messages: 'KIM', map: '通勤地图', ranking: '卷王榜',
 };
 
 /** Full-size games and the 3D wardrobe return here when their own close action completes. */
@@ -48,45 +56,52 @@ function PhoneReturn() {
   return null;
 }
 
-function PhoneHome() {
+function AppButton({ app }: { app: App }) {
   const snap = useGame((s) => s.snapshot)!;
   const setPage = useGame((s) => s.setPhonePage);
   const launch = useGame((s) => s.launchPhoneFeature);
+  const { id, label, Icon, tone, page, feature } = app;
+  return <button
+    onClick={() => page ? setPage(page) : feature && launch(feature)}
+    data-testid={`phone-app-${id}`}
+    aria-label={id === 'messages' ? 'KIM 任务与消息' : label}
+  >
+    <span className={`phone-app-icon ${tone}`}>
+      {Icon ? <Icon size={26} strokeWidth={2} /> : <img src={KIM_ICON} alt="" draggable={false} />}
+      {id === 'messages' && snap.unread > 0 && <b className="phone-app-badge">{snap.unread > 9 ? '9+' : snap.unread}</b>}
+      {id === 'career' && snap.career.canPromote && <b className="phone-app-badge">!</b>}
+    </span>
+    <span>{label}</span>
+  </button>;
+}
+
+function PhoneHome() {
+  const snap = useGame((s) => s.snapshot)!;
+  const launch = useGame((s) => s.launchPhoneFeature);
   const av = snap.colleagues.find((c) => c.id === snap.me.avatarColleagueId)!;
+  const left = Math.max(0, snap.year.required - snap.year.completed);
   return <div className="phone-home" data-testid="phone-home">
-    <div className="phone-greeting">
-      <span>HELLO, BOSS.</span>
-      <h2>{snap.me.name}的摸鱼时间</h2>
-      <p>老板忙着打工，你负责开心。</p>
-    </div>
-    <div className="phone-profile">
-      <Avatar look={dressed(av.look, snap.me.style)} size={43} />
-      <div><b>{snap.me.name}</b><small>{snap.career.name}</small></div>
-      <span><Coins size={13} />{fmt(snap.me.coins)}</span>
-    </div>
-    <button className="phone-year" onClick={() => launch('career')} data-testid="phone-year">
-      <div><span>第 {snap.year.number} 年 · 快乐营业</span><Gift size={21} /></div>
-      <strong>{fmt(snap.year.estimate)}<small>预计年终奖</small></strong>
-      <div className="phone-year-bottom">
-        <span className="phone-year-dots">{Array.from({length:snap.year.required},(_,i)=><i key={i} className={i<snap.year.completed?'done':''}/>)}</span>
-        <span>再玩 {Math.max(0,snap.year.required-snap.year.completed)} 场就发奖 <ChevronRight size={12}/></span>
+    <div className="phone-widgets">
+      <button className="phone-year" onClick={() => launch('career')} data-testid="phone-year">
+        <span className="phone-widget-label"><Gift size={13} />预计年终奖</span>
+        <strong>{fmt(snap.year.estimate)}</strong>
+        <span className="phone-year-dots">{Array.from({ length: snap.year.required }, (_, i) => <i key={i} className={i < snap.year.completed ? 'done' : ''} />)}</span>
+        <small>第 {snap.year.number} 年 · {left ? `再玩 ${left} 场` : '可以发奖啦'}<ChevronRight size={11} /></small>
+      </button>
+      <div className="phone-profile">
+        <Avatar look={dressed(av.look, snap.me.style)} size={40} />
+        <b>{snap.me.name}</b>
+        <small>{snap.career.name}</small>
+        <span><Coins size={12} />{fmt(snap.me.coins)}</span>
       </div>
-    </button>
+    </div>
     <nav className="phone-app-grid" aria-label="手机应用">
-      {APPS.map(({id,label,Icon,tone,page,feature})=><button
-        key={id}
-        onClick={()=>page ? setPage(page) : feature && launch(feature)}
-        data-testid={`phone-app-${id}`}
-        aria-label={label}
-      >
-        <span className={`phone-app-icon ${tone}`}><Icon size={25} strokeWidth={1.8}/>
-          {id==='messages' && snap.unread>0 && <b className="phone-app-badge">{snap.unread>9?'9+':snap.unread}</b>}
-          {id==='career' && snap.career.canPromote && <b className="phone-app-badge">!</b>}
-        </span>
-        <span>{label}</span>
-      </button>)}
+      {GRID_APPS.map((app) => <AppButton key={app.id} app={app} />)}
     </nav>
-    <div className="phone-motto"><span>✦</span> 把今天，过成喜欢的样子。</div>
+    <div className="phone-page-dots" aria-hidden="true"><i className="on" /></div>
+    <nav className="phone-dock" aria-label="常用应用">
+      {DOCK_APPS.map((app) => <AppButton key={app.id} app={app} />)}
+    </nav>
   </div>;
 }
 
@@ -102,7 +117,6 @@ function PhonePlay() {
       <Gift size={42}/><span className="phone-game-star">✦</span><Gamepad2 size={68} strokeWidth={1.4}/>
       <span className="phone-game-sticker">快乐营业中</span>
     </div>
-    <span className="phone-eyebrow">A LITTLE GAME, A BIG SMILE</span>
     <h3>老板来接招</h3>
     <p className="phone-subtitle">接礼物，躲大饼。<br/>快乐也能攒成年终奖。</p>
     <button className="phone-primary" onClick={()=>launch('project')} data-testid="phone-play-open"><Gamepad2 size={18}/>{snap.activeRun?'继续上一局':'去玩一局'}<ArrowUpRight size={16}/></button>
@@ -165,7 +179,49 @@ function PhoneContacts() {
   </div>;
 }
 
-function PhoneMessages() {
+type TaskFilter = 'open' | 'all' | 'done';
+const FILTERS: { id: TaskFilter; label: string }[] = [
+  { id: 'open', label: '未完成' }, { id: 'all', label: '全部' }, { id: 'done', label: '已完成' },
+];
+
+function KimTasks() {
+  const snap = useGame((s) => s.snapshot)!;
+  const setPage = useGame((s) => s.setPhonePage);
+  const launch = useGame((s) => s.launchPhoneFeature);
+  const [filter, setFilter] = useState<TaskFilter>('open');
+  const [query, setQuery] = useState('');
+  const tasks = buildPhoneTasks(snap);
+  const counts = { open: tasks.filter((t) => !t.done).length, all: tasks.length, done: tasks.filter((t) => t.done).length };
+  const needle = query.trim().toLowerCase();
+  const shown = tasks.filter((t) => (filter === 'all' || (filter === 'done') === t.done)
+    && (!needle || `${t.title} ${t.detail} ${t.from} ${t.tag}`.toLowerCase().includes(needle)));
+  const groups: [string, KimTask[]][] = [
+    ['紧急', shown.filter((t) => t.priority === 'urgent')],
+    ['普通', shown.filter((t) => t.priority !== 'urgent')],
+  ];
+  const act = (t: KimTask) => t.page ? setPage(t.page) : t.feature && launch(t.feature);
+  return <>
+    <label className="phone-search"><Search size={15} /><input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="搜索任务、发起人" aria-label="搜索任务" /></label>
+    <div className="kim-filters" role="group" aria-label="任务筛选">
+      {FILTERS.map((f) => <button key={f.id} className={filter === f.id ? 'on' : ''} aria-pressed={filter === f.id} onClick={() => setFilter(f.id)}>{f.label}<small>{counts[f.id]}</small></button>)}
+    </div>
+    {groups.map(([name, list]) => list.length > 0 && <section key={name} className="kim-group">
+      <h4>{name}<small>{list.length}</small></h4>
+      <ul className="kim-task-list">{list.map((t) => <li key={t.id} className={`${t.done ? 'done' : ''} ${t.priority}`} data-testid={`kim-task-${t.id}`}>
+        <span className="kim-check" aria-label={t.done ? '已完成' : '未完成'} role="img">{t.done && <Check size={12} strokeWidth={3} />}</span>
+        <div>
+          <b>{t.title}</b>
+          <p>{t.detail}</p>
+          <small><span>{t.from}</span><em>{t.tag}</em>{t.progress && <span>{t.progress}</span>}</small>
+        </div>
+        {(t.page || t.feature) && <button className="kim-act" onClick={() => act(t)}>{t.actionLabel}</button>}
+      </li>)}</ul>
+    </section>)}
+    {!shown.length && <div className="phone-empty"><ListTodo size={32} /><b>{needle ? '没搜到这条任务' : filter === 'done' ? '还没有完成的任务' : '今天的活都干完啦'}</b><span>{needle ? '换个关键词试试。' : '去园区转转，新任务马上来。'}</span></div>}
+  </>;
+}
+
+function KimFeed() {
   const snap=useGame(s=>s.snapshot)!;
   const [filter,setFilter]=useState<'all'|'me'>('all');
   const [busy,setBusy]=useState(false);
@@ -177,15 +233,28 @@ function PhoneMessages() {
     catch(e){setError(e instanceof Error?e.message:'稍后再试试');}
     finally{setBusy(false);}
   };
-  return <div className="phone-page" data-testid="phone-messages">
-    <div className="phone-inbox-top"><span>{snap.unread?`${snap.unread} 条新消息`:'今天的消息都在这里'}</span><button disabled={busy||!snap.unread} onClick={()=>void markRead()} data-testid="phone-mark-read"><CheckCheck size={14}/>{busy?'标记中':'全部已读'}</button></div>
-    <div className="phone-segments"><button className={filter==='all'?'on':''} onClick={()=>setFilter('all')}>全部消息</button><button className={filter==='me'?'on':''} onClick={()=>setFilter('me')}>关于我的</button></div>
+  return <>
+    <div className="phone-inbox-top"><span>{snap.unread?`${snap.unread} 条新动态`:'动态都看完了'}</span><button disabled={busy||!snap.unread} onClick={()=>void markRead()} data-testid="phone-mark-read"><CheckCheck size={14}/>{busy?'标记中':'全部已读'}</button></div>
+    <div className="kim-filters"><button className={filter==='all'?'on':''} aria-pressed={filter==='all'} onClick={()=>setFilter('all')}>全部</button><button className={filter==='me'?'on':''} aria-pressed={filter==='me'} onClick={()=>setFilter('me')}>与我有关</button></div>
     {error&&<p className="phone-error" role="alert">{error}</p>}
     <ul className="phone-messages-list">{messages.map(m=><li key={m.id} className={!m.read&&m.scope==='me'?'unread':''} data-testid={`phone-message-${m.id}`}>
-      <div className={`phone-message-icon ${m.scope==='global'?'global':''}`}>{m.kind==='project'||m.kind==='dividend'?<Coins size={18}/>:m.kind==='poach'||m.kind==='poached'?<Users size={18}/>:<Gift size={18}/>}</div>
+      <div className={`phone-message-icon ${m.scope==='global'?'global':''}`}>{m.kind==='project'||m.kind==='dividend'?<Coins size={17}/>:m.kind==='poach'||m.kind==='poached'?<Users size={17}/>:<Gift size={17}/>}</div>
       <div><header><b>{m.title}</b><time>{new Date(m.createdAt).toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit'})}</time></header><p>{m.body}</p><small>{m.scope==='global'?'园区动态':'发给我的'}</small></div>
     </li>)}</ul>
-    {!messages.length&&<div className="phone-empty"><MessageCircle size={34}/><b>暂时没有新消息</b><span>去园区逛逛，好事正在路上。</span></div>}
+    {!messages.length&&<div className="phone-empty"><Bell size={32}/><b>暂时没有新动态</b><span>去园区逛逛，好事正在路上。</span></div>}
+  </>;
+}
+
+function PhoneMessages() {
+  const snap=useGame(s=>s.snapshot)!;
+  const [tab,setTab]=useState<'tasks'|'feed'>('tasks');
+  const open=buildPhoneTasks(snap).filter(t=>!t.done).length;
+  return <div className="phone-page kim-page" data-testid="phone-messages">
+    <div className="kim-tabs" role="tablist" aria-label="KIM">
+      <button role="tab" aria-selected={tab==='tasks'} className={tab==='tasks'?'on':''} onClick={()=>setTab('tasks')} data-testid="kim-tab-tasks">待办{open>0&&<b>{open}</b>}</button>
+      <button role="tab" aria-selected={tab==='feed'} className={tab==='feed'?'on':''} onClick={()=>setTab('feed')} data-testid="kim-tab-feed">动态{snap.unread>0&&<b>{snap.unread>9?'9+':snap.unread}</b>}</button>
+    </div>
+    {tab==='tasks'?<KimTasks/>:<KimFeed/>}
   </div>;
 }
 
@@ -245,15 +314,15 @@ function PhonePanel() {
   },[page]);
   return <div className="phone-backdrop" onPointerDown={e=>e.target===e.currentTarget&&close()}>
     <div className="game-phone" ref={dialog} role="dialog" aria-modal="true" aria-label="我的游戏手机" tabIndex={-1} data-testid="game-phone">
-      <span className="phone-side-button one"/><span className="phone-side-button two"/>
-      <div className="phone-display">
-        <div className="phone-status"><time>{time.toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit',hour12:false})}</time><span className="phone-island"/><span className="phone-status-icons" title={conn==='live'?'实时连接':'正在连接'}>{conn==='live'?<Wifi size={13}/>:<WifiOff size={13}/>}<BatteryFull size={17}/><button onClick={close} aria-label="收起手机" data-testid="phone-close"><X size={15}/></button></span></div>
-        <div className="phone-wallpaper" aria-hidden="true"><i/><i/><i/></div>
-        {page!=='home'&&<header className="phone-page-head"><button onClick={()=>setPage('home')} aria-label="返回手机桌面" data-testid="phone-back"><ArrowLeft size={18}/></button><h2>{TITLES[page]}</h2><span>BOSS OS</span></header>}
+      <span className="phone-side-button one"/><span className="phone-side-button two"/><span className="phone-side-button three"/>
+      <div className={`phone-display ${page==='home'?'':'app'} ${page==='messages'?'light':''}`}>
+        <div className="phone-status"><time>{time.toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit',hour12:false})}</time><span className="phone-island" aria-hidden="true"><i/></span><span className="phone-status-icons" title={conn==='live'?'实时连接':'正在连接'}><Signal size={14}/>{conn==='live'?<Wifi size={14}/>:<WifiOff size={14}/>}<BatteryFull size={19}/><button onClick={close} aria-label="收起手机" data-testid="phone-close"><X size={14} strokeWidth={2.6}/></button></span></div>
+        <div className="phone-wallpaper" aria-hidden="true"/>
+        {page!=='home'&&<header className="phone-page-head"><button onClick={()=>setPage('home')} aria-label="返回手机桌面" data-testid="phone-back"><ChevronLeft size={22}/><span>桌面</span></button><h2>{page==='messages'&&<img src={KIM_ICON} alt=""/>}{TITLES[page]}</h2></header>}
         <div className={`phone-screen ${page==='home'?'home':''}`} ref={screen} key={page}>
           {page==='home'?<PhoneHome/>:page==='play'?<PhonePlay/>:page==='contacts'?<PhoneContacts/>:page==='messages'?<PhoneMessages/>:page==='map'?<PhoneMap/>:<PhoneRanking/>}
         </div>
-        <footer className="phone-bottom"><span>{page==='home'?'MY LITTLE WORLD':'BOSS OS · 随时快乐'}</span><button onClick={()=>page==='home'?close():setPage('home')} aria-label={page==='home'?'收起手机':'返回手机桌面'} data-testid="phone-home-button"><i/></button></footer>
+        <footer className="phone-bottom"><button onClick={()=>page==='home'?close():setPage('home')} aria-label={page==='home'?'收起手机':'返回手机桌面'} data-testid="phone-home-button"><i/></button></footer>
       </div>
     </div>
   </div>;

@@ -27,3 +27,7 @@
 ## V3 图标
 
 新增界面使用 lucide-react 的标准线性图标，采用ISC许可；其中源自Feather的部分图标采用MIT许可。完整版权与许可随仓库保存在 [lucide.txt](licenses/lucide.txt)。商店和小队展示复用游戏自己的3D人物、材质与动画，没有从其他游戏拷贝人物或UI。
+
+## 游戏手机 KIM 图标
+
+按产品需求，`public/icons/kim.jpg` 使用 [Kim 官方 App Store 页面](https://apps.apple.com/cn/app/id1451160242) 公开展示的应用图标（开发者 Beijing Kwai Technology Co., Ltd.），2026-10-20 下载，100×100。商标与图像权利归原权利人所有，不适用本仓库 MIT 许可。它在游戏中标识 KIM 风格的任务入口；本项目没有接入或访问真实 KIM 的账号、任务或消息。手机壁纸、应用装饰与其余图标由 CSS、SVG 和现有 lucide 图标实现，不包含 Apple 图像或系统字体文件。

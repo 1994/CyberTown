@@ -1,0 +1,58 @@
+{
+  "viewports": [
+    "390x844",
+    "360x780",
+    "844x390",
+    "1280x720"
+  ],
+  "applications": 8,
+  "initialTasks": 8,
+  "afterRealGame": {
+    "open": 7,
+    "done": 1,
+    "coinsEarned": 8,
+    "growthEarned": 10
+  },
+  "filters": [
+    "search",
+    "open",
+    "all",
+    "done"
+  ],
+  "notificationMarkRead": true,
+  "focusLoop": [
+    "phone-close",
+    "phone-home-button"
+  ],
+  "runtimeErrors": [],
+  "covered": {
+    "fps": 30.3,
+    "medianMs": 33.3,
+    "p95Ms": 35.3,
+    "cpuMs": 4.7,
+    "p95CpuMs": 7.3,
+    "shadowUpdates": 2172,
+    "lightSelections": 866,
+    "calls": 457,
+    "triangles": 213640,
+    "geometries": 707,
+    "textures": 69,
+    "dpr": 1,
+    "frames": 152
+  },
+  "resumed": {
+    "fps": 60,
+    "medianMs": 16.7,
+    "p95Ms": 17.5,
+    "cpuMs": 2.8,
+    "p95CpuMs": 4.1,
+    "shadowUpdates": 2335,
+    "lightSelections": 924,
+    "calls": 385,
+    "triangles": 169273,
+    "geometries": 707,
+    "textures": 69,
+    "dpr": 1,
+    "frames": 301
+  }
+}

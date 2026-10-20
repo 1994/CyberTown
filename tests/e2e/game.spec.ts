@@ -122,7 +122,8 @@ test('BOSS OS: pauses movement, returns from apps, and walks to a map destinatio
   const before = await position(p);
   await p.keyboard.press('p');
   await expect(p.getByTestId('game-phone')).toBeVisible();
-  await expect(p.getByRole('navigation', { name: '手机应用' }).getByRole('button')).toHaveCount(8);
+  await expect(p.getByRole('navigation', { name: '手机应用', exact: true }).getByRole('button')).toHaveCount(4);
+  await expect(p.getByRole('navigation', { name: '常用应用', exact: true }).getByRole('button')).toHaveCount(4);
   await p.keyboard.down('d');
   await p.waitForTimeout(700);
   await p.keyboard.up('d');
