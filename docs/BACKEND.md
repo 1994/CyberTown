@@ -42,6 +42,8 @@ JSON 错误统一为 `{ "error": { "code": "...", "message": "..." } }`。普通
 | POST | `/api/colleagues/:id/sign` | 必填整数 `expectedPrice`，变价返回409 |
 | POST | `/api/project/start` | 返回服务端种子、开始时间、截止时间、技能快照 |
 | POST | `/api/project/finish` | `{runId,actions:[{taskId,t}]}`；不采信客户端分数或奖励 |
+| GET | `/api/career` | 当前职级、业绩、有效项目数、下一阶门槛与 `canPromote` |
+| POST | `/api/career/promote` | 必填整数 `expectedRank`（当前职级）→ `{promotion,career}` |
 | POST | `/api/messages/read` | 标记当前玩家私信已读 |
 | GET | `/api/audit` | 玩家账本、单笔守恒、NPC分红、负余额、工位检查 |
 | POST | `/api/logout` | 注销本会话并关闭其 SSE |
@@ -56,6 +58,20 @@ JSON 错误统一为 `{ "error": { "code": "...", "message": "..." } }`。普通
 所有金币使用整数：初签300；下一价格 `ceil(前价 × 1.25 / 10) × 10`；原持有人向下取整得90%，分身本人向下取整得5%，余数进系统。初签无原持有人，分身本人5%、系统95%。一笔交易的账本借贷之和必须为零；项目与碰杯奖励为新发行金币。
 
 挑战基础15秒，允许300毫秒结算容差，结束后30秒内可提交。开始时固定技能快照；重复开始恢复原局，禁止刷种子；截止前拒绝领奖，过期持久化，领取只能提交一次。服务端独立生成任务并核对任务ID、时段、重复和90毫秒操作间隔。Go的32位PRNG运算和计分通过36组与 TypeScript 的契约样例逐项对照。
+
+## 职场晋升
+
+晋升规则见 [模式定案](COMMUNITY-MODE.md)，前端接入规格见 [Claude 交接](CLAUDE-CAREER-HANDOFF.md)。目前 Go 后端已实现，网页晋升入口尚未接入。
+
+每个经服务器核验的非陷阱命中 +10 业绩，一局有命中才计为一个有效项目。结算同时更新奖励、账本、项目状态、业绩与有效项目数；重复提交不会重复累计。空局、过期或未结算项目没有晋升进度。买卖、分红和碰杯不增加业绩。
+
+`player_careers` 独立表保存职级和累计成长。启动时自动补建缺失记录，从旧存档已结算项目的 `result.hits` 恢复业绩及有效项目次数；不自动替玩家升职，不改钱包，已有职级不被覆盖。显式演示重置才清空成长。
+
+`GET /api/state` 的 `career` 包含 `rank,name,performance,completedProjects,incomePct,next,canPromote`；满级 `next:null`。`me` 和 `players[]` 增加 `rank,rankName`，保留原人物 `title`。`teamSkills` 只含队友；新增 `projectSkills` 为下一局预览，收益为队友（最高75%）加职级（最高20%）。`run.skills` 是锁定的本局合计技能。
+
+`POST /api/career/promote` 原子检查当前职级和两项门槛，逐级提升、记录消息并递增版本；不扣金币和业绩。请求必须提交当前 `expectedRank`，防并发重复晋升。错误为400 `BAD_RANK`，409 `RANK_CHANGED/NOT_ELIGIBLE/MAX_RANK`。成功提交后通过 SSE 广播 `event.kind="promotion"` 及 `playerId,fromRank,toRank,rankName,incomePct,at`。
+
+项目完成响应增加 `performanceEarned,career`。开局后再晋升只影响下一局，不改已保存的 `run.skills`，Go/TS 随机任务与计分契约保持一致。
 
 ## 多人园区接口
 

@@ -37,6 +37,8 @@ type Player struct {
 	TeamSize          int     `json:"teamSize"`
 	AvatarColleagueID *string `json:"avatarColleagueId"`
 	Online            bool    `json:"online"`
+	Rank              int     `json:"rank"`
+	RankName          string  `json:"rankName"`
 }
 type Colleague struct {
 	ID           string  `json:"id"`
@@ -75,16 +77,18 @@ type Run struct {
 	Status     string `json:"status"`
 }
 type Snapshot struct {
-	ServerTime int64       `json:"serverTime"`
-	Version    int64       `json:"version"`
-	Me         Player      `json:"me"`
-	Players    []Player    `json:"players"`
-	Colleagues []Colleague `json:"colleagues"`
-	TeamSkills Skills      `json:"teamSkills"`
-	ActiveRun  *Run        `json:"activeRun"`
-	Messages   []Message   `json:"messages"`
-	Unread     int         `json:"unread"`
-	SystemPool int         `json:"systemPool"`
+	ServerTime    int64       `json:"serverTime"`
+	Version       int64       `json:"version"`
+	Me            Player      `json:"me"`
+	Players       []Player    `json:"players"`
+	Colleagues    []Colleague `json:"colleagues"`
+	TeamSkills    Skills      `json:"teamSkills"`
+	ProjectSkills Skills      `json:"projectSkills"`
+	Career        Career      `json:"career"`
+	ActiveRun     *Run        `json:"activeRun"`
+	Messages      []Message   `json:"messages"`
+	Unread        int         `json:"unread"`
+	SystemPool    int         `json:"systemPool"`
 }
 type Trade struct {
 	Kind             string  `json:"kind"`
@@ -124,8 +128,10 @@ type ProjectResult struct {
 	Total       int `json:"total"`
 }
 type Finish struct {
-	Result ProjectResult `json:"result"`
-	Coins  int           `json:"coins"`
+	Result            ProjectResult `json:"result"`
+	Coins             int           `json:"coins"`
+	PerformanceEarned int           `json:"performanceEarned"`
+	Career            Career        `json:"career"`
 }
 type Audit struct {
 	Mismatches  []string `json:"mismatches"`

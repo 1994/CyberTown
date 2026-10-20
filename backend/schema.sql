@@ -84,3 +84,9 @@ CREATE TABLE IF NOT EXISTS social_rewards (
   pair_key TEXT PRIMARY KEY,
   claimed_at INTEGER NOT NULL
 );
+CREATE TABLE IF NOT EXISTS player_careers (
+  player_id TEXT PRIMARY KEY REFERENCES players(id),
+  rank INTEGER NOT NULL DEFAULT 0 CHECK (rank BETWEEN 0 AND 4),
+  performance INTEGER NOT NULL DEFAULT 0 CHECK (performance >= 0),
+  completed_projects INTEGER NOT NULL DEFAULT 0 CHECK (completed_projects >= 0)
+);

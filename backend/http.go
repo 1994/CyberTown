@@ -218,6 +218,27 @@ func (a *App) handle(w http.ResponseWriter, r *http.Request) error {
 			return err
 		}
 		respond(w, 200, map[string]bool{"ok": true})
+	case path == "/api/career" && method == "GET":
+		career, err := a.Game.Career(player)
+		if err != nil {
+			return err
+		}
+		respond(w, 200, career)
+	case path == "/api/career/promote" && method == "POST":
+		body, err := readBody(w, r)
+		if err != nil {
+			return err
+		}
+		var expectedRank *int
+		if json.Unmarshal(body["expectedRank"], &expectedRank) != nil || expectedRank == nil {
+			return fail(400, "BAD_RANK", "请提交当前职级")
+		}
+		promotion, career, err := a.Game.Promote(player, *expectedRank)
+		if err != nil {
+			return err
+		}
+		a.Broadcast(promotion)
+		respond(w, 200, map[string]any{"promotion": promotion, "career": career})
 	case strings.HasPrefix(path, "/api/colleagues/") && strings.HasSuffix(path, "/sign") && method == "POST":
 		id := strings.TrimSuffix(strings.TrimPrefix(path, "/api/colleagues/"), "/sign")
 		if id == "" || strings.Contains(id, "/") {

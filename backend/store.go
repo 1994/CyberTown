@@ -92,9 +92,9 @@ func (g *Game) seed(reset bool) error {
 			return err
 		}
 		if count > 0 && !reset {
-			return nil
+			return ensureCareers(tx)
 		}
-		for _, t := range []string{"sessions", "trades", "ledger", "project_runs", "social_rewards", "messages", "colleagues", "players", "meta"} {
+		for _, t := range []string{"sessions", "trades", "ledger", "project_runs", "social_rewards", "player_careers", "messages", "colleagues", "players", "meta"} {
 			if _, err := tx.Exec("DELETE FROM " + t); err != nil {
 				return err
 			}
@@ -135,8 +135,10 @@ func (g *Game) seed(reset bool) error {
 		if err := message(tx, nil, "system", "新的一天开始了", "人才市场开张！所有同事自愿挂牌，初签价 300 金币。", nil, now); err != nil {
 			return err
 		}
-		_, err := tx.Exec("INSERT INTO meta(key,value) VALUES('version','1')")
-		return err
+		if _, err := tx.Exec("INSERT INTO meta(key,value) VALUES('version','1')"); err != nil {
+			return err
+		}
+		return ensureCareers(tx)
 	})
 }
 func ledger(q queryer, account string, delta int, reason, ref string, now int64) error {
@@ -320,6 +322,14 @@ func (g *Game) Snapshot(id string, online map[string]bool) (Snapshot, error) {
 		if err != nil {
 			return err
 		}
+		for i := range snap.Players {
+			career, err := readCareer(tx, snap.Players[i].ID)
+			if err != nil {
+				return err
+			}
+			snap.Players[i].Rank = career.Rank
+			snap.Players[i].RankName = career.Name
+		}
 		sortPlayers(snap.Players)
 		found := false
 		for _, p := range snap.Players {
@@ -332,6 +342,11 @@ func (g *Game) Snapshot(id string, online map[string]bool) (Snapshot, error) {
 			return fail(401, "NO_PLAYER", "玩家不存在")
 		}
 		snap.TeamSkills = TeamSkills(ownTeam(snap.Colleagues, id))
+		snap.Career, err = readCareer(tx, id)
+		if err != nil {
+			return err
+		}
+		snap.ProjectSkills = careerSkills(snap.TeamSkills, snap.Career)
 		run, err := scanRun(tx.QueryRow("SELECT "+runColumns+" FROM project_runs WHERE player_id=? AND status='active' ORDER BY started_at DESC LIMIT 1", id))
 		if err != nil && err != sql.ErrNoRows {
 			return err

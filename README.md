@@ -15,7 +15,7 @@
 需要 **Go 1.26+**、**Node.js 22.18+（含 npm）** 和 **Make**，支持 macOS / Linux。本机实际验证 Go 1.27.2、Node 25.9.0。
 
 ```sh
-gh repo clone 1994/boss-works-for-me
+gh repo clone 1994/boss-works-for-me -- --branch review/social-campus
 cd boss-works-for-me
 make up
 ```
@@ -53,11 +53,11 @@ npm run start:binary
 
 ## 新版怎么玩
 
-**走过去 → 遇到人 → 招进队 → 赚金币。**
+**走过去 → 遇到人 → 做项目 → 升职带队。**
 
 用 WASD / 方向键自由走，或点击地面、地图地标自动步行。靠近角色再互动；公式和账单放到详情，不必先读教程。[策划改造与验收目标](docs/GAMEPLAY-V2.md)。
 
-后续方向分析：[参考动森的职场社区模式](docs/COMMUNITY-MODE.md)（布置、送礼与异步来访尚未实现）。
+玩法定案：[职场成长与园区社交](docs/COMMUNITY-MODE.md)。取消空间布置，新增新人→专员→主管→经理→合伙人的晋升主线。晋升 Go 后端已实现并积累业绩，网页入口待 Claude 接入；[前端交接规格](docs/CLAUDE-CAREER-HANDOFF.md)。上面的克隆命令拉取本次 review 分支，稳定 main 不包含这轮改版。
 
 本轮状态见 [新版独立 review](docs/REVIEW-V2.md)：行走、双玩家互动、交易与项目已实测；首版园区地面存在遮挡问题，视觉验收待返工。
 

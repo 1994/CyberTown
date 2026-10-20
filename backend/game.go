@@ -175,6 +175,11 @@ func (g *Game) StartProject(player string) (Run, error) {
 			return err
 		}
 		skills := TeamSkills(ownTeam(all, player))
+		career, err := readCareer(tx, player)
+		if err != nil {
+			return err
+		}
+		skills = careerSkills(skills, career)
 		var random [4]byte
 		if _, err = rand.Read(random[:]); err != nil {
 			return err
@@ -230,6 +235,16 @@ func (g *Game) FinishProject(player, id string, actions []Action) (Finish, error
 			return err
 		}
 		if err = ledger(tx, "player:"+player, out.Result.Total, "project_reward", "run:"+id, now); err != nil {
+			return err
+		}
+		out.PerformanceEarned = out.Result.Hits * 10
+		if out.Result.Hits > 0 {
+			if _, err = tx.Exec("UPDATE player_careers SET performance=performance+?,completed_projects=completed_projects+1 WHERE player_id=?", out.PerformanceEarned, player); err != nil {
+				return err
+			}
+		}
+		out.Career, err = readCareer(tx, player)
+		if err != nil {
 			return err
 		}
 		if err = message(tx, ptr(player), "project", fmt.Sprintf("紧急项目完成 +%d", out.Result.Total), fmt.Sprintf("完成 %d 项任务，最高连击 %d，护盾抵消 %d 次失误，技能加成 +%d，共获得 %d 金币。", out.Result.Hits, out.Result.MaxCombo, out.Result.ShieldsUsed, out.Result.IncomeBonus, out.Result.Total), out.Result, now); err != nil {
