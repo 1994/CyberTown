@@ -128,6 +128,7 @@ function Roster() {
               <button
                 className="btn ghost sm"
                 onClick={() => {
+                  useGame.getState().closePhone();
                   const p = rt.colleaguePos.get(c.id);
                   if (p) walkNear(p.x, p.z, 1.5);
                   setDrawer(null);

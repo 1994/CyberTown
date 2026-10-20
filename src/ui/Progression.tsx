@@ -654,6 +654,7 @@ function FriendsPanel() {
               onClick={() => {
                 if (!entry) return;
                 const pos = rt.remote.get(p.id) ?? entry;
+                useGame.getState().closePhone();
                 walkNear(pos.x, pos.z, 1.8);
                 setDrawer(null);
               }}

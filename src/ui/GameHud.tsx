@@ -19,6 +19,7 @@ import { Minimap } from './Minimap.tsx';
 import { Joystick } from './Joystick.tsx';
 import { CinematicOverlay } from './CinematicOverlay.tsx';
 import { useCinema } from '../scene/cinema.ts';
+import { GamePhone } from './GamePhone.tsx';
 import { Drawers } from './Drawers.tsx';
 import { ProjectGame } from './ProjectGame.tsx';
 import {
@@ -35,6 +36,7 @@ import {
   Menu,
   MessageCircle,
   ShoppingBag,
+  Smartphone,
   Users,
   X,
 } from 'lucide-react';
@@ -56,6 +58,7 @@ function MapPanel() {
   const setDrawer = useGame((s) => s.setDrawer);
   const logout = useGame((s) => s.logout);
   const replayIntro = useGame((s) => s.replayIntro);
+  const openPhone = useGame((s) => s.openPhone);
   const [zone, setZone] = useState('共享广场');
   useEffect(() => {
     const id = setInterval(
@@ -97,6 +100,16 @@ function MapPanel() {
           {zone}
         </span>
         <button
+          className="chip-btn phone-launch"
+          onClick={() => openPhone()}
+          aria-label={`我的手机${unread ? `，${unread}条未读消息` : ''}`}
+          title="我的手机（P）"
+          data-testid="btn-phone"
+        >
+          <Smartphone size={18}/>
+          {unread > 0 && <b className="dot-badge">{unread > 9 ? '9+' : unread}</b>}
+        </button>
+        <button
           className={`chip-btn ${map ? 'on' : ''}`}
           onClick={() => setMap((v) => !v)}
           aria-label="园区地图"
@@ -113,9 +126,6 @@ function MapPanel() {
           data-testid="btn-menu"
         >
           <Menu size={17} />
-          {unread > 0 && (
-            <b className="dot-badge">{unread > 9 ? '9+' : unread}</b>
-          )}
         </button>
       </div>
       {menu && (
@@ -566,9 +576,10 @@ export function GameHud() {
   const playing = useGame((s) => s.introPlaying);
   const shot = useCinema((s) => s.shot);
   const cinematic = playing || !!shot;
+  const phoneOpen = useGame((s) => s.phoneOpen);
   return (
     <div className={`hud v3-hud ${cinematic ? 'cinematic' : ''}`}>
-      <div className="game-interface" inert={cinematic} aria-hidden={cinematic}>
+      <div className="game-interface" inert={cinematic || phoneOpen} aria-hidden={cinematic || phoneOpen}>
       <div className="v3-brand">
         今天老板给我打工 <span>A LITTLE BREAK, A LOT OF FUN</span>
       </div>
@@ -594,6 +605,7 @@ export function GameHud() {
       <Drawers />
       <Progression />
       </div>
+      <GamePhone/>
       <CinematicOverlay />
     </div>
   );

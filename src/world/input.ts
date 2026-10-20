@@ -13,7 +13,7 @@ export function isTypingTarget(t: EventTarget | null): boolean {
 /** 抽屉、确认框、项目小游戏等打开时锁定移动 */
 export function movementLocked(): boolean {
   const g = useGame.getState();
-  return useWorld.getState().locks.length > 0 || g.drawer !== null || g.projectActive || g.introPlaying;
+  return useWorld.getState().locks.length > 0 || g.drawer !== null || g.projectActive || g.introPlaying || g.phoneOpen;
 }
 
 export function clearKeys() {
@@ -30,6 +30,13 @@ export function useWorldInput(enabled: boolean) {
     if (!enabled) return;
     const down = (e: KeyboardEvent) => {
       if (isTypingTarget(e.target)) return;
+      if (e.code === 'KeyP' && !e.repeat) {
+        const game = useGame.getState();
+        if (game.phoneOpen) game.closePhone();
+        else if (!movementLocked()) game.openPhone();
+        e.preventDefault();
+        return;
+      }
       if (MOVE_KEYS.has(e.code)) {
         if (movementLocked()) return;
         rt.keys.add(e.code);

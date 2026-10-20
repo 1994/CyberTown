@@ -17,6 +17,9 @@ export type Drawer =
   | 'squad'
   | 'friends';
 
+export type PhonePage = 'home' | 'play' | 'contacts' | 'messages' | 'map' | 'ranking';
+export type PhoneFeature = 'project' | 'career' | 'shop' | 'squad';
+
 export interface Toast {
   id: number;
   tone: 'good' | 'bad' | 'info' | 'gold';
@@ -46,6 +49,9 @@ interface GameStore {
   introNonce: number;
   introPlaying: boolean;
   projectActive: boolean;
+  phoneOpen: boolean;
+  phonePage: PhonePage;
+  phoneReturn: boolean;
   /** 被挖走的工位：显示补偿提示（按桌位索引） */
   poachMarkers: Record<number, PoachMarker>;
   busy: Record<string, boolean>;
@@ -78,6 +84,11 @@ interface GameStore {
   setBusy: (k: string, v: boolean) => void;
   handleEvent: (e: GameEvent) => void;
   setConn: (c: GameStore['conn']) => void;
+  openPhone: (page?: PhonePage) => void;
+  closePhone: () => void;
+  setPhonePage: (page: PhonePage) => void;
+  launchPhoneFeature: (feature: PhoneFeature) => void;
+  resumePhone: () => void;
 }
 
 let toastSeq = 1;
@@ -98,6 +109,9 @@ export const useGame = create<GameStore>((set, get) => ({
   introNonce: 0,
   introPlaying: false,
   projectActive: false,
+  phoneOpen: false,
+  phonePage: 'home',
+  phoneReturn: false,
   poachMarkers: {},
   busy: {},
   celebration: null,
@@ -175,6 +189,8 @@ export const useGame = create<GameStore>((set, get) => ({
       toasts: [],
       projectActive: false,
       introPlaying: false,
+      phoneOpen: false,
+      phoneReturn: false,
       celebration: null,
       lastCelebrationKey: '',
     });
@@ -199,6 +215,7 @@ export const useGame = create<GameStore>((set, get) => ({
       } catch (e) {
         if (e instanceof ApiError && e.status === 401) {
           session.clear();
+          get().closePhone();
           set({ phase: 'login', snapshot: null });
           get().toast({
             tone: 'info',
@@ -230,6 +247,7 @@ export const useGame = create<GameStore>((set, get) => ({
     set({ marketOpen: v });
   },
   replayIntro() {
+    get().closePhone();
     useCinema.getState().prepareIntro();
     set((s) => ({ introNonce: s.introNonce + 1, introPlaying: true, drawer: null, celebration: null }));
   },
@@ -244,6 +262,29 @@ export const useGame = create<GameStore>((set, get) => ({
   },
   setConn(c) {
     set({ conn: c });
+  },
+  openPhone(page = 'home') {
+    const state = get();
+    if (state.phase !== 'game' || state.introPlaying || state.projectActive || state.drawer || state.celebration || useWorld.getState().projectOpen) return;
+    useCinema.getState().clear();
+    useWorld.getState().lock('phone');
+    set({ phoneOpen: true, phonePage: page, phoneReturn: false });
+  },
+  closePhone() {
+    useWorld.getState().unlock('phone');
+    set({ phoneOpen: false, phoneReturn: false });
+  },
+  setPhonePage(phonePage) {
+    set({ phonePage });
+  },
+  launchPhoneFeature(feature) {
+    useWorld.getState().unlock('phone');
+    if (feature === 'project') useWorld.getState().setProjectOpen(true);
+    set({ phoneOpen: false, phoneReturn: true, drawer: feature === 'project' ? null : feature });
+  },
+  resumePhone() {
+    useWorld.getState().lock('phone');
+    set({ phoneOpen: true, phoneReturn: false });
   },
 
   handleEvent(e) {

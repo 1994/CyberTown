@@ -113,8 +113,9 @@ function ColleagueActor({
     if (p.owner !== owner) {
       const game = useGame.getState();
       const me = game.snapshot?.me.id;
-      if ((owner === me || p.owner === me) && !game.introPlaying && !game.projectActive && !useWorld.getState().projectOpen) {
+      if ((owner === me || p.owner === me) && !game.introPlaying && !game.projectActive && !game.phoneOpen && !useWorld.getState().projectOpen) {
         const meta = SKILL_META[c.skill.kind];
+        game.closePhone();
         game.setDrawer(null);
         game.setMarketOpen(false);
         useWorld.getState().setOverview(false);
@@ -233,7 +234,7 @@ function ColleagueActor({
             });
             r.trans = { kind: 'arrive', t0: now, fx: false };
             setBubble('报到！🙋');
-            if (c.ownerId === rt.myId && useCinema.getState().shot?.colleagueId === c.id && !useGame.getState().introPlaying && !useGame.getState().projectActive && !useGame.getState().drawer && !useWorld.getState().projectOpen) {
+            if (c.ownerId === rt.myId && useCinema.getState().shot?.colleagueId === c.id && !useGame.getState().introPlaying && !useGame.getState().projectActive && !useGame.getState().phoneOpen && !useGame.getState().drawer && !useWorld.getState().projectOpen) {
               useCinema.getState().focus({
                 colleagueId: c.id,
                 kind: 'arrival',

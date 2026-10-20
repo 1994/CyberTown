@@ -8,7 +8,7 @@ const W = B.maxX - B.minX;
 const H = B.maxZ - B.minZ;
 
 /** 小地图：区域、道路、在线玩家、自己的朝向与小队。点击 = 设定步行目标（寻路走过去，不瞬移） */
-export function Minimap() {
+export function Minimap({ onNavigate }: { onNavigate?: () => void } = {}) {
   const snap = useGame((s) => s.snapshot)!;
   const players = useWorld((s) => s.players);
   const [, setTick] = useState(0);
@@ -23,6 +23,7 @@ export function Minimap() {
     const x = B.minX + ((e.clientX - r.left) / r.width) * W;
     const z = B.minZ + ((e.clientY - r.top) / r.height) * H;
     const p = findPath(rt.me.x, rt.me.z, x, z);
+    onNavigate?.();
     rt.path = p && p.length ? p : null;
     useWorld.getState().setOverview(false);
   };

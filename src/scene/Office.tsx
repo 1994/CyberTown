@@ -126,7 +126,7 @@ export function OfficeCanvas({ myId }: { myId: string | null }) {
   const onGround = (e: ThreeEvent<MouseEvent>) => {
     if (!playing || e.delta > 6) return;
     const g = useGame.getState();
-    if (g.projectActive || g.drawer || g.introPlaying || useWorld.getState().locks.length) return;
+    if (g.projectActive || g.drawer || g.introPlaying || g.phoneOpen || useWorld.getState().locks.length) return;
     useWorld.getState().setOverview(false);
     walkNear(e.point.x, e.point.z);
   };

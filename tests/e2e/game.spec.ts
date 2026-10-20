@@ -116,6 +116,55 @@ test.afterEach(async ({ browser }) => {
   for (const ctx of browser.contexts()) await ctx.close();
 });
 
+test('BOSS OS: pauses movement, returns from apps, and walks to a map destination', async ({ browser }) => {
+  const a = await openPlayer(browser, 'wang');
+  const p = a.page;
+  const before = await position(p);
+  await p.keyboard.press('p');
+  await expect(p.getByTestId('game-phone')).toBeVisible();
+  await expect(p.getByRole('navigation', { name: '手机应用' }).getByRole('button')).toHaveCount(8);
+  await p.keyboard.down('d');
+  await p.waitForTimeout(700);
+  await p.keyboard.up('d');
+  const paused = await position(p);
+  expect(Math.hypot(paused[0] - before[0], paused[1] - before[1])).toBeLessThan(0.1);
+  await p.keyboard.press('Tab');
+  await expect(p.getByTestId('phone-close')).toBeFocused();
+  await p.keyboard.press('Shift+Tab');
+  await expect(p.getByTestId('phone-home-button')).toBeFocused();
+
+  await p.getByTestId('phone-app-contacts').click();
+  await p.getByLabel('搜索园区同事').fill('wasd');
+  await p.getByLabel('搜索园区同事').press('p');
+  await expect(p.getByTestId('game-phone')).toBeVisible();
+  await expect(p.getByLabel('搜索园区同事')).toHaveValue('wasdp');
+  await p.getByTestId('phone-back').click();
+  for (const [app, title] of [['shop', '年终好物商店'], ['career', '我的成长'], ['squad', '我的快乐小队']]) {
+    await p.getByTestId(`phone-app-${app}`).click();
+    await expect(p.getByRole('dialog', { name: title, exact: true })).toBeVisible();
+    await p.getByTestId('progression-close').click();
+    await expect(p.getByTestId('phone-home')).toBeVisible();
+  }
+  await p.getByTestId('phone-app-play').click();
+  await expect(p.getByTestId('phone-play-open')).toBeInViewport({ ratio: 1 });
+  await p.getByTestId('phone-play-open').click();
+  await p.getByRole('button', { name: '关闭小游戏', exact: true }).click();
+  await expect(p.getByTestId('phone-play')).toBeVisible();
+  await p.keyboard.press('Escape');
+  await expect(p.getByTestId('phone-home')).toBeVisible();
+  await p.setViewportSize({ width: 390, height: 844 });
+  const phone = await p.getByTestId('game-phone').boundingBox();
+  expect(phone).not.toBeNull();
+  expect(phone!.x).toBeGreaterThanOrEqual(0);
+  expect(phone!.x + phone!.width).toBeLessThanOrEqual(390);
+  expect(phone!.y + phone!.height).toBeLessThanOrEqual(844);
+  await p.getByTestId('phone-app-map').click();
+  await p.getByTestId('phone-place-coffee').click();
+  await expect(p.getByTestId('game-phone')).toBeHidden();
+  await expect(p.getByTestId('zone-name')).toContainText('咖啡', { timeout: 20_000 });
+  expect(a.errors).toEqual([]);
+});
+
 test('V3 login: one click, clearly marked test identity, no forced guide or market', async ({
   browser,
 }) => {
