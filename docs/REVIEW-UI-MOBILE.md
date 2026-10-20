@@ -38,3 +38,27 @@
 ![横屏小游戏完整显示](../artifacts/claude-ui/arcade-landscape.jpg)
 ![桌面小游戏](../artifacts/claude-ui/arcade-desktop.jpg)
 ![真实命中与服务端结算](../artifacts/claude-ui/arcade-result-mobile.jpg)
+
+
+## 第二轮：主界面视觉精修与聊天操作
+
+继续恢复同一 Claude Code 会话完成一轮有限的 UI 实现；本轮五小时总用量从23%到25%，没有启动其他 Claude worker。Claude 负责霓虹面板、金色金币/奖金层次、主按钮的品红渐变与动态时长角标，以及更精简的顶部文案；Codex 负责以下验收修正和交互实现。
+
+- 修正旧手机样式残留的91px高度、竖排钱包与100%宽度金币按钮，明确钱包/奖金卡56px高、第一行底边66px，第二行从70px起。360×780下测试999,999金币：钱包右边228px，金币右边220.75px，无溢出；随后恢复临时测试数据。
+- 奖金仍标记「预计奖金」，避免把未结算预估值当成到账余额。年终奖进度继续来自服务端。
+- 触屏互动卡隐藏重复的主操作按钮，保留监听挂载，右拇指键依旧完成招募。实测张总600→300金币，小队0→1、预计奖金300→375，入队电影出现。
+- 聊天增加44×44发送/收起按钮和软键盘send提示。修正旧focus-within规则在按下聊天按钮时就隐藏按钮、导致click不触发的问题；改为展开后才隐藏表情入口。空白/冷却时禁止发送，Escape可收起；收起不发送草稿，恢复摇杆。
+- 地图/菜单弹层高于聊天栏；地图关闭与菜单按钮至少44px。真实点击展开地图，DOM命中检测确认关闭按钮未被遮挡。
+
+验证：生产构建、TypeScript与git diff --check通过；现有Go测试、36组规则契约、72条地图路线、8项渲染检查通过。实际检查360×780、390×844、844×390、1280×720；桌面无触控摇杆，空格实际接住礼物，10金币与10成长值结算已核对。聊天通过真实点击开启、填写、发送后在角色头顶出现文字；再次填写草稿后点收起，输入框消失、摇杆恢复。浏览器无运行时错误。本轮没有增加3D渲染负载或重新做帧率测量；实体手机软键盘与双指仍需设备体验确认。
+
+本轮测试仅使用8793服务及临时数据库，未修改原8787服务的玩家资产。
+
+![桌面调整前](../artifacts/hud-polish/before-desktop.jpg)
+![桌面调整后](../artifacts/hud-polish/after-desktop.jpg)
+![手机390px](../artifacts/hud-polish/after-mobile-390.jpg)
+![手机360px](../artifacts/hud-polish/after-mobile-360.jpg)
+![横屏](../artifacts/hud-polish/after-landscape.jpg)
+![六位金币边界](../artifacts/hud-polish/mobile-six-digit-coins.jpg)
+![聊天操作](../artifacts/hud-polish/mobile-chat.jpg)
+![地图弹层](../artifacts/hud-polish/mobile-map.jpg)

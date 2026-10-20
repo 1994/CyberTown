@@ -2402,9 +2402,6 @@ kbd {
   .chatbar:focus-within {
     z-index: 3;
   }
-  .chatbar:focus-within .emote-btn {
-    display: none;
-  }
   .interact-slot {
     bottom: 167px;
     max-width: calc(100% - 28px);

@@ -171,9 +171,9 @@ export function YearCard() {
         <Gift size={23} />
       </span>
       <span className="year-copy">
-        <small>第 {y.number} 年 · 快乐营业中</small>
+        <small>第 {y.number} 年</small>
         <b>
-          预计年终奖{' '}
+          预计奖金{' '}
           <span>
             {fmt(y.estimate)}
             <Coins size={13} />
@@ -185,7 +185,7 @@ export function YearCard() {
               {i < y.completed ? <Check size={10} /> : null}
             </i>
           ))}
-          <em>再玩 {y.required - y.completed} 场就发奖</em>
+          <em>{y.completed >= y.required ? '可以发奖啦' : `再玩 ${y.required - y.completed} 场`}</em>
         </span>
       </span>
       <ChevronRight size={15} />
@@ -204,7 +204,7 @@ export function QuickSquad() {
       aria-label={`查看我的小队，${team.length}名成员`}
     >
       <span className="quick-squad-title">
-        我的小队 <small>{team.length}/3</small>
+        小队 <small>{team.length}/3</small>
       </span>
       <span className="quick-faces">
         {Array.from({ length: 3 }, (_, i) => {

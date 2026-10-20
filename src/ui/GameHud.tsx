@@ -38,6 +38,7 @@ import {
   Menu,
   MessageCircle,
   ShoppingBag,
+  Send,
   Smartphone,
   Users,
   X,
@@ -427,7 +428,10 @@ function ChatBar() {
       setTimeout(() => input.current?.focus(), 0);
     };
     window.addEventListener('world-chat', on);
-    return () => window.removeEventListener('world-chat', on);
+    return () => {
+      window.removeEventListener('world-chat', on);
+      useWorld.getState().unlock('chat');
+    };
   }, []);
   const send = async (payload: { emote?: EmoteKind; text?: string }) => {
     if (cool) return;
@@ -442,18 +446,23 @@ function ChatBar() {
       });
     }
   };
+  const closeChat = () => {
+    input.current?.blur();
+    setOpen(false);
+  };
   const submit = () => {
+    if (cool) return;
     const t = clipCodepoints(text.trim(), 40);
     if (!t) {
-      input.current?.blur();
+      closeChat();
       return;
     }
     setText('');
     void send({ text: t });
-    input.current?.blur();
+    closeChat();
   };
   return (
-    <div className="chatbar" data-testid="chatbar">
+    <div className="chatbar" data-open={open ? '' : undefined} data-testid="chatbar">
       {EMOTES.map((e) => (
         <button
           key={e.k}
@@ -482,11 +491,20 @@ function ChatBar() {
             onChange={(e) => setText(clipCodepoints(e.target.value, 40))}
             onFocus={() => useWorld.getState().lock('chat')}
             onBlur={() => useWorld.getState().unlock('chat')}
-            onKeyDown={(e) => e.key === 'Escape' && input.current?.blur()}
+            onKeyDown={(e) => e.key === 'Escape' && closeChat()}
+            enterKeyHint="send"
+            autoComplete="off"
             placeholder={touch ? '说点什么' : '说点什么（Enter）'}
             aria-label="发送一句话"
             data-testid="chat-input"
           />
+          <button type="submit" className="chat-send" aria-label="发送聊天" data-testid="chat-send"
+            disabled={cool || !text.trim()} onPointerDown={(e) => e.preventDefault()}>
+            <Send size={18} />
+          </button>
+          <button type="button" className="chat-close" aria-label="收起聊天" data-testid="chat-close" onClick={closeChat}>
+            <X size={18} />
+          </button>
         </form>
       ) : (
         <button
@@ -506,6 +524,8 @@ function ChatBar() {
 function GameDock() {
   const setProjectOpen = useWorld((s) => s.setProjectOpen);
   const pending = useGame((s) => s.snapshot?.activeRun);
+  const sk = useGame((s) => s.snapshot?.projectSkills);
+  const secs = sk ? Math.round(projectDuration(sk) / 1000) : 15;
   const setDrawer = useGame((s) => s.setDrawer);
   const drawer = useGame((s) => s.drawer);
   return (
@@ -517,7 +537,8 @@ function GameDock() {
       >
         <Gamepad2 size={23} />
         <span>{pending ? '继续玩' : '玩一局'}</span>
-        <small>老板来接招</small>
+        <small>接礼物 · 拒绝大饼</small>
+        <em className="dock-badge" aria-hidden>{secs}秒</em>
       </button>
       <i className="dock-divider" />
       <button
@@ -594,7 +615,7 @@ export function GameHud() {
     <div className={`hud v3-hud ${cinematic ? 'cinematic' : ''} ${touch ? 'touch-ui' : ''}`}>
       <div className="game-interface" inert={cinematic || phoneOpen} aria-hidden={cinematic || phoneOpen}>
       <div className="v3-brand">
-        今天老板给我打工 <span>A LITTLE BREAK, A LOT OF FUN</span>
+        今天<em>老板</em>给我打工
       </div>
       <div className="v3-top">
         <WalletCard />

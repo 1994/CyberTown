@@ -5,6 +5,7 @@ import './styles.css';
 import './playful.css';
 import './phone.css';
 import './touch.css';
+import './hud-polish.css';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

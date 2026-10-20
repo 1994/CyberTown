@@ -275,6 +275,7 @@
   font-size: 16px; /* ≥16px 避免 iOS 聚焦时放大页面 */
 }
 .touch-ui .map-panel {
+  z-index: 8;
   top: auto;
   right: calc(var(--sr) + var(--gap));
   bottom: calc(var(--sb) + var(--gap) + var(--act) + 40px);
@@ -398,4 +399,56 @@
   .touch-action {
     transition: none;
   }
+}
+
+/* 地图和菜单的关闭/选择动作也要能用手指稳定点中。 */
+.touch-ui .map-fold header .v3-icon {
+  width: 44px;
+  height: 44px;
+}
+.touch-ui .map-fold .text-btn,
+.touch-ui .menu-pop > button {
+  min-height: 44px;
+}
+
+/* 聊天有独立的发送/收起动作，不依赖手机软键盘的回车键。 */
+.chatbar[data-open] > .emote-btn {
+  display: none;
+}
+.chat-form {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+.chat-form input {
+  min-width: 0;
+}
+.chat-send,
+.chat-close {
+  flex: 0 0 44px;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 1px solid #66f4ff44;
+  border-radius: 12px;
+  background: #12334a;
+  color: #9ef8ff;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.chat-close {
+  background: #171c36;
+  color: #c9d1e8;
+}
+.chat-send:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+.touch-ui .chatbar[data-open] {
+  max-width: calc(100% - var(--sl) - var(--sr) - 26px);
+}
+.touch-ui .chat-form input {
+  width: min(180px, calc(100vw - 148px));
 }

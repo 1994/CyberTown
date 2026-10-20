@@ -1,0 +1,385 @@
+/* HUD 视觉打磨：只作用于 .v3-hud 内的常驻界面，不影响抽屉 / 手机 / 小游戏 */
+
+.v3-hud {
+  --hp-cyan: #66f4ff;
+  --hp-pink: #ff5bc6;
+  --hp-gold: #ffdb81;
+  --hp-panel: linear-gradient(160deg, #15224a 0%, #0d1530 62%, #120f2c 100%);
+  --hp-edge: 0 0 0 1px #66f4ff2e, 0 14px 34px #02061599, inset 0 1px #9ef8ff1f;
+}
+
+/* ───── 品牌：小而亮的霓虹招牌 ───── */
+.v3-hud .v3-brand {
+  padding: 5px 11px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: 1px;
+  color: #edf4ff;
+  background: #0d1530e6;
+  box-shadow: 0 0 0 1px #ff5bc655, 0 0 18px #ff5bc622;
+}
+.v3-hud .v3-brand em {
+  font-style: normal;
+  color: var(--hp-pink);
+  text-shadow: 0 0 12px #ff5bc677;
+}
+
+/* ───── 我的状态：头像 + 金币 ───── */
+.v3-hud .wallet-card {
+  background: var(--hp-panel);
+  border: 0;
+  border-radius: 20px;
+  box-shadow: var(--hp-edge);
+  gap: 16px;
+}
+.v3-hud .wallet-person .avatar {
+  box-shadow: 0 0 0 2px var(--hp-cyan), 0 0 14px #66f4ff55;
+  border-radius: 50%;
+}
+.v3-hud .wallet-person b {
+  color: #f4f8ff;
+}
+.v3-hud .wallet-person small {
+  color: #9ef8ff;
+}
+.v3-hud .wallet-money {
+  border-left: 1px solid #66f4ff2e;
+  border-radius: 0 12px 12px 0;
+  transition: background-color 0.15s;
+}
+.v3-hud .wallet-money:hover {
+  background: #ffdb810f;
+}
+.v3-hud .wallet-money span {
+  font-size: 26px;
+  font-weight: 900;
+  color: var(--hp-gold);
+  text-shadow: 0 0 14px #ffdb8155;
+}
+.v3-hud .wallet-money > svg:first-child {
+  color: var(--hp-gold);
+}
+
+/* ───── 年终奖：金色奖章 + 进度格 ───── */
+.v3-hud .year-card {
+  background: var(--hp-panel);
+  border: 0;
+  border-radius: 20px;
+  box-shadow: 0 0 0 1px #ffdb8138, 0 14px 34px #02061599, inset 0 1px #ffdb811a;
+  transition: box-shadow 0.15s;
+}
+.v3-hud .year-card:hover {
+  box-shadow: 0 0 0 1px #ffdb8177, 0 14px 34px #02061599, 0 0 22px #ffdb8122;
+}
+.v3-hud .year-stamp {
+  transform: none;
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  color: #2a1a05;
+  background: linear-gradient(150deg, #fff1c2, #f2b53d);
+  box-shadow: 0 3px 0 #6b4510, 0 0 16px #ffdb8144;
+}
+.v3-hud .year-copy > small {
+  color: #9ef8ff;
+  font-weight: 700;
+}
+.v3-hud .year-copy > b {
+  color: #f4f8ff;
+  gap: 8px;
+}
+.v3-hud .year-copy > b > span {
+  font-size: 18px;
+  font-weight: 900;
+  text-shadow: 0 0 12px #ffdb8144;
+}
+.v3-hud .year-steps > i {
+  background: #ffffff12;
+  box-shadow: inset 0 0 0 1px #ffdb8133;
+}
+.v3-hud .year-steps > i.done {
+  background: var(--hp-gold);
+  color: #2a1a05;
+  box-shadow: 0 0 8px #ffdb8166;
+}
+.v3-hud .year-steps > em {
+  color: #c9d6ee;
+}
+
+/* ───── 小队：三个座位一眼可数 ───── */
+.v3-hud .quick-squad {
+  background: #0d1530e6;
+  border: 0;
+  box-shadow: 0 0 0 1px #66f4ff2e, 0 10px 26px #02061577;
+  gap: 12px;
+}
+.v3-hud .quick-squad-title {
+  color: #edf4ff;
+  font-weight: 800;
+}
+.v3-hud .quick-squad-title small {
+  color: var(--hp-cyan);
+}
+.v3-hud .quick-face {
+  border: 1px dashed #66f4ff55;
+  color: #66f4ff99;
+}
+.v3-hud .quick-face.filled {
+  border: 0;
+  box-shadow: 0 0 0 2px var(--hp-cyan), 0 0 10px #66f4ff44;
+}
+
+.v3-hud .online-chip {
+  background: #0d1530e6;
+  color: #c9d6ee;
+  box-shadow: 0 0 0 1px #66f4ff26;
+}
+
+/* ───── 主菜单：「玩一局」是唯一主角 ───── */
+.v3-hud .game-dock {
+  background: #0b1229f2;
+  border: 0;
+  box-shadow: 0 0 0 1px #66f4ff33, 0 0 0 5px #66f4ff0a, 0 16px 40px #020615aa, inset 0 1px #9ef8ff1a;
+}
+.v3-hud .game-dock > button:not(.dock-play) {
+  color: #9fb3d6;
+  transition: color 0.15s, background-color 0.15s;
+}
+.v3-hud .game-dock > button:not(.dock-play):hover,
+.v3-hud .game-dock > button:not(.dock-play).active {
+  color: var(--hp-cyan);
+  background: #66f4ff14;
+}
+.v3-hud .game-dock > button.dock-play {
+  position: relative;
+  min-width: 176px;
+  padding: 0 18px 0 14px;
+  color: #fff;
+  border: 0;
+  border-radius: 18px;
+  background: linear-gradient(120deg, #ff4fc0 0%, #b02ad0 55%, #6a37e0 100%);
+  box-shadow: 0 4px 0 #3a0f52, 0 0 0 1px #ffb3e866, 0 0 28px #ff4fc055, inset 0 1px #ffffff55;
+  transition: transform 0.12s ease, box-shadow 0.12s ease, filter 0.12s;
+}
+.v3-hud .game-dock > button.dock-play:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.08);
+  box-shadow: 0 6px 0 #3a0f52, 0 0 0 1px #ffd2f1aa, 0 0 36px #ff4fc077, inset 0 1px #ffffff66;
+}
+.v3-hud .game-dock > button.dock-play:active {
+  transform: translateY(2px);
+  box-shadow: 0 2px 0 #3a0f52, 0 0 0 1px #ffb3e866, 0 0 20px #ff4fc055;
+}
+.v3-hud .dock-play > span {
+  font-size: 17px;
+  font-weight: 900;
+  letter-spacing: 1px;
+}
+.v3-hud .dock-play > small {
+  color: #ffe4f6;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.v3-hud .dock-badge {
+  position: absolute;
+  top: -9px;
+  right: -7px;
+  padding: 2px 7px;
+  border-radius: 99px;
+  font-style: normal;
+  font-size: 10px;
+  font-weight: 900;
+  line-height: 1.4;
+  color: #2a1a05;
+  background: linear-gradient(150deg, #fff1c2, #f2b53d);
+  box-shadow: 0 2px 0 #6b4510, 0 0 10px #ffdb8166;
+  pointer-events: none;
+}
+.v3-hud .dock-divider {
+  background: #66f4ff2e;
+}
+
+/* ───── 互动卡片 / 地图按钮 / 聊天 ───── */
+.v3-hud .icard {
+  background: var(--hp-panel);
+  border: 0;
+  box-shadow: 0 0 0 1px #66f4ff38, 0 14px 34px #02061599, inset 3px 0 0 var(--hp-cyan);
+}
+.v3-hud .chip-btn {
+  color: #9ef8ff;
+  background: #0d1530e6;
+  border-color: #66f4ff33;
+}
+.v3-hud .chip-btn.phone-launch {
+  color: #fff;
+  border-color: #ff5bc677;
+  box-shadow: 0 0 14px #ff5bc633;
+}
+.v3-hud .chatbar {
+  background: #0d1530e6;
+  border: 0;
+  box-shadow: 0 0 0 1px #66f4ff2e, 0 10px 26px #02061577;
+}
+
+/* 触屏已有右拇指互动键：卡片里重复的主按钮只隐藏不卸载（world-interact 监听仍在） */
+.v3-hud.touch-ui .icard .ic-act,
+.v3-hud.touch-ui .icard [data-testid='ic-highfive'] {
+  display: none;
+}
+.v3-hud.touch-ui .game-dock > button.dock-play {
+  min-width: 112px;
+  padding: 0 10px;
+}
+.v3-hud.touch-ui .dock-play > span {
+  font-size: 14px;
+}
+.v3-hud.touch-ui .dock-badge {
+  top: -8px;
+  right: -5px;
+  font-size: 9px;
+}
+
+/* ───── 手机：顶部压成两行，给人物留出画面 ───── */
+@media (orientation: portrait), (orientation: landscape) and (max-height: 520px) {
+  .v3-hud.touch-ui .v3-brand,
+  .v3-hud.touch-ui .online-chip {
+    display: none;
+  }
+  .v3-hud.touch-ui .v3-top {
+    top: calc(var(--st) + 10px);
+    left: calc(var(--sl) + 12px);
+    right: calc(var(--sr) + 12px);
+    width: auto;
+    gap: 8px;
+  }
+  .v3-hud.touch-ui .wallet-card {
+    flex: 0 1 auto;
+    min-width: 0;
+    height: 56px;
+    min-height: 56px;
+    width: auto;
+    flex-direction: row;
+    align-items: center;
+    padding: 6px;
+    gap: 6px;
+    border-radius: 18px;
+  }
+  .v3-hud.touch-ui .wallet-person {
+    min-height: 44px;
+    min-width: 0;
+    gap: 7px;
+  }
+  .v3-hud.touch-ui .wallet-person .avatar {
+    width: 32px;
+    height: 32px;
+    flex: none;
+  }
+  .v3-hud.touch-ui .wallet-person > span {
+    min-width: 0;
+    gap: 2px;
+  }
+  .v3-hud.touch-ui .wallet-person b {
+    font-size: 12px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .v3-hud.touch-ui .wallet-person small {
+    font-size: 10px;
+  }
+  .v3-hud.touch-ui .demo-tag {
+    font-size: 7px;
+    margin-left: 4px;
+    padding: 1px 3px;
+  }
+  .v3-hud.touch-ui .promotion-dot {
+    bottom: -14px;
+    left: 30px;
+  }
+  .v3-hud.touch-ui .wallet-money {
+    flex: none;
+    width: auto;
+    padding: 4px 0 4px 6px;
+    gap: 3px;
+    min-height: 44px;
+  }
+  .v3-hud.touch-ui .wallet-money span {
+    font-size: 18px;
+    min-width: 0;
+  }
+  .v3-hud.touch-ui .wallet-money > svg:first-child {
+    width: 12px;
+    height: 12px;
+    flex: none;
+  }
+  .v3-hud.touch-ui .wallet-money > svg:last-child,
+  .v3-hud.touch-ui .year-stamp,
+  .v3-hud.touch-ui .year-copy > small,
+  .v3-hud.touch-ui .year-steps > em,
+  .v3-hud.touch-ui .year-card > svg,
+  .v3-hud.touch-ui .quick-faces > svg {
+    display: none;
+  }
+  .v3-hud.touch-ui .year-card {
+    display: flex;
+    flex: none;
+    height: 56px;
+    min-height: 56px;
+    padding: 6px 12px;
+    gap: 0;
+    border-radius: 18px;
+  }
+  .v3-hud.touch-ui .year-copy {
+    gap: 4px;
+  }
+  .v3-hud.touch-ui .year-copy > b {
+    font-size: 11px;
+    gap: 5px;
+    white-space: nowrap;
+  }
+  .v3-hud.touch-ui .year-copy > b > span {
+    font-size: 15px;
+  }
+  .v3-hud.touch-ui .year-steps > i {
+    width: 16px;
+    height: 10px;
+  }
+  .v3-hud.touch-ui .quick-squad {
+    top: calc(var(--st) + 70px);
+    left: calc(var(--sl) + 12px);
+    min-height: 48px;
+    padding: 4px 8px 4px 10px;
+    gap: 8px;
+  }
+  .v3-hud.touch-ui .quick-faces {
+    gap: 4px;
+  }
+  .v3-hud.touch-ui .quick-face,
+  .v3-hud.touch-ui .quick-face .avatar {
+    width: 32px;
+    height: 32px;
+  }
+}
+@media (orientation: portrait) {
+  .v3-hud.touch-ui .wallet-card {
+    flex: 1 1 auto;
+  }
+  .v3-hud.touch-ui .map-panel {
+    top: calc(var(--st) + 70px);
+  }
+  .v3-hud.touch-ui .chatbar {
+    top: calc(var(--st) + 126px);
+    left: calc(var(--sl) + 12px);
+  }
+  .v3-hud.touch-ui .toasts {
+    top: calc(var(--st) + 184px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .v3-hud .game-dock > button.dock-play,
+  .v3-hud .wallet-money,
+  .v3-hud .year-card {
+    transition: none;
+  }
+}
