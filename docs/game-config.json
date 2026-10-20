@@ -1,0 +1,22 @@
+{
+  "title": "今天老板给我打工",
+  "edition": "Demo",
+  "purpose": "验收参考；服务端规则以 backend/rules.go 为权威",
+  "initialCoins": 600,
+  "initialSignPrice": 300,
+  "nextPriceFormula": "ceil(previousPrice * 1.25 / 10) * 10",
+  "ownerShare": 0.9,
+  "avatarShare": 0.05,
+  "rounding": "各份额向下取整，余数归系统；初签无持有人时系统收95%",
+  "teamSlots": 3,
+  "baseProjectSeconds": 15,
+  "finishToleranceMs": 300,
+  "claimGraceSeconds": 30,
+  "minimumActionGapMs": 90,
+  "skills": {"incomeCapPercent":75,"timeBonusCapSeconds":6,"shieldCap":4},
+  "identities": ["wang","li","mei","liu"],
+  "identityMode": "明确标记的演示测试身份，非公司SSO",
+  "sync": "SSE，正常网络目标3秒内",
+  "server": "Go net/http + SQLite, single process",
+  "currency": "仅游戏金币"
+}

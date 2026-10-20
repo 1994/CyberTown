@@ -1,0 +1,47 @@
+{
+  "reviewer": "Codex",
+  "environment": "Go production build + real IAB UI, independent DB on port8890",
+  "result": "PASS core loop",
+  "projectReward": 18,
+  "players": {
+    "li": 235,
+    "liu": 600,
+    "mei": 600,
+    "wang": 360
+  },
+  "trades": [
+    {
+      "colleague": "c-zhang",
+      "buyer": "wang",
+      "seller": null,
+      "price": 300,
+      "ownerShare": 0,
+      "selfShare": 15,
+      "systemShare": 285
+    },
+    {
+      "colleague": "c-zhang",
+      "buyer": "li",
+      "seller": "wang",
+      "price": 380,
+      "ownerShare": 342,
+      "selfShare": 19,
+      "systemShare": 19
+    },
+    {
+      "colleague": "c-li",
+      "buyer": "wang",
+      "seller": null,
+      "price": 300,
+      "ownerShare": 0,
+      "selfShare": 15,
+      "systemShare": 285
+    }
+  ],
+  "notes": [
+    "Actual visible UI clicks, no direct balance grants",
+    "Initial 600; A earned18; signed Zhang300; B poached380; A received342; A signed B avatar300; B received15",
+    "No browser console errors; one dependency deprecation warning",
+    "Visual overlay findings returned to Claude for correction; this is not a blanket final visual approval"
+  ]
+}

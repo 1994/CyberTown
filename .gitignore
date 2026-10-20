@@ -1,0 +1,39 @@
+# 依赖与构建
+node_modules/
+dist/
+*.tsbuildinfo
+
+# 数据库（运行时生成，含玩家数据）
+data/*.db
+data/*.db-*
+*.sqlite
+*.sqlite3
+
+# 机密 / 本地配置
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# 测试与录制产物（录制成片保存在 artifacts/ 以外的位置时请自行处理）
+test-results/
+playwright-report/
+blob-report/
+artifacts/tmp/
+
+# 系统
+.DS_Store
+*.log
+
+# Go 编译产物
+bin/
+*.test
+coverage.out
+# 额外本地数据库日志
+*.sqlite-wal
+*.sqlite-shm
+*.sqlite3-wal
+*.sqlite3-shm
+# 保留最终MP4；原始双路录制仅留本机，避免重复提交大文件
+artifacts/demo/raw/

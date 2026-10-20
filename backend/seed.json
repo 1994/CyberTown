@@ -1,0 +1,232 @@
+{
+  "players": [
+    {
+      "id": "wang",
+      "name": "老王",
+      "title": "测试玩家 A",
+      "color": "#ff8a3d"
+    },
+    {
+      "id": "li",
+      "name": "小李",
+      "title": "测试玩家 B",
+      "color": "#3db8ff"
+    },
+    {
+      "id": "mei",
+      "name": "阿美",
+      "title": "测试玩家 C",
+      "color": "#ff5fa2"
+    },
+    {
+      "id": "liu",
+      "name": "大刘",
+      "title": "测试玩家 D",
+      "color": "#7ad151"
+    }
+  ],
+  "colleagues": [
+    {
+      "id": "c-zhang",
+      "name": "张总",
+      "title": "前 CEO · 霸道总裁",
+      "bio": "自愿下海打工体验生活，口头禅「这个需求很简单」。",
+      "look": {
+        "skin": "#f2c7a5",
+        "hair": "#2b2b2b",
+        "hairStyle": "short",
+        "shirt": "#1f2a44",
+        "pants": "#151a26",
+        "accessory": "tie"
+      },
+      "skill": {
+        "kind": "income",
+        "value": 25
+      }
+    },
+    {
+      "id": "c-lily",
+      "name": "Lily",
+      "title": "产品经理",
+      "bio": "甘特图画得比谁都快，自愿加入人才市场。",
+      "look": {
+        "skin": "#f6d2b8",
+        "hair": "#7a3b1e",
+        "hairStyle": "bob",
+        "shirt": "#ff7aa8",
+        "pants": "#3b2a4a",
+        "accessory": "glasses"
+      },
+      "skill": {
+        "kind": "time",
+        "value": 3
+      }
+    },
+    {
+      "id": "c-qiang",
+      "name": "阿强",
+      "title": "全栈工程师",
+      "bio": "格子衫第三代传人，线上事故终结者。",
+      "look": {
+        "skin": "#e8b48f",
+        "hair": "#111111",
+        "hairStyle": "spiky",
+        "shirt": "#4f7cff",
+        "pants": "#2c3340",
+        "accessory": "headset"
+      },
+      "skill": {
+        "kind": "shield",
+        "value": 2
+      }
+    },
+    {
+      "id": "c-sakura",
+      "name": "小樱",
+      "title": "UI 设计师",
+      "bio": "能把「五彩斑斓的黑」做出来的人。",
+      "look": {
+        "skin": "#fbe0cc",
+        "hair": "#f08bb5",
+        "hairStyle": "bun",
+        "shirt": "#ffe9a8",
+        "pants": "#5b6cff",
+        "accessory": "scarf"
+      },
+      "skill": {
+        "kind": "income",
+        "value": 15
+      }
+    },
+    {
+      "id": "c-money",
+      "name": "钱多多",
+      "title": "财务总监",
+      "bio": "报销单永远第一个批，前提是你填对了。",
+      "look": {
+        "skin": "#f0c09a",
+        "hair": "#6b6b6b",
+        "hairStyle": "bald",
+        "shirt": "#2f8f6b",
+        "pants": "#203029",
+        "accessory": "glasses"
+      },
+      "skill": {
+        "kind": "income",
+        "value": 20
+      }
+    },
+    {
+      "id": "c-tony",
+      "name": "Tony",
+      "title": "金牌销售",
+      "bio": "一顿饭签下三个大单，酒量是核心竞争力。",
+      "look": {
+        "skin": "#d9a07a",
+        "hair": "#e8c26a",
+        "hairStyle": "cap",
+        "shirt": "#ff5a4f",
+        "pants": "#2a2f45",
+        "accessory": "sunglasses"
+      },
+      "skill": {
+        "kind": "time",
+        "value": 2
+      }
+    },
+    {
+      "id": "c-doudou",
+      "name": "豆豆",
+      "title": "实习生",
+      "bio": "自带零食，会把所有锅都接住。",
+      "look": {
+        "skin": "#fde3cf",
+        "hair": "#3a2416",
+        "hairStyle": "long",
+        "shirt": "#9cf0d0",
+        "pants": "#4a5a8a",
+        "accessory": "none"
+      },
+      "skill": {
+        "kind": "shield",
+        "value": 1
+      }
+    },
+    {
+      "id": "c-wang",
+      "name": "老王(分身)",
+      "title": "运营主管",
+      "bio": "测试玩家「老王」的分身，被交易时老王本人拿 5%。",
+      "look": {
+        "skin": "#eebd96",
+        "hair": "#3b2a20",
+        "hairStyle": "short",
+        "shirt": "#ff8a3d",
+        "pants": "#2b2f3a",
+        "accessory": "glasses"
+      },
+      "skill": {
+        "kind": "income",
+        "value": 10
+      },
+      "selfPlayerId": "wang"
+    },
+    {
+      "id": "c-li",
+      "name": "小李(分身)",
+      "title": "算法工程师",
+      "bio": "测试玩家「小李」的分身，被交易时小李本人拿 5%。",
+      "look": {
+        "skin": "#f7d6bd",
+        "hair": "#1c1c2a",
+        "hairStyle": "spiky",
+        "shirt": "#3db8ff",
+        "pants": "#26324a",
+        "accessory": "headset"
+      },
+      "skill": {
+        "kind": "shield",
+        "value": 1
+      },
+      "selfPlayerId": "li"
+    },
+    {
+      "id": "c-mei",
+      "name": "阿美(分身)",
+      "title": "市场总监",
+      "bio": "测试玩家「阿美」的分身，被交易时阿美本人拿 5%。",
+      "look": {
+        "skin": "#fbd9c4",
+        "hair": "#5a2a1a",
+        "hairStyle": "long",
+        "shirt": "#ff5fa2",
+        "pants": "#3a2a3f",
+        "accessory": "scarf"
+      },
+      "skill": {
+        "kind": "time",
+        "value": 2
+      },
+      "selfPlayerId": "mei"
+    },
+    {
+      "id": "c-liu",
+      "name": "大刘(分身)",
+      "title": "行政经理",
+      "bio": "测试玩家「大刘」的分身，被交易时大刘本人拿 5%。",
+      "look": {
+        "skin": "#e2a982",
+        "hair": "#222222",
+        "hairStyle": "cap",
+        "shirt": "#7ad151",
+        "pants": "#2d3a2a",
+        "accessory": "tie"
+      },
+      "skill": {
+        "kind": "income",
+        "value": 10
+      },
+      "selfPlayerId": "liu"
+    }
+  ]
+}

@@ -1,0 +1,50 @@
+{
+  "name": "boss-works-for-me",
+  "version": "1.0.0",
+  "private": true,
+  "description": "《今天老板给我打工》— 3D 职场社交经营 RPG（演示版）",
+  "license": "MIT",
+  "type": "module",
+  "engines": {
+    "node": ">=22.18"
+  },
+  "scripts": {
+    "dev": "concurrently -k -n server,web -c magenta,cyan \"npm:dev:server\" \"npm:dev:web\"",
+    "dev:server": "go run ./cmd/boss-server",
+    "dev:web": "vite",
+    "build": "npm run build:web && npm run build:server",
+    "typecheck": "tsc -b",
+    "start": "go run ./cmd/boss-server",
+    "seed": "go run ./cmd/boss-server --seed",
+    "reset": "go run ./cmd/boss-server --reset",
+    "test": "go test ./... && npm run test:contract",
+    "test:e2e": "npm run build && playwright test",
+    "demo:record": "node --disable-warning=ExperimentalWarning scripts/record-demo.ts",
+    "build:web": "tsc -b && vite build",
+    "build:server": "go build -trimpath -o bin/boss-server ./cmd/boss-server",
+    "start:binary": "./bin/boss-server",
+    "test:race": "go test -race ./...",
+    "test:contract": "node scripts/check-rules.ts"
+  },
+  "dependencies": {
+    "@react-three/drei": "^10.7.9",
+    "@react-three/fiber": "^9.8.2",
+    "@react-three/postprocessing": "^3.2.1",
+    "postprocessing": "^6.39.5",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "three": "^0.186.1",
+    "zustand": "^5.0.15"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.64.1",
+    "@types/node": "^26.6.5",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@types/three": "^0.186.0",
+    "@vitejs/plugin-react": "^5.2.0",
+    "concurrently": "^10.0.6",
+    "typescript": "5.9",
+    "vite": "^7.3.7"
+  }
+}

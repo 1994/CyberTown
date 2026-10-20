@@ -1,0 +1,43 @@
+{
+  "command": "npm run test:e2e",
+  "reviewer": "Codex",
+  "finalSource": true,
+  "stats": {
+    "startTime": "2026-10-20T09:36:13.156Z",
+    "duration": 160247.447,
+    "expected": 6,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "cases": [
+    {
+      "title": "F01 登录页：明确测试身份（非 SSO）、≥3 个身份、3D 办公室为主视觉",
+      "passed": true
+    },
+    {
+      "title": "V05 入场电影镜头：自动播放、可跳过、可重播，HUD 不遮挡全屏",
+      "passed": true
+    },
+    {
+      "title": "F05–F12 / V06–V07 双玩家独立 context：签约→挖角→赚钱→分身分红，实时同步与完整演出",
+      "passed": true
+    },
+    {
+      "title": "F07 满员 / 余额不足 / 自己分身：按钮禁用并说明原因",
+      "passed": true
+    },
+    {
+      "title": "F11 两个浏览器同时抢同一同事：只有一个成功，另一个收到「手慢了」",
+      "passed": true
+    },
+    {
+      "title": "V08 移动端 390×844：可登录、HUD 可读、市场为底部抽屉、无横向溢出",
+      "passed": true
+    }
+  ],
+  "localSyncMilliseconds": {
+    "ownership": 41,
+    "coins": 17
+  }
+}

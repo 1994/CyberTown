@@ -1,0 +1,37 @@
+{
+  "reviewer": "Codex",
+  "source": "Two real independent browser contexts connected to an isolated Go/SQLite server",
+  "editing": "Side-by-side layout and H.264 conversion only; requested up to216 seconds to omit recorder-stall tail; no speed changes or fabricated gameplay",
+  "recordedActionsWallSeconds": 214.0,
+  "files": [
+    {
+      "file": "artifacts/demo/boss-demo-2p.mp4",
+      "durationSeconds": 204.533333,
+      "sizeBytes": 28055911,
+      "video": {
+        "codec_name": "h264",
+        "width": 1920,
+        "height": 600
+      },
+      "sha256": "ebac9f4af34ec33f6a83b166566de772397ad43fcd32da0519bc2534a7bfd541"
+    },
+    {
+      "file": "artifacts/demo/boss-demo-player-A.mp4",
+      "durationSeconds": 204.56,
+      "sizeBytes": 28014635,
+      "video": {
+        "codec_name": "h264",
+        "width": 1280,
+        "height": 800
+      },
+      "sha256": "3803076d0309c725e720c85f688fff7f20ed17f53a1a5e7428ae3ff45a4b19bf"
+    }
+  ],
+  "visualSamplesReviewed": [
+    "full-cycle last frame (Lily18s project result)",
+    "packing paper box during poach",
+    "dividend confirmation",
+    "independent original screenshots for intro/arrival/departure"
+  ],
+  "decodeValidation": "Both final MP4 files fully decoded with ffmpeg -v error, exit 0 and no decode errors"
+}
