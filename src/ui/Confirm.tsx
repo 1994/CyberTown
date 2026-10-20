@@ -1,3 +1,5 @@
+import { createPortal } from 'react-dom';
+import { sound } from '../audio.ts';
 import { dressedColleague } from '../look.ts';
 import { useEffect, useRef, useState } from 'react';
 import { MAX_TEAM, SKILL_META, splitPayment } from '../../shared/rules.ts';
@@ -97,7 +99,8 @@ export function ConfirmTrade({
     setBusy(true);
     setError(null);
     try {
-      await api.sign(colleague.id, price);
+      const { trade } = await api.sign(colleague.id, price);
+      sound.play('hire', { key: `trade:${trade.colleagueId}:${trade.at}` });
       toast({
         tone: 'good',
         title: `${poach ? '挖来了' : '招到了'}${displayName(colleague, snap)}！正赶来你身边`,
@@ -105,13 +108,14 @@ export function ConfirmTrade({
       await refresh();
       onClose();
     } catch (e) {
+      sound.play('miss');
       setError(e instanceof ApiError ? e.message : '交易失败，请重试');
       await refresh();
       setBusy(false);
     }
   };
 
-  return (
+  return createPortal(
     <div className="modal-backdrop" onClick={onClose}>
       <div
         ref={dialog}
@@ -171,6 +175,7 @@ export function ConfirmTrade({
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }

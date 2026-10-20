@@ -1,0 +1,27 @@
+.menu-pop .sound-settings {
+  border-top: 1px solid #66f4ff2e;
+  border-bottom: 1px solid #66f4ff2e;
+  margin: 5px 0;
+  padding: 5px 0;
+}
+.menu-pop .sound-settings > button { width: 100%; min-height: 44px; gap: 8px; }
+.sound-settings button > span { margin-right: auto; }
+.sound-volume { display: grid; gap: 3px; padding: 4px 10px; font-size: 11px; color: #adbed9; }
+.sound-volume > span { display: flex; justify-content: space-between; }
+.sound-volume input { width: 100%; min-width: 120px; height: 44px; margin: 0; accent-color: #66f4ff; cursor: pointer; }
+.sound-settings > small { display: block; padding: 4px 10px; font-size: 10px; color: #ffdb81; }
+.login-sound { position: absolute; top: 14px; right: 14px; z-index: 10; display: flex; align-items: center; gap: 8px; min-height: 44px; padding: 8px 12px; border-radius: 14px; border: 1px solid #66f4ff55; background: #111b32e8; color: #9ef8ff; cursor: pointer; }
+.v3-hud .menu-pop { position: absolute; max-height: calc(100dvh - 32px); overflow-y: auto; overscroll-behavior: contain; }
+@media (orientation: portrait) {
+  .v3-hud.touch-ui .menu-pop { bottom: auto; top: calc(100% + 10px); max-height: calc(100dvh - 140px); }
+}
+@media (orientation: landscape) and (max-height: 520px) {
+  .v3-hud.touch-ui .menu-pop { position: fixed; top: 12px; bottom: auto; right: calc(var(--sr) + 68px); max-height: calc(100dvh - 24px); width: 220px; }
+}
+.sound-debug { position: fixed; z-index: 100; top: 140px; right: 16px; width: 218px; padding: 12px; border-radius: 12px; background: #080d1def; color: #9ef8ff; font: 11px monospace; border: 1px solid #66f4ff55; }
+.sound-debug output { display: block; margin: 8px 0; }
+.sound-debug > div { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; }
+.sound-debug button { min-height: 32px; background: #172543; border: 1px solid #66f4ff33; border-radius: 6px; cursor: pointer; font: inherit; }
+
+/* Portalled trade confirmation stays usable in a short landscape viewport. */
+.modal-backdrop .confirm { max-height: calc(100dvh - 32px); overflow-y: auto; }

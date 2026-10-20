@@ -1,3 +1,4 @@
+import { sound } from './audio.ts';
 import { create } from 'zustand';
 import type { StateSnapshot, TradeEvent, GameEvent } from '../shared/types.ts';
 import { api, ApiError, session } from './api.ts';
@@ -314,6 +315,7 @@ export const useGame = create<GameStore>((set, get) => ({
     if (e.kind === 'highfive') {
       window.dispatchEvent(new CustomEvent('world-highfive', { detail: e }));
       if (e.playerId === me || e.targetId === me) {
+        sound.play('cheers', { key: `cheers:${[e.playerId, e.targetId].sort().join(':')}:${e.at}` });
         const other = e.playerId === me ? e.targetId : e.playerId;
         useWorld.setState((s) => ({
           highfiveCooldown: { ...s.highfiveCooldown, [other]: e.at + 60000 },
@@ -327,6 +329,10 @@ export const useGame = create<GameStore>((set, get) => ({
     }
     if (e.kind !== 'trade') return;
     const t = e as TradeEvent;
+    const tradeKey = `trade:${t.colleagueId}:${t.at}`;
+    if (t.buyerId === me) sound.play('hire', { key: tradeKey });
+    else if (t.sellerId === me) sound.play('poach', { key: tradeKey });
+    else if (t.selfPlayerId === me) sound.play('coins', { key: tradeKey });
     if (t.sellerId === me) {
       // 被挖角：收起遮挡画面的面板，让「收拾纸箱 → 走向新老板」完整可见
       set({ marketOpen: false });

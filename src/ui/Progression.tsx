@@ -1,3 +1,4 @@
+import { sound } from '../audio.ts';
 import { useEffect, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import {
@@ -372,6 +373,7 @@ function ShopPanel() {
     try {
       if (!item.owned) await api.buyItem(item.id, item.price);
       await api.equipItem(item.id, item.kind, target);
+      sound.play('equip');
       await useGame.getState().refresh();
       useGame.getState().toast({
         tone: 'good',

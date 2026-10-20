@@ -1,3 +1,4 @@
+import { sound } from '../audio.ts';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   MIN_ACTION_GAP_MS,
@@ -108,6 +109,7 @@ function ProjectPanel({ onClose }: { onClose: () => void }) {
   const liveRef = useRef(live);
   liveRef.current = live;
   const popSeq = useRef(1);
+  const lastSecond = useRef(-1);
   const sk = snap.projectSkills;
   const team = myTeam(snap);
   const boss =
@@ -163,13 +165,15 @@ function ProjectPanel({ onClose }: { onClose: () => void }) {
     setTimeout(() => setPops((p) => p.filter((x) => x.id !== id)), 800);
   };
 
-  const fault = (label: string) => {
+  const fault = (label: string, audible = true) => {
     const l = { ...liveRef.current };
     if (l.shieldLeft > 0) {
       l.shieldLeft--;
+      sound.play('shield');
       pop(`🛡️ 护盾挡住${label}`, 'shield');
     } else {
       l.combo = 0;
+      if (audible) sound.play('miss');
       pop(label, 'bad');
     }
     setLive(l);
@@ -192,7 +196,9 @@ function ProjectPanel({ onClose }: { onClose: () => void }) {
     setAward(null);
     setGrowth(0);
     setError(null);
+    lastSecond.current = -1;
     setStage('playing');
+    sound.play('start');
   }, []);
 
   const settle = useCallback(
@@ -216,6 +222,7 @@ function ProjectPanel({ onClose }: { onClose: () => void }) {
           setGrowth(res.performanceEarned);
           setAward(res.yearAward);
           setStage('result');
+          if (res.result.total > 0) sound.play('coins', { key: `project:${r.id}` });
           toast({
             tone: 'gold',
             title: `快乐基金 +${res.result.total} · 成长值 +${res.performanceEarned}`,
@@ -263,6 +270,11 @@ function ProjectPanel({ onClose }: { onClose: () => void }) {
     const loop = () => {
       const t = serverNow() - run.startedAt;
       setNow(t);
+      const second = Math.ceil((run.durationMs - t) / 1000);
+      if (second > 0 && second <= 3 && second !== lastSecond.current) {
+        lastSecond.current = second;
+        sound.play('countdown');
+      }
       for (const task of tasks) {
         if (
           task.kind === 'trap' ||
@@ -272,7 +284,7 @@ function ProjectPanel({ onClose }: { onClose: () => void }) {
           continue;
         if (t > task.spawnAt + task.ttl) {
           missed.current.add(task.id);
-          fault('漏掉了！');
+          fault('漏掉了！', false);
         }
       }
       if (t >= run.durationMs) {
@@ -310,6 +322,7 @@ function ProjectPanel({ onClose }: { onClose: () => void }) {
     }
     setFlash((f) => f + 1);
     if (!best) {
+      sound.play('miss');
       pop('等礼物进圈，再接住', 'idle');
       return;
     }
@@ -323,6 +336,7 @@ function ProjectPanel({ onClose }: { onClose: () => void }) {
     const l = { ...liveRef.current };
     l.combo++;
     l.hits++;
+    sound.play('catch', { combo: l.combo });
     l.maxCombo = Math.max(l.maxCombo, l.combo);
     const pts = pointsForCombo(l.combo);
     l.score += pts;
@@ -520,7 +534,7 @@ function ProjectPanel({ onClose }: { onClose: () => void }) {
                 e.preventDefault();
                 act();
               }}
-              data-testid="btn-project-act"
+              data-testid="btn-project-act" data-sound="none"
             >
               接住！<kbd>空格</kbd>
             </button>

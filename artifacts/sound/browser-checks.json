@@ -1,0 +1,140 @@
+{
+  "initial": {
+    "played": "0",
+    "state": "locked",
+    "voices": "0"
+  },
+  "hire": {
+    "cues": {
+      "hire": 1,
+      "ui": 1
+    },
+    "peak": "0.10801",
+    "played": "2",
+    "state": "running",
+    "voices": "0"
+  },
+  "game": {
+    "cues": {
+      "catch": 1,
+      "coins": 1,
+      "countdown": 3,
+      "hire": 1,
+      "miss": 18,
+      "start": 1,
+      "ui": 3
+    },
+    "peak": "0.10801",
+    "played": "28",
+    "state": "running",
+    "voices": "0"
+  },
+  "mutedBefore": {
+    "played": "29",
+    "voices": "0"
+  },
+  "mutedAfter": {
+    "played": "29",
+    "voices": "0"
+  },
+  "persistedMute": "false",
+  "allCues": {
+    "cues": {
+      "catch": 1,
+      "cheers": 1,
+      "coins": 1,
+      "countdown": 1,
+      "equip": 1,
+      "hire": 1,
+      "intro": 1,
+      "miss": 1,
+      "phone": 1,
+      "poach": 1,
+      "promotion": 1,
+      "reward": 1,
+      "shield": 1,
+      "start": 1,
+      "step": 1,
+      "ui": 2
+    },
+    "peak": "0.09493",
+    "played": "17",
+    "state": "running",
+    "voices": "0"
+  },
+  "walk": {
+    "cues": {
+      "catch": 1,
+      "cheers": 1,
+      "coins": 1,
+      "countdown": 1,
+      "equip": 1,
+      "hire": 1,
+      "intro": 1,
+      "miss": 1,
+      "phone": 1,
+      "poach": 1,
+      "promotion": 1,
+      "reward": 1,
+      "shield": 1,
+      "start": 1,
+      "step": 6,
+      "ui": 2
+    },
+    "peak": "0.09493",
+    "voices": "0"
+  },
+  "finalGame": {
+    "cues": {
+      "catch": 2,
+      "cheers": 1,
+      "coins": 2,
+      "countdown": 4,
+      "equip": 1,
+      "hire": 1,
+      "intro": 1,
+      "miss": 1,
+      "phone": 1,
+      "poach": 1,
+      "promotion": 1,
+      "reward": 1,
+      "shield": 1,
+      "start": 2,
+      "step": 6,
+      "ui": 4
+    },
+    "peak": "0.09493",
+    "played": "30",
+    "state": "running",
+    "voices": "0"
+  },
+  "volume": "34",
+  "settingsAfterReload": {
+    "enabled": "false",
+    "volume": "34"
+  },
+  "landscapeMenu": {
+    "client": 364,
+    "rect": {
+      "bottom": 378,
+      "height": 366,
+      "left": 556,
+      "right": 776,
+      "top": 12,
+      "width": 220,
+      "x": 556,
+      "y": 12
+    },
+    "scroll": 457
+  },
+  "landscapeConfirm": {
+    "bottom": 337,
+    "height": 44,
+    "left": 427,
+    "right": 579,
+    "top": 293,
+    "width": 152,
+    "x": 427,
+    "y": 293
+  }
+}

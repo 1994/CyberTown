@@ -22,6 +22,7 @@ import { useTouchUi } from './useTouchUi.ts';
 import { CinematicOverlay } from './CinematicOverlay.tsx';
 import { useCinema } from '../scene/cinema.ts';
 import { GamePhone } from './GamePhone.tsx';
+import { SoundSettings } from './SoundControl.tsx';
 import { Drawers } from './Drawers.tsx';
 import { ProjectGame } from './ProjectGame.tsx';
 import {
@@ -132,6 +133,7 @@ function MapPanel() {
       {menu && (
         <nav className="menu-pop" aria-label="菜单">
           <button onClick={cycleQuality} data-testid="btn-quality" title="自动适应帧率；点击切换自动、清晰、流畅">画质：{QUALITY[quality].label}</button>
+          <SoundSettings />
           <button onClick={() => open('messages')} data-testid="btn-messages">
             消息 {unread > 0 && <small>{unread}</small>}
           </button>

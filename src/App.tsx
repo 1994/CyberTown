@@ -1,4 +1,6 @@
 import { useEffect } from 'react';
+import { useGameAudio } from './useGameAudio.ts';
+import { SoundDiagnostics, SoundToggle } from './ui/SoundControl.tsx';
 import { OfficeCanvas } from './scene/Office.tsx';
 import { useGame } from './store.ts';
 import { useRealtime } from './realtime.ts';
@@ -11,6 +13,7 @@ import { PERF_ENABLED } from './performance.ts';
 import { RenderStats } from './ui/RenderStats.tsx';
 
 export function App() {
+  useGameAudio();
   const phase = useGame((s) => s.phase);
   const bootError = useGame((s) => s.bootError);
   const boot = useGame((s) => s.boot);
@@ -51,9 +54,10 @@ export function App() {
           )}
         </div>
       )}
-      {phase === 'login' && <Login />}
+      {phase === 'login' && <><Login /><SoundToggle className="login-sound" /></>}
       {myId && <GameHud key={myId} />}
       {PERF_ENABLED && <RenderStats />}
+      {new URLSearchParams(location.search).get('audio') === 'debug' && <SoundDiagnostics />}
     </div>
   );
 }
