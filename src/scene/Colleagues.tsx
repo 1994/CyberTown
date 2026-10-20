@@ -396,12 +396,12 @@ function ColleagueActor({
 
 export function Colleagues() {
   const snapshot = useGame((s) => s.snapshot);
-  const players = useWorld((s) => s.players);
+  const onlineIds = useWorld((s) => s.players.map((p) => p.id).sort().join(','));
   // 自己永远算在线（即便 SSE 还没连上），保证自己的小队跟随自己
   const myId = snapshot?.me.id;
   const online = useMemo(
-    () => new Set([...players.map((p) => p.id), ...(myId ? [myId] : [])]),
-    [players, myId],
+    () => new Set([...onlineIds.split(',').filter(Boolean), ...(myId ? [myId] : [])]),
+    [onlineIds, myId],
   );
   const onlineKey = [...online].sort().join(',');
   if (!snapshot) return null;

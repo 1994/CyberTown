@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useShallow } from 'zustand/react/shallow';
 import type { ThreeEvent } from '@react-three/fiber';
 import { useFrame } from '@react-three/fiber';
 import { WorldLabel } from './WorldLabel.tsx';
 import * as THREE from 'three';
-import type { HighfiveEvent, Look, WorldPlayer } from '../../shared/types.ts';
+import type { HighfiveEvent, Look } from '../../shared/types.ts';
 import {
   WALK_SPEED,
   findPath,
@@ -17,6 +18,8 @@ import { Character } from './Character.tsx';
 import type { Rig } from './Character.tsx';
 import { applyPose, idlePose, turnTowards } from './pose.ts';
 import { useFx } from './Effects.tsx';
+import { socialEntry } from '../world/selectors.ts';
+import type { SocialEntry } from '../world/selectors.ts';
 import { dressed } from '../look.ts';
 
 const PLAYER_SCALE = 1.25;
@@ -48,8 +51,9 @@ function useLookOf(id: string): {
   }, [snapshot, id]);
 }
 
-function useWorldEntry(id: string): WorldPlayer | undefined {
-  return useWorld((s) => s.players.find((p) => p.id === id));
+// Position interpolation lives in rt; only social changes need a React render.
+function useWorldEntry(id: string): SocialEntry | undefined {
+  return useWorld(useShallow((s) => socialEntry(s.players, id)));
 }
 
 /** 碰杯庆祝：双方举杯跳一下（本地 1.6 秒） */
@@ -57,7 +61,7 @@ const cheersUntil = new Map<string, number>();
 
 function emotePose(
   rig: Rig,
-  entry: WorldPlayer | undefined,
+  entry: SocialEntry | undefined,
   moving: boolean,
   phase: number,
   t: number,
@@ -90,7 +94,7 @@ function Bubble({
   color,
   rankName,
 }: {
-  entry: WorldPlayer | undefined;
+  entry: SocialEntry | undefined;
   name: string;
   you?: boolean;
   color: string;
@@ -381,11 +385,7 @@ export function walkNear(x: number, z: number, keep = 0) {
 }
 
 export function RemotePlayers({ myId }: { myId: string }) {
-  const players = useWorld((s) => s.players);
-  const ids = useMemo(
-    () => players.filter((p) => p.id !== myId).map((p) => p.id),
-    [players, myId],
-  );
+  const ids = useWorld(useShallow((s) => s.players.filter((p) => p.id !== myId).map((p) => p.id)));
   const addFx = useFx((s) => s.add);
   // 碰杯：双方举杯 + 彩纸
   useEffect(() => {

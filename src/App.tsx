@@ -7,6 +7,8 @@ import { useWorldInput } from './world/input.ts';
 import { Login } from './ui/Login.tsx';
 import { GameHud } from './ui/GameHud.tsx';
 import { ErrorBoundary } from './ui/ErrorBoundary.tsx';
+import { PERF_ENABLED } from './performance.ts';
+import { RenderStats } from './ui/RenderStats.tsx';
 
 export function App() {
   const phase = useGame((s) => s.phase);
@@ -51,6 +53,7 @@ export function App() {
       )}
       {phase === 'login' && <Login />}
       {myId && <GameHud key={myId} />}
+      {PERF_ENABLED && <RenderStats />}
     </div>
   );
 }

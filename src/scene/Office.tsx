@@ -1,6 +1,7 @@
-import { Suspense, useRef } from 'react';
+import { LocalPointLight, LocalLightPool } from './LocalLights.tsx';
+import { Suspense, useEffect, useRef } from 'react';
 import type { ThreeEvent } from '@react-three/fiber';
-import { Canvas, useFrame } from '@react-three/fiber';
+import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { Environment, Lightformer } from '@react-three/drei';
 import { Bloom, EffectComposer, Vignette } from '@react-three/postprocessing';
 import * as THREE from 'three';
@@ -12,6 +13,11 @@ import { MePlayer, RemotePlayers, walkNear } from './Avatars.tsx';
 import { Effects } from './Effects.tsx';
 import { FollowCamera } from './FollowCamera.tsx';
 import { PALETTE } from './materials.ts';
+import { PERF_ENABLED } from '../performance.ts';
+import { RenderProbe } from './RenderProbe.tsx';
+import { AdaptiveQuality } from './AdaptiveQuality.tsx';
+import { BALANCED_LEVELS } from '../renderBudget.ts';
+import { QUALITY, useRenderQuality } from '../renderQuality.ts';
 import {
   HIGHFIVE_RANGE,
   INTERACT_RANGE,
@@ -28,7 +34,22 @@ export const LOW_FX = params.get('lowfx') === '1';
 /** 主光跟随玩家，保证阴影覆盖当前视野而不需要巨大的阴影贴图 */
 function Sun() {
   const light = useRef<THREE.DirectionalLight>(null);
-  useFrame(() => {
+  const gl = useThree(s => s.gl);
+  const quality = useRenderQuality(s => s.quality);
+  const tier = useRenderQuality(s => s.tier);
+  const settings = quality === 'balanced' ? BALANCED_LEVELS[tier] : QUALITY[quality];
+  const lastShadow = useRef(-Infinity);
+  useEffect(() => {
+    const previous = gl.shadowMap.autoUpdate;
+    gl.shadowMap.autoUpdate = false;
+    const shadow = light.current?.shadow;
+    if (shadow?.map) { shadow.map.dispose(); shadow.map = null; }
+    gl.shadowMap.needsUpdate = true;
+    return () => { gl.shadowMap.autoUpdate = previous; };
+  }, [gl, settings.shadow]);
+  useFrame(({ clock }) => {
+    if (clock.elapsedTime - lastShadow.current < 1 / settings.shadowHz) return;
+    lastShadow.current = clock.elapsedTime;
     const l = light.current;
     if (!l) return;
     const ov = useWorld.getState().overview;
@@ -37,6 +58,7 @@ function Sun() {
     l.position.set(x + 9, 16, z + 8);
     l.target.position.set(x, 0, z);
     l.target.updateMatrixWorld();
+    gl.shadowMap.needsUpdate = true;
   });
   return (
     <directionalLight
@@ -44,7 +66,7 @@ function Sun() {
       intensity={1.8}
       color="#e2ebff"
       castShadow={!LOW_FX}
-      shadow-mapSize={[2048, 2048]}
+      shadow-mapSize={[settings.shadow, settings.shadow]}
       shadow-camera-left={-22}
       shadow-camera-right={22}
       shadow-camera-top={22}
@@ -68,7 +90,7 @@ function Lights() {
         color="#a56dff"
       />
       {[-3.3, 0, 3.3].map((x) => (
-        <pointLight
+        <LocalPointLight
           key={x}
           position={[x, 2.8, -1.6]}
           intensity={7}
@@ -77,7 +99,7 @@ function Lights() {
           color={PALETTE.warmLight}
         />
       ))}
-      <pointLight
+      <LocalPointLight
         position={[4.9, 2.6, 3.2]}
         intensity={6}
         distance={5}
@@ -121,7 +143,27 @@ function NearScanner() {
   return null;
 }
 
+/** Opaque overlays own input; keep the world alive at 30 Hz for travel and networking. */
+function BackgroundFrames({ covered }: { covered: boolean }) {
+  const invalidate = useThree(s => s.invalidate);
+  useEffect(() => {
+    if (!covered) return;
+    const timer = window.setInterval(() => {
+      if (!document.hidden) invalidate();
+    }, 1000 / 30);
+    return () => clearInterval(timer);
+  }, [covered, invalidate]);
+  return null;
+}
+
 export function OfficeCanvas({ myId }: { myId: string | null }) {
+  const quality = useRenderQuality(s => s.quality);
+  const tier = useRenderQuality(s => s.tier);
+  const settings = quality === 'balanced' ? BALANCED_LEVELS[tier] : QUALITY[quality];
+  const coveredUi = useGame(s => !s.introPlaying && (!!s.drawer || s.phoneOpen || s.projectActive));
+  const projectOpen = useWorld(s => s.projectOpen);
+  const covered = coveredUi || projectOpen;
+  const introPlaying = useGame(s => s.introPlaying);
   const playing = !!myId;
   const onGround = (e: ThreeEvent<MouseEvent>) => {
     if (!playing || e.delta > 6) return;
@@ -133,10 +175,11 @@ export function OfficeCanvas({ myId }: { myId: string | null }) {
   return (
     <Canvas
       className="office-canvas"
+      frameloop={covered ? 'demand' : 'always'}
       shadows={LOW_FX ? false : { type: THREE.PCFShadowMap }}
-      dpr={LOW_FX ? 1 : [1, 1.75]}
+      dpr={LOW_FX ? 1 : [Math.min(1, settings.dpr), settings.dpr]}
       camera={{ position: [34, 34, 46], fov: 38, near: 0.5, far: 600 }}
-      gl={{ antialias: true, powerPreference: 'high-performance' }}
+      gl={{ antialias: false, powerPreference: 'high-performance' }}
       onCreated={({ gl, scene }) => {
         gl.toneMapping = THREE.ACESFilmicToneMapping;
         gl.toneMappingExposure = 1.05;
@@ -144,7 +187,11 @@ export function OfficeCanvas({ myId }: { myId: string | null }) {
       }}
     >
       <Suspense fallback={null}>
+        <BackgroundFrames covered={covered} />
+        {!LOW_FX && <AdaptiveQuality paused={covered || introPlaying} />}
+        {PERF_ENABLED && <RenderProbe />}
         <Lights />
+        <LocalLightPool />
         <Environment resolution={128} frames={1}>
           <Lightformer
             form="rect"
@@ -171,7 +218,7 @@ export function OfficeCanvas({ myId }: { myId: string | null }) {
         <Effects />
         <FollowCamera active={playing} />
         {!LOW_FX && (
-          <EffectComposer multisampling={4}>
+          <EffectComposer multisampling={settings.multisampling}>
             <Bloom
               mipmapBlur
               luminanceThreshold={1.4}

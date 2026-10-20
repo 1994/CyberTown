@@ -1,12 +1,21 @@
-import { useMemo, useRef } from 'react';
+import { LocalPointLight } from './LocalLights.tsx';
+import { useEffect, useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { RoundedBox } from '@react-three/drei';
 import * as THREE from 'three';
 import { PALETTE, glow, std } from './materials.ts';
 import { chartScreen, monitorScreen, whiteboard } from './textures.ts';
 import { rng } from '../../shared/rules.ts';
+import { mergeStaticParts } from './staticGeometry.ts';
 
 type P3 = [number, number, number];
+
+const legBox = new THREE.BoxGeometry(0.05, 0.04, 0.4);
+const chairLegs = mergeStaticParts(legBox, Array.from({ length: 5 }, (_, i) => ({
+  position: [Math.sin(i / 5 * Math.PI * 2) * 0.2, 0.06, Math.cos(i / 5 * Math.PI * 2) * 0.2],
+  rotation: [0, i / 5 * Math.PI * 2, 0],
+})));
+legBox.dispose();
 
 export function Chair({ color = PALETTE.fabricBlue, position = [0, 0, 0] as P3, rotation = 0, exec = false }) {
   const fabric = std(color, 0.85);
@@ -15,11 +24,7 @@ export function Chair({ color = PALETTE.fabricBlue, position = [0, 0, 0] as P3, 
   return (
     <group position={position} rotation-y={rotation}>
       {/* 五星脚 */}
-      {[0, 1, 2, 3, 4].map((i) => (
-        <mesh key={i} position={[Math.sin((i / 5) * Math.PI * 2) * 0.2, 0.06, Math.cos((i / 5) * Math.PI * 2) * 0.2]} rotation-y={(i / 5) * Math.PI * 2} material={metal} castShadow>
-          <boxGeometry args={[0.05, 0.04, 0.4]} />
-        </mesh>
-      ))}
+      {chairLegs && <mesh geometry={chairLegs} material={metal} castShadow dispose={null} />}
       <mesh position={[0, 0.22, 0]} material={metal}>
         <cylinderGeometry args={[0.03, 0.03, 0.34, 8]} />
       </mesh>
@@ -41,6 +46,17 @@ export function Plant({ position = [0, 0, 0] as P3, scale = 1, seed = 1, pot = P
       dark: r() > 0.5,
     }));
   }, [seed]);
+  const foliage = useMemo(() => {
+    const sphere = new THREE.SphereGeometry(1, 10, 8);
+    const merged = [false, true].map((dark) => mergeStaticParts(sphere, leaves.filter(l => l.dark === dark).map(l => ({
+      position: [Math.sin(l.a) * 0.16, l.y, Math.cos(l.a) * 0.16],
+      rotation: [l.tilt * Math.cos(l.a), l.a, -l.tilt * Math.sin(l.a) * 0.3],
+      scale: [l.s, l.s * 0.25, l.s * 1.8],
+    }))));
+    sphere.dispose();
+    return merged;
+  }, [leaves]);
+  useEffect(() => () => foliage.forEach(g => g?.dispose()), [foliage]);
   const potMat = std(pot, 0.5);
   return (
     <group position={position} scale={scale}>
@@ -53,25 +69,22 @@ export function Plant({ position = [0, 0, 0] as P3, scale = 1, seed = 1, pot = P
       <mesh position={[0, 0.7, 0]} material={std('#5b3b22', 0.9)}>
         <cylinderGeometry args={[0.025, 0.03, 0.6, 6]} />
       </mesh>
-      {leaves.map((l, i) => (
-        <mesh
-          key={i}
-          position={[Math.sin(l.a) * 0.16, l.y, Math.cos(l.a) * 0.16]}
-          rotation={[l.tilt * Math.cos(l.a), l.a, -l.tilt * Math.sin(l.a) * 0.3]}
-          scale={[l.s, l.s * 0.25, l.s * 1.8]}
-          material={std(l.dark ? PALETTE.leafDark : PALETTE.leaf, 0.7)}
-          castShadow
-        >
-          <sphereGeometry args={[1, 10, 8]} />
-        </mesh>
-      ))}
+      {foliage.map((geometry, i) => geometry && <mesh key={i} geometry={geometry}
+        material={std(i ? PALETTE.leafDark : PALETTE.leaf, 0.7)} castShadow />)}
     </group>
   );
 }
 
 export function TallPlant({ position = [0, 0, 0] as P3, seed = 3 }) {
-  const r = rng(seed);
-  const blobs = Array.from({ length: 6 }, () => [(r() - 0.5) * 0.5, 1.1 + r() * 1.0, (r() - 0.5) * 0.5, 0.28 + r() * 0.18] as const);
+  const foliage = useMemo(() => {
+    const r = rng(seed);
+    const blobs = Array.from({ length: 6 }, () => [(r() - 0.5) * 0.5, 1.1 + r() * 1.0, (r() - 0.5) * 0.5, 0.28 + r() * 0.18] as const);
+    const source = new THREE.IcosahedronGeometry(1, 1);
+    const merged = [0, 1].map(parity => mergeStaticParts(source, blobs.filter((_, i) => i % 2 === parity).map(([x, y, z, s]) => ({ position: [x, y, z], scale: [s, s, s] }))));
+    source.dispose();
+    return merged;
+  }, [seed]);
+  useEffect(() => () => foliage.forEach(g => g?.dispose()), [foliage]);
   return (
     <group position={position}>
       <mesh position={[0, 0.3, 0]} material={std(PALETTE.terracotta, 0.6)} castShadow receiveShadow>
@@ -80,11 +93,8 @@ export function TallPlant({ position = [0, 0, 0] as P3, seed = 3 }) {
       <mesh position={[0, 1.0, 0]} material={std('#5b3b22', 0.9)}>
         <cylinderGeometry args={[0.04, 0.05, 1.2, 6]} />
       </mesh>
-      {blobs.map(([x, y, z, s], i) => (
-        <mesh key={i} position={[x, y, z]} material={std(i % 2 ? PALETTE.leaf : PALETTE.leafDark, 0.75)} castShadow>
-          <icosahedronGeometry args={[s, 1]} />
-        </mesh>
-      ))}
+      {foliage.map((geometry, i) => geometry && <mesh key={i} geometry={geometry}
+        material={std(i ? PALETTE.leaf : PALETTE.leafDark, 0.75)} castShadow />)}
     </group>
   );
 }
@@ -146,7 +156,7 @@ export function Desk({ position = [0, 0, 0] as P3, slot, accent = '#5ee1ff' }: {
           <planeGeometry args={[0.74, 0.4]} />
           <meshStandardMaterial ref={screen} color="#111" emissive="#ffffff" emissiveMap={scr} emissiveIntensity={0.2} roughness={0.2} />
         </mesh>
-        <pointLight ref={lamp} position={[0, 0.4, -0.35]} color={accent} intensity={0.6} distance={1.8} decay={2} />
+        <LocalPointLight ref={lamp} position={[0, 0.4, -0.35]} color={accent} intensity={0.6} distance={1.8} decay={2} />
       </group>
       {/* 键盘鼠标 */}
       <RoundedBox args={[0.5, 0.025, 0.16]} radius={0.01} position={[-0.05, 0.8, -0.22]} material={std('#e9e9ef', 0.5)} />
@@ -306,7 +316,7 @@ export function MeetingArea({ position = [0, 0, 0] as P3 }) {
         <mesh position={[0, -0.12, 0]} material={glow(PALETTE.warmLight, 2.2)}>
           <sphereGeometry args={[0.1, 12, 8]} />
         </mesh>
-        <pointLight position={[0, -0.3, 0]} color={PALETTE.warmLight} intensity={9} distance={5} decay={2} />
+        <LocalPointLight position={[0, -0.3, 0]} color={PALETTE.warmLight} intensity={9} distance={5} decay={2} />
       </group>
     </group>
   );
@@ -369,7 +379,7 @@ export function VendingMachine({ position = [0, 0, 0] as P3, rotation = 0 }) {
           <cylinderGeometry args={[0.04, 0.04, 0.16, 10]} />
         </mesh>
       ))}
-      <pointLight position={[0, 1.2, 0.8]} color="#7fd8ff" intensity={4} distance={3.5} decay={2} />
+      <LocalPointLight position={[0, 1.2, 0.8]} color="#7fd8ff" intensity={4} distance={3.5} decay={2} />
     </group>
   );
 }
@@ -386,7 +396,7 @@ export function FloorLamp({ position = [0, 0, 0] as P3 }) {
       <mesh position={[0, 1.75, 0]} material={std('#f6e3c4', 0.7, 0, { emissive: '#ffcf8a', emissiveIntensity: 0.9 })}>
         <cylinderGeometry args={[0.18, 0.24, 0.3, 20, 1, true]} />
       </mesh>
-      <pointLight position={[0, 1.6, 0]} color={PALETTE.warmLight} intensity={5} distance={4} decay={2} />
+      <LocalPointLight position={[0, 1.6, 0]} color={PALETTE.warmLight} intensity={5} distance={4} decay={2} />
     </group>
   );
 }

@@ -1,4 +1,4 @@
-import { useMemo, useRef } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { rng } from '../../shared/rules.ts';
@@ -107,6 +107,26 @@ function useBuildings() {
   }, []);
 }
 
+type InstanceBox = { position: [number, number, number]; scale: [number, number, number] };
+
+function StaticBoxes({ boxes, material, beacon = false }: { boxes: InstanceBox[]; material: THREE.Material; beacon?: boolean }) {
+  const mesh = useRef<THREE.InstancedMesh>(null!);
+  useLayoutEffect(() => {
+    const transform = new THREE.Object3D();
+    boxes.forEach((box, i) => {
+      transform.position.set(...box.position);
+      transform.scale.set(...box.scale);
+      transform.updateMatrix();
+      mesh.current.setMatrixAt(i, transform.matrix);
+    });
+    mesh.current.instanceMatrix.needsUpdate = true;
+    mesh.current.computeBoundingSphere();
+  }, [boxes]);
+  return <instancedMesh ref={mesh} args={[undefined, material, boxes.length]}>
+    {beacon ? <sphereGeometry args={[0.45, 8, 8]} /> : <boxGeometry args={[1, 1, 1]} />}
+  </instancedMesh>;
+}
+
 function Buildings() {
   const list = useBuildings();
   const materials = useMemo(
@@ -150,37 +170,29 @@ function Buildings() {
     if (beacons.current)
       beacons.current.visible = Math.sin(clock.elapsedTime * 3) > -0.2;
   });
+  const batches = useMemo(() => {
+    const walls: InstanceBox[][] = Array.from({ length: 6 }, () => []);
+    const roofs: InstanceBox[] = [];
+    const spines: InstanceBox[][] = [[], []];
+    const beacons: InstanceBox[] = [];
+    list.forEach((b, i) => {
+      walls[b.tex].push({ position: [b.x, b.h / 2, b.z], scale: [b.w, b.h, b.d] });
+      if (b.roof) roofs.push({ position: [b.x, b.h + 1.2, b.z], scale: [b.w * 0.6, 2.4, b.d * 0.6] });
+      if (i % 9 === 0) spines[i % 2].push({ position: [b.x + b.w / 2 + 0.015, b.h / 2, b.z + b.d / 2], scale: [0.14, b.h, 0.14] });
+      if (b.h > 50) beacons.push({ position: [b.x, b.h + (b.roof ? 2.6 : 0.4), b.z], scale: [1, 1, 1] });
+    });
+    return { walls, roofs, spines, beacons };
+  }, [list]);
+  useEffect(() => () => {
+    materials.forEach((m) => { m.emissiveMap?.dispose(); m.dispose(); });
+    roofMat.dispose(); beacon.dispose();
+  }, [materials, roofMat, beacon]);
   return (
     <group position={[0, GROUND_Y, 0]}>
-      {list.map((b, i) => (
-        <group key={i} position={[b.x, 0, b.z]}>
-          <mesh position={[0, b.h / 2, 0]} material={materials[b.tex]}>
-            <boxGeometry args={[b.w, b.h, b.d]} />
-          </mesh>
-          {b.roof && (
-            <mesh position={[0, b.h + 1.2, 0]} material={roofMat}>
-              <boxGeometry args={[b.w * 0.6, 2.4, b.d * 0.6]} />
-            </mesh>
-          )}
-          {i % 9 === 0 && <mesh
-            position={[b.w / 2 + 0.015, b.h / 2, b.d / 2]}
-            material={glow(i % 2 ? '#ff4fca' : '#48eeff', 1.5)}
-          ><boxGeometry args={[0.14, b.h, 0.14]}/></mesh>}
-        </group>
-      ))}
-      <group ref={beacons}>
-        {list
-          .filter((b) => b.h > 50)
-          .map((b, i) => (
-            <mesh
-              key={i}
-              position={[b.x, b.h + (b.roof ? 2.6 : 0.4), b.z]}
-              material={beacon}
-            >
-              <sphereGeometry args={[0.45, 8, 8]} />
-            </mesh>
-          ))}
-      </group>
+      {batches.walls.map((boxes, i) => <StaticBoxes key={i} boxes={boxes} material={materials[i]} />)}
+      <StaticBoxes boxes={batches.roofs} material={roofMat} />
+      {batches.spines.map((boxes, i) => <StaticBoxes key={i} boxes={boxes} material={glow(i ? '#ff4fca' : '#48eeff', 1.5)} />)}
+      <group ref={beacons}><StaticBoxes boxes={batches.beacons} material={beacon} beacon /></group>
     </group>
   );
 }
@@ -221,9 +233,9 @@ function Streets() {
           new THREE.Color(c.warm ? '#ff5a3a' : '#fff1c9').multiplyScalar(3),
         );
     });
+    if (!colorsSet.current && m.instanceColor) m.instanceColor.needsUpdate = true;
     colorsSet.current = true;
     m.instanceMatrix.needsUpdate = true;
-    if (m.instanceColor) m.instanceColor.needsUpdate = true;
   });
   return (
     <group>

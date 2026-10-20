@@ -1,3 +1,4 @@
+import { LocalPointLight } from './LocalLights.tsx';
 import { useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
@@ -190,7 +191,7 @@ function ElevatorCore() {
       <mesh position={[ELEVATOR.x, 0.01, cz]} rotation-x={-Math.PI / 2} material={std('#111a31', 0.4)}>
         <planeGeometry args={[DOOR_W, coreD]} />
       </mesh>
-      <pointLight ref={cabLight} position={[ELEVATOR.x, 2.1, cz]} color="#b8e7ff" intensity={2} distance={3} decay={2} />
+      <LocalPointLight ref={cabLight} position={[ELEVATOR.x, 2.1, cz]} color="#b8e7ff" intensity={2} distance={3} decay={2} />
       {/* 门框 */}
       <mesh position={[ELEVATOR.x, 2.33, doorFrontZ + 0.04]} material={std('#9aa3b2', 0.25, 0.9)}>
         <boxGeometry args={[DOOR_W + 0.24, 0.08, 0.1]} />
@@ -219,7 +220,7 @@ function ElevatorCore() {
       <mesh position={[cx, 2.85, doorFrontZ + 0.03]} material={signMat}>
         <planeGeometry args={[coreW - 0.3, (coreW - 0.3) / 4]} />
       </mesh>
-      <pointLight position={[cx, 2.7, doorFrontZ + 0.8]} color={PALETTE.neonPink} intensity={6} distance={5} decay={2} />
+      <LocalPointLight position={[cx, 2.7, doorFrontZ + 0.8]} color={PALETTE.neonPink} intensity={6} distance={5} decay={2} />
     </group>
   );
 }

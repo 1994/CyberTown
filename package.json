@@ -17,7 +17,7 @@
     "start": "go run ./cmd/boss-server",
     "seed": "go run ./cmd/boss-server --seed",
     "reset": "go run ./cmd/boss-server --reset",
-    "test": "go test ./... && npm run test:contract && npm run test:map",
+    "test": "go test ./... && npm run test:contract && npm run test:map && npm run test:render",
     "test:e2e": "npm run build && playwright test",
     "demo:record": "node --disable-warning=ExperimentalWarning scripts/record-demo.ts",
     "build:web": "tsc -b && vite build",
@@ -25,7 +25,8 @@
     "start:binary": "./bin/boss-server",
     "test:race": "go test -race ./...",
     "test:contract": "node scripts/check-rules.ts",
-    "test:map": "node scripts/check-map-routes.ts"
+    "test:map": "node scripts/check-map-routes.ts",
+    "test:render": "node scripts/check-render-budget.ts"
   },
   "dependencies": {
     "@react-three/drei": "^10.7.9",

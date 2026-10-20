@@ -1,3 +1,4 @@
+import { QUALITY, useRenderQuality } from '../renderQuality.ts';
 import { dressed, dressedColleague } from '../look.ts';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { ColleagueView, EmoteKind } from '../../shared/types.ts';
@@ -50,6 +51,8 @@ const isTouch =
 // ───────────────────── 右上：地图 + 菜单 ─────────────────────
 
 function MapPanel() {
+  const quality = useRenderQuality(s => s.quality);
+  const cycleQuality = useRenderQuality(s => s.cycle);
   const overview = useWorld((s) => s.overview);
   const setOverview = useWorld((s) => s.setOverview);
   const unread = useGame((s) => s.snapshot?.unread ?? 0);
@@ -130,6 +133,7 @@ function MapPanel() {
       </div>
       {menu && (
         <nav className="menu-pop" aria-label="菜单">
+          <button onClick={cycleQuality} data-testid="btn-quality" title="自动适应帧率；点击切换自动、清晰、流畅">画质：{QUALITY[quality].label}</button>
           <button onClick={() => open('messages')} data-testid="btn-messages">
             消息 {unread > 0 && <small>{unread}</small>}
           </button>

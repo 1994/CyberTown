@@ -1,3 +1,4 @@
+import { LocalPointLight } from './LocalLights.tsx';
 import { useMemo, useRef } from 'react';
 import type { ThreeEvent } from '@react-three/fiber';
 import { useFrame } from '@react-three/fiber';
@@ -227,7 +228,7 @@ function StreetLamp({ position, light }: { position: P3; light?: boolean }) {
         <sphereGeometry args={[0.2, 12, 8]} />
       </mesh>
       {light && (
-        <pointLight
+        <LocalPointLight
           position={[0, 3, 0]}
           color={PALETTE.warmLight}
           intensity={14}
@@ -351,7 +352,7 @@ function Plaza() {
         <mesh position={[0, 1.7, 0]} material={std('#e9bf65', 0.3, 0.5)}>
           <sphereGeometry args={[0.35, 16, 12]} />
         </mesh>
-        <pointLight
+        <LocalPointLight
           position={[0, 1.6, 0]}
           color="#7fe8ff"
           intensity={10}
@@ -512,7 +513,7 @@ function CoffeeZone() {
             depthWrite={false}
           />
         </mesh>
-        <pointLight
+        <LocalPointLight
           position={[0, 2.2, 3]}
           color="#ffb38a"
           intensity={12}
@@ -811,7 +812,7 @@ function ProjectZone() {
             toneMapped={false}
           />
         </mesh>
-        <pointLight
+        <LocalPointLight
           position={[0, 2, 1]}
           color="#ff6b6b"
           intensity={10}

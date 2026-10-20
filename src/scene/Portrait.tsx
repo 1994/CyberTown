@@ -29,7 +29,7 @@ export function Portrait({
 }) {
   return (
     <Canvas
-      dpr={[1, 1.5]}
+      dpr={[1, 1.25]}
       camera={{ position: [2.4, 2.1, 4], fov: 33 }}
       gl={{ alpha: true, antialias: true }}
       onCreated={({ camera }) => camera.lookAt(0, 0.95, 0)}
@@ -55,6 +55,7 @@ export function Portrait({
           </mesh>
         )}
         <ContactShadows
+          frames={1}
           position={[0, -0.01, 0]}
           opacity={0.35}
           scale={5}
