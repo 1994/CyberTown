@@ -1,0 +1,64 @@
+{
+  "players": [
+    {
+      "id": "li",
+      "coins": 235
+    },
+    {
+      "id": "liu",
+      "coins": 600
+    },
+    {
+      "id": "mei",
+      "coins": 600
+    },
+    {
+      "id": "wang",
+      "coins": 713
+    }
+  ],
+  "trades": [
+    {
+      "colleague": "c-doudou",
+      "buyer": "wang",
+      "seller": null,
+      "price": 300,
+      "ownerShare": 0,
+      "selfShare": 15,
+      "systemShare": 285
+    },
+    {
+      "colleague": "c-doudou",
+      "buyer": "li",
+      "seller": "wang",
+      "price": 380,
+      "ownerShare": 342,
+      "selfShare": 19,
+      "systemShare": 19
+    }
+  ],
+  "projects": [
+    {
+      "player": "wang",
+      "reward": 56,
+      "result": {
+        "hits": 6,
+        "misses": 14,
+        "traps": 1,
+        "shieldsUsed": 1,
+        "maxCombo": 3,
+        "rejected": 0,
+        "basePoints": 56,
+        "incomeBonus": 0,
+        "total": 56
+      }
+    }
+  ],
+  "socialCooldowns": [
+    [
+      "li:wang",
+      1792492825922
+    ]
+  ],
+  "ledgerMismatches": []
+}

@@ -1,5 +1,5 @@
 import type { ProjectAction, ProjectResult } from '../shared/rules.ts';
-import type { ProjectRunView, StateSnapshot, TradeEvent } from '../shared/types.ts';
+import type { EmoteKind, ProjectRunView, StateSnapshot, TradeEvent, WorldPlayer, WorldSnapshot } from '../shared/types.ts';
 
 const TOKEN_KEY = 'boss.session';
 
@@ -13,10 +13,12 @@ export const session = {
 export class ApiError extends Error {
   status: number;
   code: string;
-  constructor(status: number, code: string, message: string) {
+  body: unknown;
+  constructor(status: number, code: string, message: string, body: unknown = null) {
     super(message);
     this.status = status;
     this.code = code;
+    this.body = body;
   }
 }
 
@@ -43,7 +45,7 @@ async function call<T>(method: string, path: string, body?: unknown): Promise<T>
   }
   if (!res.ok) {
     const err = (data as { error?: { code: string; message: string } })?.error;
-    throw new ApiError(res.status, err?.code ?? 'HTTP_' + res.status, err?.message ?? `请求失败（${res.status}）`);
+    throw new ApiError(res.status, err?.code ?? 'HTTP_' + res.status, err?.message ?? `请求失败（${res.status}）`, data);
   }
   return data as T;
 }
@@ -67,4 +69,9 @@ export const api = {
   finishProject: (runId: string, actions: ProjectAction[]) =>
     call<{ result: ProjectResult; coins: number }>('POST', '/api/project/finish', { runId, actions }),
   markRead: () => call<{ ok: true }>('POST', '/api/messages/read'),
+  // ── 多人园区 ──
+  world: () => call<WorldSnapshot>('GET', '/api/world'),
+  move: (m: { x: number; z: number; yaw: number; moving: boolean }) => call<{ player: WorldPlayer }>('POST', '/api/world/move', m),
+  social: (s: { emote?: EmoteKind; text?: string }) => call<{ player: WorldPlayer }>('POST', '/api/world/social', s),
+  highfive: (targetId: string) => call<{ reward: number; cooldownUntil: number }>('POST', '/api/world/highfive', { targetId }),
 };

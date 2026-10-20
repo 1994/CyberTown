@@ -1,3 +1,5 @@
+> 此页与现有MP4记录的是自由探索改造前的办公室版本。录制脚本依赖旧UI，尚未适配当前版本；新版验收记录见 `docs/GAMEPLAY-V2.md` 与 `artifacts/redesign/`。
+
 # 真实网页演示
 
 - [双玩家并排版](../artifacts/demo/boss-demo-2p.mp4)：1920×600，204.53秒（3分24秒），H.264。

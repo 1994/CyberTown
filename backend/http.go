@@ -25,15 +25,17 @@ type subscriber struct {
 	events        chan []byte
 }
 type App struct {
-	Game    *Game
-	Options Options
-	mu      sync.Mutex
-	clients map[*subscriber]bool
-	closed  bool
+	Game     *Game
+	Options  Options
+	mu       sync.Mutex
+	clients  map[*subscriber]bool
+	closed   bool
+	world    map[string]WorldPlayer
+	socialAt map[string]int64
 }
 
 func NewApp(game *Game, opts Options) *App {
-	return &App{Game: game, Options: opts, clients: map[*subscriber]bool{}}
+	return &App{Game: game, Options: opts, clients: map[*subscriber]bool{}, world: map[string]WorldPlayer{}, socialAt: map[string]int64{}}
 }
 func (a *App) Online() map[string]bool {
 	a.mu.Lock()
@@ -173,6 +175,10 @@ func (a *App) handle(w http.ResponseWriter, r *http.Request) error {
 		if err := a.Game.Reset(); err != nil {
 			return err
 		}
+		a.mu.Lock()
+		a.world = map[string]WorldPlayer{}
+		a.socialAt = map[string]int64{}
+		a.mu.Unlock()
 		a.Broadcast(map[string]any{"kind": "reset", "at": a.Game.Now()})
 		respond(w, 200, map[string]bool{"ok": true})
 		return nil
@@ -187,6 +193,9 @@ func (a *App) handle(w http.ResponseWriter, r *http.Request) error {
 	player, err := a.Game.Auth(token)
 	if err != nil {
 		return err
+	}
+	if strings.HasPrefix(path, "/api/world") {
+		return a.handleWorld(w, r, player)
 	}
 	switch {
 	case path == "/api/events" && method == "GET":
@@ -293,12 +302,14 @@ func (a *App) events(w http.ResponseWriter, r *http.Request, player, token strin
 		return fail(503, "CLOSED", "服务正在关闭")
 	}
 	a.clients[c] = true
+	a.ensureWorldLocked(player)
 	a.mu.Unlock()
 	defer func() {
 		a.mu.Lock()
 		delete(a.clients, c)
 		a.mu.Unlock()
 		a.Broadcast(map[string]any{"kind": "presence", "at": a.Game.Now()})
+		a.broadcastWorld()
 	}()
 	w.Header().Set("Content-Type", "text/event-stream; charset=utf-8")
 	w.Header().Set("Cache-Control", "no-cache, no-transform")
@@ -310,6 +321,7 @@ func (a *App) events(w http.ResponseWriter, r *http.Request, player, token strin
 	}
 	flusher.Flush()
 	a.Broadcast(map[string]any{"kind": "presence", "at": a.Game.Now()})
+	a.broadcastWorld()
 	ticker := time.NewTicker(15 * time.Second)
 	defer ticker.Stop()
 	controller := http.NewResponseController(w)

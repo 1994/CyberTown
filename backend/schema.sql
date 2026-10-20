@@ -80,3 +80,7 @@ CREATE TABLE IF NOT EXISTS meta (
   key TEXT PRIMARY KEY,
   value TEXT NOT NULL
 );
+CREATE TABLE IF NOT EXISTS social_rewards (
+  pair_key TEXT PRIMARY KEY,
+  claimed_at INTEGER NOT NULL
+);

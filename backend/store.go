@@ -94,7 +94,7 @@ func (g *Game) seed(reset bool) error {
 		if count > 0 && !reset {
 			return nil
 		}
-		for _, t := range []string{"sessions", "trades", "ledger", "project_runs", "messages", "colleagues", "players", "meta"} {
+		for _, t := range []string{"sessions", "trades", "ledger", "project_runs", "social_rewards", "messages", "colleagues", "players", "meta"} {
 			if _, err := tx.Exec("DELETE FROM " + t); err != nil {
 				return err
 			}

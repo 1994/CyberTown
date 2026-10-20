@@ -100,7 +100,46 @@ export interface ProjectEvent {
   at: number;
 }
 
-export type GameEvent = TradeEvent | ProjectEvent | { kind: 'reset'; at: number } | { kind: 'presence'; at: number };
+export interface HighfiveEvent {
+  kind: 'highfive';
+  playerId: string;
+  targetId: string;
+  reward: number;
+  at: number;
+}
+
+export type GameEvent = TradeEvent | ProjectEvent | HighfiveEvent | { kind: 'reset'; at: number } | { kind: 'presence'; at: number };
+
+// ───────────── 多人园区（/api/world） ─────────────
+
+export type EmoteKind = 'wave' | 'dance' | 'coffee';
+
+/** 在线玩家在园区中的位置与社交状态（只包含当前有 SSE 连接的测试身份） */
+export interface WorldPlayer {
+  id: string;
+  x: number;
+  z: number;
+  yaw: number;
+  moving: boolean;
+  emote: string;
+  emoteUntil: number;
+  said: string;
+  saidUntil: number;
+  updatedAt: number;
+}
+
+export interface WorldBounds {
+  minX: number;
+  maxX: number;
+  minZ: number;
+  maxZ: number;
+}
+
+export interface WorldSnapshot {
+  serverTime: number;
+  bounds: WorldBounds;
+  players: WorldPlayer[];
+}
 
 export interface FinishResponse {
   result: ProjectResult;

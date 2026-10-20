@@ -2,8 +2,10 @@ import { useEffect } from 'react';
 import { OfficeCanvas } from './scene/Office.tsx';
 import { useGame } from './store.ts';
 import { useRealtime } from './realtime.ts';
+import { useWorldNet } from './world/net.ts';
+import { useWorldInput } from './world/input.ts';
 import { Login } from './ui/Login.tsx';
-import { Hud } from './ui/Hud.tsx';
+import { GameHud } from './ui/GameHud.tsx';
 import { ErrorBoundary } from './ui/ErrorBoundary.tsx';
 
 export function App() {
@@ -11,17 +13,20 @@ export function App() {
   const bootError = useGame((s) => s.bootError);
   const boot = useGame((s) => s.boot);
   const playerId = useGame((s) => s.snapshot?.me.id ?? null);
+  const myId = phase === 'game' ? playerId : null;
 
   useEffect(() => {
     void boot();
   }, [boot]);
 
-  useRealtime(phase === 'game' && !!playerId);
+  useRealtime(!!myId);
+  useWorldNet(myId);
+  useWorldInput(!!myId);
 
   return (
     <div className={`app phase-${phase}`}>
-      <ErrorBoundary fallback={<div className="scene-fallback">3D 场景加载失败（可能是浏览器不支持 WebGL）。游戏功能仍可通过 HUD 使用。</div>}>
-        <OfficeCanvas cinematic={phase === 'game'} />
+      <ErrorBoundary fallback={<div className="scene-fallback">3D 场景加载失败（浏览器可能不支持 WebGL）</div>}>
+        <OfficeCanvas myId={myId} />
       </ErrorBoundary>
       {phase === 'boot' && (
         <div className="boot-screen" role="status" aria-live="polite">
@@ -30,22 +35,21 @@ export function App() {
           </div>
           {bootError ? (
             <div className="boot-error">
-              <p>⚠️ 无法连接游戏服务器：{bootError}</p>
-              <p className="muted">请确认后端已启动（默认端口 8787），然后重试。</p>
+              <p>连不上服务器：{bootError}</p>
               <button className="btn primary" onClick={() => void boot()}>
-                重试连接
+                重试
               </button>
             </div>
           ) : (
             <div className="loader">
               <i />
-              <span>正在布置办公室…</span>
+              <span>园区开门中…</span>
             </div>
           )}
         </div>
       )}
       {phase === 'login' && <Login />}
-      {phase === 'game' && playerId && <Hud key={playerId} />}
+      {myId && <GameHud key={myId} />}
     </div>
   );
 }

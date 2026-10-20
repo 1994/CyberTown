@@ -1,3 +1,11 @@
+# 自由探索改版说明
+
+当前前端已由 Claude 改为园区自由行走、跟随镜头、近身互动、短句/表情、三人小队跟随和单输入项目。主要入口为 `GameHud.tsx`、`Campus.tsx`、`Avatars.tsx`、`Colleagues.tsx`、`FollowCamera.tsx` 与 `src/world/`；静态地图、碰撞和寻路位于 `shared/world.ts`。
+
+本轮状态与待修项以 [独立review](REVIEW-V2.md) 为准。下面保留的是初版办公室的交付说明，其中旧组件名、默认市场、旧项目卡片、长片头与旧E2E通过记录不代表当前版本。
+
+---
+
 # 前端说明（Claude Code 实现）
 
 React 19 + TypeScript + Three.js（React Three Fiber 9 / Drei 10 / postprocessing）+ Zustand。所有游戏数据来自 Go 服务端；浏览器只在 `sessionStorage` 保存测试会话 token，在 `localStorage` 保存「上次选择的身份」「是否看过新手指引」这类纯界面偏好。

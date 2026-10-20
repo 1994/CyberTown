@@ -244,3 +244,66 @@ export function cityGround() {
     return t;
   });
 }
+
+/** 指示牌/摊位横幅文字贴图（系统中文字体） */
+export function signTexture(text: string, bg: string, fg = '#ffffff', w = 512, h = 128) {
+  return cached(`sign-${text}-${bg}-${fg}-${w}x${h}`, () => {
+    const [c, g] = canvas(w, h);
+    g.fillStyle = bg;
+    const r = h * 0.22;
+    g.beginPath();
+    g.roundRect(4, 4, w - 8, h - 8, r);
+    g.fill();
+    g.strokeStyle = 'rgba(255,255,255,0.55)';
+    g.lineWidth = 4;
+    g.stroke();
+    g.fillStyle = fg;
+    g.textAlign = 'center';
+    g.textBaseline = 'middle';
+    let size = Math.floor(h * 0.52);
+    g.font = `800 ${size}px "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans CJK SC", system-ui, sans-serif`;
+    while (g.measureText(text).width > w - 40 && size > 12) {
+      size -= 2;
+      g.font = `800 ${size}px "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans CJK SC", system-ui, sans-serif`;
+    }
+    g.fillText(text, w / 2, h / 2 + 2);
+    return tex(c);
+  });
+}
+
+/** 园区地面：深色草坪 + 细微噪点 */
+export function lawnTexture() {
+  return cached('lawn', () => {
+    const [c, g] = canvas(512, 512);
+    g.fillStyle = '#3f6b3c';
+    g.fillRect(0, 0, 512, 512);
+    const r = rng(77);
+    for (let i = 0; i < 5000; i++) {
+      g.fillStyle = r() > 0.5 ? 'rgba(120,170,90,0.25)' : 'rgba(30,60,30,0.3)';
+      g.fillRect(r() * 512, r() * 512, 2, 3 + r() * 3);
+    }
+    const t = tex(c);
+    t.wrapS = t.wrapT = THREE.RepeatWrapping;
+    t.repeat.set(14, 10);
+    return t;
+  });
+}
+
+/** 石材铺装 */
+export function paverTexture() {
+  return cached('paver', () => {
+    const [c, g] = canvas(256, 256);
+    g.fillStyle = '#b9b1a4';
+    g.fillRect(0, 0, 256, 256);
+    const r = rng(12);
+    for (let y = 0; y < 256; y += 32) {
+      for (let x = (y / 32) % 2 ? -32 : 0; x < 256; x += 64) {
+        g.fillStyle = `hsl(35, 10%, ${62 + r() * 12}%)`;
+        g.fillRect(x + 2, y + 2, 60, 28);
+      }
+    }
+    const t = tex(c);
+    t.wrapS = t.wrapT = THREE.RepeatWrapping;
+    return t;
+  });
+}

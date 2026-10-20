@@ -17,14 +17,15 @@
     "start": "go run ./cmd/boss-server",
     "seed": "go run ./cmd/boss-server --seed",
     "reset": "go run ./cmd/boss-server --reset",
-    "test": "go test ./... && npm run test:contract",
+    "test": "go test ./... && npm run test:contract && npm run test:map",
     "test:e2e": "npm run build && playwright test",
     "demo:record": "node --disable-warning=ExperimentalWarning scripts/record-demo.ts",
     "build:web": "tsc -b && vite build",
     "build:server": "go build -trimpath -o bin/boss-server ./cmd/boss-server",
     "start:binary": "./bin/boss-server",
     "test:race": "go test -race ./...",
-    "test:contract": "node scripts/check-rules.ts"
+    "test:contract": "node scripts/check-rules.ts",
+    "test:map": "node scripts/check-map-routes.ts"
   },
   "dependencies": {
     "@react-three/drei": "^10.7.9",

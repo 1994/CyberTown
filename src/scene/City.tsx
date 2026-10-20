@@ -69,15 +69,14 @@ function useBuildings() {
   return useMemo(() => {
     const r = rng(2024);
     const list: Building[] = [];
-    for (let i = 0; i < 150; i++) {
+    for (let i = 0; i < 190; i++) {
       const ang = r() * Math.PI * 2;
-      const dist = 30 + r() * 120;
+      // 园区平台约 60×44 米：楼群从平台外 50 米起环绕，近处楼顶低于平台，远处形成天际线
+      const dist = 52 + r() * 140;
       const x = Math.cos(ang) * dist;
       const z = Math.sin(ang) * dist;
-      // 相机所在的前右方向保持稀疏，避免挡住办公室
-      if (x > -4 && z > -4 && dist < 80) continue;
-      const near = dist < 45;
-      const h = 14 + r() * (near ? 32 : 58) + (r() > 0.85 ? 25 : 0);
+      const near = dist < 80;
+      const h = near ? 12 + r() * 30 : 20 + r() * 62 + (r() > 0.85 ? 25 : 0);
       list.push({ x, z, w: 5 + r() * 9, d: 5 + r() * 9, h, tex: Math.floor(r() * 6), roof: r() > 0.6 });
     }
     return list;

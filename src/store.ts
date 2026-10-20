@@ -4,7 +4,7 @@ import { api, ApiError, session } from './api.ts';
 import type { Identity } from './api.ts';
 
 export type Phase = 'boot' | 'login' | 'game';
-export type Drawer = null | 'messages' | 'leaderboard' | 'guide';
+export type Drawer = null | 'messages' | 'leaderboard' | 'guide' | 'market';
 
 export interface Toast {
   id: number;
@@ -69,7 +69,7 @@ export const useGame = create<GameStore>((set, get) => ({
   clockOffset: 0,
   toasts: [],
   drawer: null,
-  marketOpen: typeof window !== 'undefined' ? window.innerWidth > 900 : true,
+  marketOpen: false,
   introNonce: 0,
   introPlaying: false,
   projectActive: false,
@@ -140,7 +140,7 @@ export const useGame = create<GameStore>((set, get) => ({
         if (e instanceof ApiError && e.status === 401) {
           session.clear();
           set({ phase: 'login', snapshot: null });
-          get().toast({ tone: 'info', title: '会话已失效', body: '数据可能已被重置，请重新选择测试身份。' });
+          get().toast({ tone: 'info', title: '会话已失效，请重新选择测试身份' });
         } else {
           set({ conn: 'offline' });
         }
@@ -189,13 +189,21 @@ export const useGame = create<GameStore>((set, get) => ({
       get().toast({ tone: 'info', title: '演示数据已重置' });
       return;
     }
-    if (e.kind !== 'trade') return;
     const me = snap.me.id;
     const nameOf = (id: string | null) => snap.players.find((p) => p.id === id)?.name ?? id ?? '系统';
+    if (e.kind === 'highfive') {
+      window.dispatchEvent(new CustomEvent('world-highfive', { detail: e }));
+      if (e.playerId === me || e.targetId === me) {
+        const other = e.playerId === me ? e.targetId : e.playerId;
+        get().toast({ tone: 'gold', title: `🥂 和${nameOf(other)}碰杯 +${e.reward}` });
+      }
+      return;
+    }
+    if (e.kind !== 'trade') return;
     const t = e as TradeEvent;
     if (t.sellerId === me) {
-      // 被挖角：收起遮挡画面的面板，让「起身 → 收拾纸箱 → 走进电梯」完整可见
-      set({ marketOpen: false, drawer: null });
+      // 被挖角：收起遮挡画面的面板，让「收拾纸箱 → 走向新老板」完整可见
+      set({ marketOpen: false });
       if (t.previousDeskSlot != null) {
         set((s) => ({
           poachMarkers: {
@@ -204,28 +212,13 @@ export const useGame = create<GameStore>((set, get) => ({
           },
         }));
       }
-      get().toast({
-        tone: 'bad',
-        title: `😱 ${t.colleagueName} 被 ${nameOf(t.buyerId)} 挖走了！`,
-        body: `成交价 ${t.price}，你获得 90% 补偿 +${t.ownerShare} 金币（向下取整）`,
-        ttl: 8000,
-      });
+      get().toast({ tone: 'bad', title: `😱 ${t.colleagueName}被${nameOf(t.buyerId)}挖走 · 补偿 +${t.ownerShare}`, ttl: 7000 });
     }
     if (t.selfPlayerId === me && t.buyerId !== me) {
-      get().toast({
-        tone: 'gold',
-        title: `🎉 分身分红 +${t.selfShare}`,
-        body: `你的分身「${t.colleagueName}」被 ${nameOf(t.buyerId)} 以 ${t.price} 金币${t.sellerId ? '挖角' : '签约'}，你获得 5%`,
-        ttl: 7000,
-      });
+      get().toast({ tone: 'gold', title: `🎉 分身被${nameOf(t.buyerId)}${t.sellerId ? '挖走' : '招募'} · 分红 +${t.selfShare}`, ttl: 6000 });
     }
     if (t.buyerId !== me && t.sellerId !== me && t.selfPlayerId !== me) {
-      get().toast({
-        tone: 'info',
-        title: `📣 ${nameOf(t.buyerId)} ${t.sellerId ? `从 ${nameOf(t.sellerId)} 手中挖走` : '签下'} ${t.colleagueName}`,
-        body: `成交价 ${t.price} 金币`,
-        ttl: 4000,
-      });
+      get().toast({ tone: 'info', title: `📣 ${nameOf(t.buyerId)}${t.sellerId ? '挖走了' : '招募了'}${t.colleagueName}`, ttl: 3500 });
     }
   },
 }));

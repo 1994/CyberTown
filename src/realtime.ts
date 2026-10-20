@@ -1,7 +1,8 @@
 import { useEffect } from 'react';
-import { session } from './api.ts';
+import { api, session } from './api.ts';
 import { useGame } from './store.ts';
-import type { GameEvent } from '../shared/types.ts';
+import type { GameEvent, WorldPlayer } from '../shared/types.ts';
+import { applyWorld } from './world/net.ts';
 
 /**
  * SSE 实时同步：服务端每次状态变化推送 {type:'sync', event}，客户端立即拉取最新快照。
@@ -26,10 +27,18 @@ export function useRealtime(enabled: boolean) {
     };
     es.onmessage = (m) => {
       try {
-        const msg = JSON.parse(m.data) as { type: string; event?: GameEvent };
+        const msg = JSON.parse(m.data) as { type: string; event?: GameEvent; players?: WorldPlayer[]; serverTime?: number };
         if (msg.type === 'hello') {
           setConn('live');
           void refresh();
+          // 重连后补齐园区在线玩家
+          void api
+            .world()
+            .then((w) => applyWorld(w.players, w.serverTime))
+            .catch(() => undefined);
+        } else if (msg.type === 'world' && msg.players) {
+          // 园区位置/社交广播：直接更新，不拉取完整经济快照
+          applyWorld(msg.players, msg.serverTime);
         } else if (msg.type === 'sync') {
           void refresh().then(() => msg.event && handleEvent(msg.event));
         }

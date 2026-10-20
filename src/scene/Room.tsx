@@ -1,14 +1,16 @@
 import { useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
-import { RoundedBox } from '@react-three/drei';
 import * as THREE from 'three';
 import { FLOOR, WALL_H, ELEVATOR, DESK_SLOTS, BOSS_DESK, MEETING, LOUNGE } from './layout.ts';
+import { OFFICE_DOORS } from '../../shared/world.ts';
 import { PALETTE, glassMat, glow, partitionGlass, std } from './materials.ts';
 import { neonText, rugTexture, woodFloor } from './textures.ts';
 import {
   BossDesk,
   Chair,
   CoffeeBar,
+  Desk,
+  deskLive,
   FloorLamp,
   MeetingArea,
   OfficeCat,
@@ -24,6 +26,11 @@ import {
 const W = FLOOR.maxX - FLOOR.minX;
 const D = FLOOR.maxZ - FLOOR.minZ;
 
+// 总部办公室工位作为开放办公装饰：屏幕常亮、桌面物品就位
+for (const l of [0, 1, 2]) {
+  deskLive[l] = { itemsScale: 1, screenOn: 1, typing: 0 };
+}
+
 /** 电梯门开合：由角色写入的请求驱动（任何需要开门的角色存在时打开） */
 export const elevatorDoor = { requests: new Set<string>(), open: 0 };
 
@@ -31,14 +38,12 @@ function Base() {
   const wood = woodFloor();
   return (
     <group>
-      {/* 微缩模型底座 */}
-      <RoundedBox args={[W + 0.6, 0.9, D + 0.6]} radius={0.12} position={[0, -0.47, 0]} material={std(PALETTE.base, 0.55, 0.2)} receiveShadow />
-      {/* 底座发光灯带 */}
-      <mesh position={[0, -0.5, D / 2 + 0.31]} material={glow(PALETTE.neonCyan, 1.4)}>
-        <boxGeometry args={[W + 0.4, 0.04, 0.02]} />
+      {/* 地面边缘灯带（办公室开放边界，人可直接走进走出） */}
+      <mesh position={[0, 0.01, D / 2]} material={glow(PALETTE.neonCyan, 1.2)}>
+        <boxGeometry args={[W, 0.02, 0.05]} />
       </mesh>
-      <mesh position={[W / 2 + 0.31, -0.5, 0]} material={glow(PALETTE.neonCyan, 1.4)}>
-        <boxGeometry args={[0.02, 0.04, D + 0.4]} />
+      <mesh position={[W / 2, 0.01, 0]} material={glow(PALETTE.neonCyan, 1.2)}>
+        <boxGeometry args={[0.05, 0.02, D]} />
       </mesh>
       {/* 木地板 */}
       <mesh rotation-x={-Math.PI / 2} position={[0, 0.001, 0]} receiveShadow>
@@ -61,46 +66,59 @@ function Base() {
   );
 }
 
-function GlassWalls() {
+/** 一段带竖框的玻璃墙（沿 x 或沿 z） */
+function GlassRun({ axis, fixed, from, to }: { axis: 'x' | 'z'; fixed: number; from: number; to: number }) {
   const frame = std('#262b36', 0.35, 0.7);
-  const backLen = ELEVATOR.coreMinX - FLOOR.minX;
-  const mullionsBack = Math.round(backLen / 1.6);
-  const mullionsLeft = Math.round(D / 1.6);
+  const len = to - from;
+  const mid = (from + to) / 2;
+  const n = Math.max(1, Math.round(len / 1.6));
+  const pos = (along: number, y: number): [number, number, number] => (axis === 'x' ? [along, y, fixed] : [fixed, y, along]);
   return (
     <group>
-      {/* 后墙玻璃（-z） */}
-      <mesh position={[FLOOR.minX + backLen / 2, WALL_H / 2, FLOOR.minZ]} material={glassMat}>
-        <planeGeometry args={[backLen, WALL_H]} />
+      <mesh position={pos(mid, WALL_H / 2)} rotation-y={axis === 'x' ? 0 : Math.PI / 2} material={glassMat}>
+        <planeGeometry args={[len, WALL_H]} />
       </mesh>
-      {Array.from({ length: mullionsBack + 1 }, (_, i) => (
-        <mesh key={'b' + i} position={[FLOOR.minX + (i * backLen) / mullionsBack, WALL_H / 2, FLOOR.minZ]} material={frame} castShadow>
-          <boxGeometry args={[0.07, WALL_H, 0.1]} />
+      {Array.from({ length: n + 1 }, (_, i) => (
+        <mesh key={i} position={pos(from + (i * len) / n, WALL_H / 2)} material={frame} castShadow>
+          <boxGeometry args={axis === 'x' ? [0.07, WALL_H, 0.1] : [0.1, WALL_H, 0.07]} />
         </mesh>
       ))}
-      {/* 左墙玻璃（-x） */}
-      <mesh position={[FLOOR.minX, WALL_H / 2, 0]} rotation-y={Math.PI / 2} material={glassMat}>
-        <planeGeometry args={[D, WALL_H]} />
+      <mesh position={pos(mid, WALL_H)} material={frame}>
+        <boxGeometry args={axis === 'x' ? [len, 0.12, 0.14] : [0.14, 0.12, len]} />
       </mesh>
-      {Array.from({ length: mullionsLeft + 1 }, (_, i) => (
-        <mesh key={'l' + i} position={[FLOOR.minX, WALL_H / 2, FLOOR.minZ + (i * D) / mullionsLeft]} material={frame} castShadow>
-          <boxGeometry args={[0.1, WALL_H, 0.07]} />
-        </mesh>
-      ))}
-      {/* 顶梁 + 窗台 */}
-      <mesh position={[FLOOR.minX + backLen / 2, WALL_H, FLOOR.minZ]} material={frame}>
-        <boxGeometry args={[backLen, 0.12, 0.14]} />
+      <mesh position={pos(mid, 0.06)} material={frame}>
+        <boxGeometry args={axis === 'x' ? [len, 0.12, 0.16] : [0.16, 0.12, len]} />
       </mesh>
-      <mesh position={[FLOOR.minX, WALL_H, 0]} material={frame}>
-        <boxGeometry args={[0.14, 0.12, D]} />
+    </group>
+  );
+}
+
+/** 玻璃幕墙：后墙与左墙各开一道门（通往人才街 / 咖啡区），门上有发光门楣 */
+function GlassWalls() {
+  const frame = std('#262b36', 0.35, 0.7);
+  const bd = OFFICE_DOORS.back;
+  const ld = OFFICE_DOORS.left;
+  return (
+    <group>
+      <GlassRun axis="x" fixed={FLOOR.minZ} from={FLOOR.minX} to={bd.minX} />
+      <GlassRun axis="x" fixed={FLOOR.minZ} from={bd.maxX} to={ELEVATOR.coreMinX} />
+      <GlassRun axis="z" fixed={FLOOR.minX} from={FLOOR.minZ} to={ld.minZ} />
+      <GlassRun axis="z" fixed={FLOOR.minX} from={ld.maxZ} to={FLOOR.maxZ} />
+      {/* 门楣 */}
+      <mesh position={[(bd.minX + bd.maxX) / 2, WALL_H, FLOOR.minZ]} material={frame}>
+        <boxGeometry args={[bd.maxX - bd.minX, 0.12, 0.14]} />
       </mesh>
-      <mesh position={[FLOOR.minX + backLen / 2, 0.06, FLOOR.minZ + 0.05]} material={frame}>
-        <boxGeometry args={[backLen, 0.12, 0.16]} />
+      <mesh position={[(bd.minX + bd.maxX) / 2, 2.5, FLOOR.minZ]} material={glow(PALETTE.neonCyan, 1.6)}>
+        <boxGeometry args={[bd.maxX - bd.minX, 0.05, 0.05]} />
       </mesh>
-      <mesh position={[FLOOR.minX + 0.05, 0.06, 0]} material={frame}>
-        <boxGeometry args={[0.16, 0.12, D]} />
+      <mesh position={[FLOOR.minX, WALL_H, (ld.minZ + ld.maxZ) / 2]} material={frame}>
+        <boxGeometry args={[0.14, 0.12, ld.maxZ - ld.minZ]} />
+      </mesh>
+      <mesh position={[FLOOR.minX, 2.5, (ld.minZ + ld.maxZ) / 2]} material={glow(PALETTE.neonPink, 1.6)}>
+        <boxGeometry args={[0.05, 0.05, ld.maxZ - ld.minZ]} />
       </mesh>
       {/* 顶部吊轨灯（暖色） */}
-      {[-6, -2.5, 1].map((x) => (
+      {[-6.8, -1.5, 1.8].map((x) => (
         <group key={x} position={[x, WALL_H - 0.05, FLOOR.minZ + 0.25]}>
           <mesh material={std('#262b36', 0.4, 0.6)}>
             <boxGeometry args={[0.6, 0.06, 0.12]} />
@@ -259,6 +277,12 @@ export function Room() {
       <Plant position={[1.6, 0, 4.9]} seed={32} pot={PALETTE.terracotta} />
       <Plant position={[-2.6, 0, FLOOR.minZ + 0.45]} seed={33} />
       <RoboVac />
+      {DESK_SLOTS.map((d, i) => (
+        <group key={i}>
+          <Desk position={[d.x, 0, d.deskZ]} slot={i} accent={['#3ef0ff', '#ffd166', '#ff4fb8'][i]} />
+          <Chair position={[d.x, 0, d.seatZ]} color={['#3c4f7d', '#2f7c7a', '#7a3c5a'][i]} />
+        </group>
+      ))}
     </group>
   );
 }
