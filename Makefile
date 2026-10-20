@@ -4,7 +4,7 @@
 
 help:
 	@printf '%s\n' \
-	  'make up       安装依赖、构建并后台启动（默认命令）' \
+	  'make up       安装依赖、构建并后台启动（默认支持局域网）' \
 	  'make lan      构建并启动局域网联机，显示可分享地址' \
 	  'make stop     停止服务，保留数据库（make down 同样有效）' \
 	  'make restart  使用已有构建重启服务' \

@@ -29,7 +29,7 @@ function config() {
     }
   }
   // Match the Go CLI defaults and .env/environment precedence.
-  return { ...result, HOST: result.HOST || '127.0.0.1', PORT: result.PORT || '8787' };
+  return { ...result, HOST: result.HOST || '0.0.0.0', PORT: result.PORT || '8787' };
 }
 
 function readState() {
@@ -42,14 +42,15 @@ function readState() {
 function addresses(state) {
   const host = state.host ?? new URL(state.url).hostname;
   const port = state.port ?? new URL(state.url).port;
-  if (host !== '0.0.0.0' && host !== '::') return `访问地址：${state.url}`;
+  const binding = `监听地址：${host.includes(':') ? `[${host}]` : host}:${port}`;
+  if (host !== '0.0.0.0' && host !== '::') return `${binding}\n访问地址：${state.url}`;
   const ips = [...new Set(Object.values(networkInterfaces()).flat()
     .filter((entry) => entry && !entry.internal && entry.family === 'IPv4')
     .map((entry) => entry.address))];
   const lan = ips.length
     ? ips.map((ip) => `局域网访问：http://${ip}:${port}`).join('\n')
     : '未检测到局域网 IPv4 地址，请连接 Wi-Fi 或有线网络后运行 make status。';
-  return `本机访问：${state.url}\n${lan}`;
+  return `${binding}\n本机访问：${state.url}\n${lan}`;
 }
 
 function alive(pid) {

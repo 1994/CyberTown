@@ -44,7 +44,7 @@ func loadEnv() {
 func main() {
 	loadEnv()
 	db := flag.String("db", env("DB_PATH", "data/boss.db"), "SQLite file")
-	host := flag.String("host", env("HOST", "127.0.0.1"), "listen address")
+	host := flag.String("host", env("HOST", "0.0.0.0"), "listen address")
 	port := flag.String("port", env("PORT", "8787"), "listen port")
 	static := flag.String("static", env("STATIC_DIR", "dist"), "frontend directory")
 	reset := flag.Bool("reset", false, "reset only this demo database and exit")

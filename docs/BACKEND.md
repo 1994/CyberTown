@@ -26,7 +26,7 @@ go run ./cmd/boss-server --seed
 go run ./cmd/boss-server --reset
 ```
 
-默认监听 `127.0.0.1:8787`，数据库 `data/boss.db`。环境变量见 `.env.example`，也可使用 `--host`、`--port`、`--db`、`--static` 参数。DB 路径相对于进程工作目录。首次启动自动初始化种子，后续启动保留数据；`--seed` 不覆盖现有数据。
+默认监听 `0.0.0.0:8787`，支持局域网，数据库 `data/boss.db`。环境变量见 `.env.example`，也可使用 `--host`、`--port`、`--db`、`--static` 参数；只需本机访问时设置 `HOST=127.0.0.1`。DB 路径相对于进程工作目录。首次启动自动初始化种子，后续启动保留数据；`--seed` 不覆盖现有数据。
 
 ## HTTP 契约
 
@@ -89,7 +89,7 @@ JSON 错误统一为 `{ "error": { "code": "...", "message": "..." } }`。普通
 
 macOS / Linux 安装 Go 1.26+、Node.js 22.18+ 和 Make 后，运行 `make up` 即可安装依赖、构建前后端并后台启动，访问 `http://localhost:8787`。更新代码后再次执行 `make up` 会重新构建并重启，SQLite 数据保留。
 
-`make status` 查看进程状态，`make logs` 查看日志，`make down` 优雅停止，`make restart` 使用已有构建重启。`.env` 和环境变量均生效，例如 `HOST=0.0.0.0 PORT=9000 make up`。默认只绑定本机地址。PID、启动地址与日志保存在被 Git 忽略的 `.run/`，停止命令会检查进程归属，避免误杀 PID 被复用后的其他程序。后台启动会检查 `/api/health`，失败时返回非零状态并展示日志。
+`make status` 查看监听地址、本机与局域网地址，`make logs` 查看日志，`make stop` 或 `make down` 优雅停止，`make restart` 使用已有构建重启。`.env` 和环境变量均生效，例如 `HOST=0.0.0.0 PORT=9000 make up`。默认绑定 `0.0.0.0`；已有 `.env` 的 `HOST=127.0.0.1` 需改为 `0.0.0.0`，也可用 `make lan` 覆盖。PID、启动地址与日志保存在被 Git 忽略的 `.run/`，停止命令会检查进程归属，避免误杀 PID 被复用后的其他程序。后台启动会检查 `/api/health`，失败时返回非零状态并展示日志。
 
 这些命令提供单机 Demo 的进程管理，不包含开机自启；需要长期托管时可用 systemd 或下方 Docker 方案。
 
