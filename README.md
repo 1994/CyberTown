@@ -10,22 +10,39 @@
 
 ## 立即运行
 
-需要 **Go 1.26+** 和 **Node.js 22.18+**。本机实际验证 Go 1.27.2、Node 25.9.0。
+需要 **Go 1.26+**、**Node.js 22.18+（含 npm）** 和 **Make**，支持 macOS / Linux。本机实际验证 Go 1.27.2、Node 25.9.0。
 
 ```sh
 gh repo clone 1994/boss-works-for-me
 cd boss-works-for-me
-npm ci
-npm run dev
+make up
 ```
 
-访问 **http://localhost:5173**。Go API 位于8787，Vite代理 `/api`。首次启动自动创建四个各有600金币的测试玩家，后续启动保留数据。
+访问 **http://localhost:8787**。`make up` 自动安装锁定版本依赖、构建前后端，并在后台启动一个 Go 进程提供页面和 API；健康检查成功后才提示就绪。直接运行 `make` 也一样。首次启动自动创建四个各有600金币的测试玩家，后续启动和重新部署保留数据。
 
-生产构建可由一个 Go 进程同时提供前端页面与API：
+```sh
+make status    # 查看状态和访问地址
+make logs      # 查看日志，Ctrl+C 退出日志查看，服务继续运行
+make down      # 停止服务，保留数据库
+make restart   # 使用已有构建重启
+git pull
+make up        # 更新代码后重新构建并重启
+```
+
+默认只允许本机访问。如需局域网内其他设备访问，可以运行 `HOST=0.0.0.0 make up`，然后打开 `http://这台机器的IP:8787`。修改端口可用 `PORT=9000 make up`；也可复制 `.env.example` 为 `.env` 后修改配置。数据库默认位于 `data/boss.db`，日志和 PID 位于 `.run/`，均不提交 Git。
+
+`make up` 的后台进程适合本地或单机 Demo，不会注册开机自启。更多命令用 `make help`。需要热更新开发时：
+
+```sh
+make down
+make dev       # Go API 8787 + Vite 5173，浏览器访问 http://localhost:5173
+```
+
+也可以直接使用 npm 和编译产物：
 
 ```sh
 npm run build
-npm start
+npm run start:binary
 # 访问 http://127.0.0.1:8787
 # 也可运行编译产物：./bin/boss-server
 ```

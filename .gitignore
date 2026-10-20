@@ -28,6 +28,7 @@ artifacts/tmp/
 
 # Go 编译产物
 bin/
+.run/
 *.test
 coverage.out
 # 额外本地数据库日志

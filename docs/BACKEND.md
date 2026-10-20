@@ -59,6 +59,12 @@ JSON 错误统一为 `{ "error": { "code": "...", "message": "..." } }`。普通
 
 ## 部署
 
+macOS / Linux 安装 Go 1.26+、Node.js 22.18+ 和 Make 后，运行 `make up` 即可安装依赖、构建前后端并后台启动，访问 `http://localhost:8787`。更新代码后再次执行 `make up` 会重新构建并重启，SQLite 数据保留。
+
+`make status` 查看进程状态，`make logs` 查看日志，`make down` 优雅停止，`make restart` 使用已有构建重启。`.env` 和环境变量均生效，例如 `HOST=0.0.0.0 PORT=9000 make up`。默认只绑定本机地址。PID、启动地址与日志保存在被 Git 忽略的 `.run/`，停止命令会检查进程归属，避免误杀 PID 被复用后的其他程序。后台启动会检查 `/api/health`，失败时返回非零状态并展示日志。
+
+这些命令提供单机 Demo 的进程管理，不包含开机自启；需要长期托管时可用 systemd 或下方 Docker 方案。
+
 ```sh
 docker build -t boss-demo .
 docker run --rm -p 8787:8787 -v boss-demo-data:/data boss-demo
