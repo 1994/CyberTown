@@ -1,10 +1,15 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { ThreeEvent } from '@react-three/fiber';
 import { useFrame } from '@react-three/fiber';
-import { Html } from '@react-three/drei';
+import { WorldLabel } from './WorldLabel.tsx';
 import * as THREE from 'three';
 import type { HighfiveEvent, Look, WorldPlayer } from '../../shared/types.ts';
-import { WALK_SPEED, findPath, moveWithCollision, clampToBounds } from '../../shared/world.ts';
+import {
+  WALK_SPEED,
+  findPath,
+  moveWithCollision,
+  clampToBounds,
+} from '../../shared/world.ts';
 import { useGame } from '../store.ts';
 import { rt, pushTrail, useWorld, worldNow } from '../world/runtime.ts';
 import { inputVector, movementLocked } from '../world/input.ts';
@@ -12,17 +17,34 @@ import { Character } from './Character.tsx';
 import type { Rig } from './Character.tsx';
 import { applyPose, idlePose, turnTowards } from './pose.ts';
 import { useFx } from './Effects.tsx';
+import { dressed } from '../look.ts';
 
 const PLAYER_SCALE = 1.25;
-const EMOTE_ICON: Record<string, string> = { wave: '👋', dance: '💃', coffee: '☕' };
+const EMOTE_ICON: Record<string, string> = {
+  wave: '👋',
+  dance: '💃',
+  coffee: '☕',
+};
 
 /** 远端/本地玩家的外观：使用该测试身份的分身外观，保证一眼认出是谁 */
-function useLookOf(id: string): { look: Look | null; name: string; color: string } {
+function useLookOf(id: string): {
+  look: Look | null;
+  name: string;
+  color: string;
+  rankName: string;
+  aura: string;
+} {
   const snapshot = useGame((s) => s.snapshot);
   return useMemo(() => {
     const p = snapshot?.players.find((x) => x.id === id);
     const av = snapshot?.colleagues.find((c) => c.id === p?.avatarColleagueId);
-    return { look: av?.look ?? null, name: p?.name ?? id, color: p?.color ?? '#ffffff' };
+    return {
+      look: av ? dressed(av.look, p?.style) : null,
+      name: p?.name ?? id,
+      color: p?.color ?? '#ffffff',
+      rankName: p?.rankName ?? '',
+      aura: p?.style?.aura ?? '',
+    };
   }, [snapshot, id]);
 }
 
@@ -33,7 +55,15 @@ function useWorldEntry(id: string): WorldPlayer | undefined {
 /** 碰杯庆祝：双方举杯跳一下（本地 1.6 秒） */
 const cheersUntil = new Map<string, number>();
 
-function emotePose(rig: Rig, entry: WorldPlayer | undefined, moving: boolean, phase: number, t: number, dt: number, id: string) {
+function emotePose(
+  rig: Rig,
+  entry: WorldPlayer | undefined,
+  moving: boolean,
+  phase: number,
+  t: number,
+  dt: number,
+  id: string,
+) {
   const pose = idlePose(t);
   const now = worldNow();
   const emote = entry && entry.emoteUntil > now ? entry.emote : '';
@@ -53,7 +83,20 @@ function emotePose(rig: Rig, entry: WorldPlayer | undefined, moving: boolean, ph
   applyPose(rig, pose, dt);
 }
 
-function Bubble({ entry, name, you, color }: { entry: WorldPlayer | undefined; name: string; you?: boolean; color: string }) {
+function Bubble({
+  entry,
+  name,
+  you,
+  color,
+  rankName,
+}: {
+  entry: WorldPlayer | undefined;
+  name: string;
+  you?: boolean;
+  color: string;
+  rankName: string;
+}) {
+  const overview = useWorld((s) => s.overview);
   const now = worldNow();
   const said = entry && entry.saidUntil > now ? entry.said : '';
   const emote = entry && entry.emoteUntil > now ? entry.emote : '';
@@ -66,12 +109,17 @@ function Bubble({ entry, name, you, color }: { entry: WorldPlayer | undefined; n
     return () => clearTimeout(id);
   }, [until, now, force]);
   return (
-    <div className={`ptag ${you ? 'you' : ''}`} style={{ ['--pc' as string]: color }} data-player={entry?.id}>
+    <div
+      className={`ptag ${you ? 'you' : ''} ${overview ? 'overview-hidden' : ''}`}
+      style={{ ['--pc' as string]: color }}
+      data-player={entry?.id}
+    >
       {said && <div className="bubble">{said}</div>}
       {emote && <div className="emote-pop">{EMOTE_ICON[emote] ?? ''}</div>}
       <div className="pname">
         {you ? <b>你</b> : <i>玩家</i>}
         {name}
+        <small className="world-rank">{rankName}</small>
       </div>
     </div>
   );
@@ -82,17 +130,30 @@ function useStateTick(): [number, () => void] {
   return [n, useCallback(() => set((x) => x + 1), [])];
 }
 
-function FootRing({ color, you }: { color: string; you?: boolean }) {
+export function FootRing({ color, you }: { color: string; you?: boolean }) {
   const ref = useRef<THREE.Mesh>(null);
   const mat = useMemo(
-    () => new THREE.MeshBasicMaterial({ color: new THREE.Color(color).multiplyScalar(you ? 2.2 : 1.5), transparent: true, opacity: 0.9, toneMapped: false, depthWrite: false }),
+    () =>
+      new THREE.MeshBasicMaterial({
+        color: new THREE.Color(color).multiplyScalar(you ? 1.25 : 1),
+        transparent: true,
+        opacity: 0.8,
+        toneMapped: false,
+        depthWrite: false,
+      }),
     [color, you],
   );
   useFrame(({ clock }) => {
-    if (ref.current && you) ref.current.scale.setScalar(1 + Math.sin(clock.elapsedTime * 4) * 0.06);
+    if (ref.current && you)
+      ref.current.scale.setScalar(1 + Math.sin(clock.elapsedTime * 4) * 0.06);
   });
   return (
-    <mesh ref={ref} rotation-x={-Math.PI / 2} position={[0, 0.02, 0]} material={mat}>
+    <mesh
+      ref={ref}
+      rotation-x={-Math.PI / 2}
+      position={[0, 0.02, 0]}
+      material={mat}
+    >
       <ringGeometry args={[you ? 0.55 : 0.5, you ? 0.7 : 0.6, 40]} />
     </mesh>
   );
@@ -101,12 +162,29 @@ function FootRing({ color, you }: { color: string; you?: boolean }) {
 // ───────────────────── 自己（可操控） ─────────────────────
 
 export function MePlayer({ myId }: { myId: string }) {
-  const { look, name } = useLookOf(myId);
+  const { look, name, rankName, aura } = useLookOf(myId);
   const entry = useWorldEntry(myId);
   const group = useRef<THREE.Group>(null);
   const rig = useRef<Rig>(null);
   const phase = useRef(0);
   const marker = useRef<THREE.Mesh>(null);
+  useEffect(() => {
+    const on = (e: Event) => {
+      const id = (e as CustomEvent<{ id: string }>).detail?.id;
+      if (id !== myId) return;
+      cheersUntil.set(id, performance.now() + 2600);
+      useFx.getState().add({
+        x: rt.me.x,
+        y: 1.5,
+        z: rt.me.z,
+        color: '#dfb34c',
+        label: '今天你最大',
+        sub: '今日份快乐，已签收',
+      });
+    };
+    window.addEventListener('world-celebrate', on);
+    return () => window.removeEventListener('world-celebrate', on);
+  }, [myId]);
 
   useFrame((state, dtRaw) => {
     const dt = Math.min(dtRaw, 0.05);
@@ -142,7 +220,8 @@ export function MePlayer({ myId }: { myId: string }) {
       // 服务端拒绝 → 平滑拉回权威位置
       me.x = THREE.MathUtils.damp(me.x, rt.correction.x, 8, dt);
       me.z = THREE.MathUtils.damp(me.z, rt.correction.z, 8, dt);
-      if (Math.hypot(me.x - rt.correction.x, me.z - rt.correction.z) < 0.05) rt.correction = null;
+      if (Math.hypot(me.x - rt.correction.x, me.z - rt.correction.z) < 0.05)
+        rt.correction = null;
       vx = vz = 0;
     }
     const moving = Math.hypot(vx, vz) > 0.05;
@@ -158,14 +237,25 @@ export function MePlayer({ myId }: { myId: string }) {
       group.current.position.set(me.x, 0, me.z);
       group.current.rotation.y = me.yaw;
     }
-    if (rig.current) emotePose(rig.current, entry, moving, phase.current, state.clock.elapsedTime, dt, myId);
+    if (rig.current)
+      emotePose(
+        rig.current,
+        entry,
+        moving,
+        phase.current,
+        state.clock.elapsedTime,
+        dt,
+        myId,
+      );
     // 寻路终点标记
     if (marker.current) {
       const end = rt.path?.[rt.path.length - 1];
       marker.current.visible = !!end;
       if (end) {
         marker.current.position.set(end[0], 0.03, end[1]);
-        marker.current.scale.setScalar(1 + Math.sin(state.clock.elapsedTime * 6) * 0.1);
+        marker.current.scale.setScalar(
+          1 + Math.sin(state.clock.elapsedTime * 6) * 0.1,
+        );
       }
     }
   });
@@ -174,15 +264,31 @@ export function MePlayer({ myId }: { myId: string }) {
   return (
     <>
       <group ref={group} name="me">
-        <FootRing color="#ffd166" you />
+        <FootRing color={aura || '#d7af51'} you />
         <Character ref={rig} look={look} scale={PLAYER_SCALE} />
-        <Html position={[0, 2.45, 0]} center zIndexRange={[20, 0]} style={{ pointerEvents: 'none' }}>
-          <Bubble entry={entry} name={name} you color="#ffd166" />
-        </Html>
+        <WorldLabel
+          position={[0, 2.45, 0]}
+          center
+          zIndexRange={[20, 0]}
+          style={{ pointerEvents: 'none' }}
+        >
+          <Bubble
+            entry={entry}
+            name={name}
+            you
+            color="#e3bf6d"
+            rankName={rankName}
+          />
+        </WorldLabel>
       </group>
       <mesh ref={marker} rotation-x={-Math.PI / 2} visible={false}>
         <ringGeometry args={[0.3, 0.42, 32]} />
-        <meshBasicMaterial color={new THREE.Color('#ffd166').multiplyScalar(2)} toneMapped={false} transparent opacity={0.85} />
+        <meshBasicMaterial
+          color={new THREE.Color('#ffd166').multiplyScalar(2)}
+          toneMapped={false}
+          transparent
+          opacity={0.85}
+        />
       </mesh>
     </>
   );
@@ -191,7 +297,7 @@ export function MePlayer({ myId }: { myId: string }) {
 // ───────────────────── 远端玩家（插值） ─────────────────────
 
 function RemotePlayer({ id }: { id: string }) {
-  const { look, name, color } = useLookOf(id);
+  const { look, name, color, rankName, aura } = useLookOf(id);
   const entry = useWorldEntry(id);
   const group = useRef<THREE.Group>(null);
   const rig = useRef<Rig>(null);
@@ -213,7 +319,8 @@ function RemotePlayer({ id }: { id: string }) {
         r.z += ((r.tz - r.z) / dist) * step;
       }
     }
-    const moving = dist > 0.08 || (r.tmoving && performance.now() - r.seenAt < 600);
+    const moving =
+      dist > 0.08 || (r.tmoving && performance.now() - r.seenAt < 600);
     r.moving = moving;
     const targetYaw = dist > 0.08 ? Math.atan2(r.tx - r.x, r.tz - r.z) : r.tyaw;
     r.yaw = turnTowards(r.yaw, targetYaw, dt, 10);
@@ -221,7 +328,16 @@ function RemotePlayer({ id }: { id: string }) {
     pushTrail(id, r.x, r.z);
     group.current.position.set(r.x, 0, r.z);
     group.current.rotation.y = r.yaw;
-    if (rig.current) emotePose(rig.current, entry, moving, phase.current, state.clock.elapsedTime, dt, id);
+    if (rig.current)
+      emotePose(
+        rig.current,
+        entry,
+        moving,
+        phase.current,
+        state.clock.elapsedTime,
+        dt,
+        id,
+      );
   });
 
   const onClick = (e: ThreeEvent<MouseEvent>) => {
@@ -235,11 +351,16 @@ function RemotePlayer({ id }: { id: string }) {
   if (!look) return null;
   return (
     <group ref={group} onClick={onClick}>
-      <FootRing color={color} />
+      <FootRing color={aura || color} />
       <Character ref={rig} look={look} scale={PLAYER_SCALE} />
-      <Html position={[0, 2.45, 0]} center zIndexRange={[20, 0]} style={{ pointerEvents: 'none' }}>
-        <Bubble entry={entry} name={name} color={color} />
-      </Html>
+      <WorldLabel
+        position={[0, 2.45, 0]}
+        center
+        zIndexRange={[20, 0]}
+        style={{ pointerEvents: 'none' }}
+      >
+        <Bubble entry={entry} name={name} color={color} rankName={rankName} />
+      </WorldLabel>
     </group>
   );
 }
@@ -261,7 +382,10 @@ export function walkNear(x: number, z: number, keep = 0) {
 
 export function RemotePlayers({ myId }: { myId: string }) {
   const players = useWorld((s) => s.players);
-  const ids = useMemo(() => players.filter((p) => p.id !== myId).map((p) => p.id), [players, myId]);
+  const ids = useMemo(
+    () => players.filter((p) => p.id !== myId).map((p) => p.id),
+    [players, myId],
+  );
   const addFx = useFx((s) => s.add);
   // 碰杯：双方举杯 + 彩纸
   useEffect(() => {
@@ -272,7 +396,14 @@ export function RemotePlayers({ myId }: { myId: string }) {
       const until = performance.now() + 1600;
       cheersUntil.set(e.playerId, until);
       cheersUntil.set(e.targetId, until);
-      if (a && b) addFx({ x: (a.x + b.x) / 2, y: 1.6, z: (a.z + b.z) / 2, color: '#ffd166', label: `🥂 碰杯 +${e.reward}` });
+      if (a && b)
+        addFx({
+          x: (a.x + b.x) / 2,
+          y: 1.6,
+          z: (a.z + b.z) / 2,
+          color: '#ffd166',
+          label: `🥂 碰杯 +${e.reward}`,
+        });
     };
     window.addEventListener('world-highfive', on);
     return () => window.removeEventListener('world-highfive', on);

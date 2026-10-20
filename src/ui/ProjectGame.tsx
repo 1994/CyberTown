@@ -1,12 +1,49 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { MIN_ACTION_GAP_MS, TASK_META, generateTasks, pointsForCombo, projectDuration, scoreProject } from '../../shared/rules.ts';
-import type { ProjectAction, ProjectResult, ProjectTask } from '../../shared/rules.ts';
-import type { ProjectRunView } from '../../shared/types.ts';
+import {
+  MIN_ACTION_GAP_MS,
+  TASK_META,
+  generateTasks,
+  pointsForCombo,
+  projectDuration,
+  scoreProject,
+} from '../../shared/rules.ts';
+import type {
+  ProjectAction,
+  ProjectResult,
+  ProjectTask,
+} from '../../shared/rules.ts';
+import type { ProjectRunView, YearAward } from '../../shared/types.ts';
 import { api, ApiError } from '../api.ts';
 import { serverNow, useGame } from '../store.ts';
 import { useWorld } from '../world/runtime.ts';
 import { isTypingTarget } from '../world/input.ts';
 import { fmt } from './common.tsx';
+import {
+  Cherry,
+  Coffee,
+  Coins,
+  Crown,
+  Donut,
+  Gift,
+  Play,
+  Shield,
+  Sparkles,
+  Star,
+  Timer,
+  X,
+} from 'lucide-react';
+import { Avatar } from './Avatar.tsx';
+import { Portrait } from '../scene/Portrait.tsx';
+import { dressed, dressedColleague, isBoss } from '../look.ts';
+import { myTeam } from '../store.ts';
+
+const ARCADE = {
+  mail: { Icon: Gift, name: '礼物' },
+  bug: { Icon: Cherry, name: '樱桃' },
+  meeting: { Icon: Coffee, name: '咖啡' },
+  report: { Icon: Star, name: '星星' },
+  trap: { Icon: Donut, name: '大饼' },
+};
 
 /**
  * 紧急项目（单输入）：任务卡从左往右滑过传送带，进入右侧光圈时按「空格」或点「处理」。
@@ -50,25 +87,68 @@ function ProjectPanel({ onClose }: { onClose: () => void }) {
   const [stage, setStage] = useState<Stage>('brief');
   const [run, setRun] = useState<ProjectRunView | null>(null);
   const [result, setResult] = useState<ProjectResult | null>(null);
+  const [award, setAward] = useState<YearAward | null>(null);
+  const [growth, setGrowth] = useState(0);
   const [matches, setMatches] = useState<boolean | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [now, setNow] = useState(0);
-  const [live, setLive] = useState<Live>({ combo: 0, maxCombo: 0, score: 0, shieldLeft: 0, hits: 0 });
+  const [live, setLive] = useState<Live>({
+    combo: 0,
+    maxCombo: 0,
+    score: 0,
+    shieldLeft: 0,
+    hits: 0,
+  });
   const [pops, setPops] = useState<Pop[]>([]);
   const [flash, setFlash] = useState(0);
   const actions = useRef<ProjectAction[]>([]);
+  const panel = useRef<HTMLDivElement>(null);
   const done = useRef(new Set<number>());
   const missed = useRef(new Set<number>());
   const liveRef = useRef(live);
   liveRef.current = live;
   const popSeq = useRef(1);
-  const sk = snap.teamSkills;
-  const tasks = useMemo<ProjectTask[]>(() => (run ? generateTasks(run.seed, run.durationMs) : []), [run]);
+  const sk = snap.projectSkills;
+  const team = myTeam(snap);
+  const boss =
+    team.find((c) => isBoss(c.id)) ??
+    team[0] ??
+    snap.colleagues.find((c) => c.id === snap.me.avatarColleagueId)!;
+  const bossLook = team.length ? dressedColleague(boss, snap.me.style) : dressed(boss.look, snap.me.style);
+  const tasks = useMemo<ProjectTask[]>(
+    () => (run ? generateTasks(run.seed, run.durationMs) : []),
+    [run],
+  );
 
   // 打开期间锁定行走
   useEffect(() => {
+    const before = document.activeElement as HTMLElement | null;
+    const onTab = (e: KeyboardEvent) => {
+      if (e.key !== 'Tab') return;
+      const buttons = Array.from(
+        panel.current?.querySelectorAll<HTMLButtonElement>(
+          'button:not(:disabled)',
+        ) ?? [],
+      );
+      if (!buttons.length) {
+        e.preventDefault();
+        panel.current?.focus();
+        return;
+      }
+      const i = buttons.indexOf(document.activeElement as HTMLButtonElement);
+      if (e.shiftKey && i <= 0) {
+        e.preventDefault();
+        buttons.at(-1)?.focus();
+      } else if (!e.shiftKey && (i < 0 || i === buttons.length - 1)) {
+        e.preventDefault();
+        buttons[0]?.focus();
+      }
+    };
+    window.addEventListener('keydown', onTab);
     useWorld.getState().lock('project');
     return () => {
+      window.removeEventListener('keydown', onTab);
+      if (before?.isConnected) before.focus();
       useWorld.getState().unlock('project');
       setProjectActive(false);
     };
@@ -101,8 +181,16 @@ function ProjectPanel({ onClose }: { onClose: () => void }) {
     actions.current = saved ? (JSON.parse(saved) as ProjectAction[]) : [];
     done.current = new Set(actions.current.map((a) => a.taskId));
     missed.current = new Set();
-    setLive({ combo: 0, maxCombo: 0, score: 0, shieldLeft: r.skills.shield, hits: 0 });
+    setLive({
+      combo: 0,
+      maxCombo: 0,
+      score: 0,
+      shieldLeft: r.skills.shield,
+      hits: 0,
+    });
     setResult(null);
+    setAward(null);
+    setGrowth(0);
     setError(null);
     setStage('playing');
   }, []);
@@ -116,11 +204,22 @@ function ProjectPanel({ onClose }: { onClose: () => void }) {
         try {
           const res = await api.finishProject(r.id, actions.current);
           sessionStorage.removeItem(actionsKey(r.id));
-          const local = scoreProject(generateTasks(r.seed, r.durationMs), actions.current, r.skills, r.durationMs, r.durationMs);
+          const local = scoreProject(
+            generateTasks(r.seed, r.durationMs),
+            actions.current,
+            r.skills,
+            r.durationMs,
+            r.durationMs,
+          );
           setMatches(local.total === res.result.total);
           setResult(res.result);
+          setGrowth(res.performanceEarned);
+          setAward(res.yearAward);
           setStage('result');
-          toast({ tone: 'gold', title: `💰 项目完成 +${res.result.total}` });
+          toast({
+            tone: 'gold',
+            title: `快乐基金 +${res.result.total} · 成长值 +${res.performanceEarned}`,
+          });
           void refresh();
           return;
         } catch (e) {
@@ -165,7 +264,12 @@ function ProjectPanel({ onClose }: { onClose: () => void }) {
       const t = serverNow() - run.startedAt;
       setNow(t);
       for (const task of tasks) {
-        if (task.kind === 'trap' || done.current.has(task.id) || missed.current.has(task.id)) continue;
+        if (
+          task.kind === 'trap' ||
+          done.current.has(task.id) ||
+          missed.current.has(task.id)
+        )
+          continue;
         if (t > task.spawnAt + task.ttl) {
           missed.current.add(task.id);
           fault('漏掉了！');
@@ -193,14 +297,20 @@ function ProjectPanel({ onClose }: { onClose: () => void }) {
     for (const k of tasks) {
       if (done.current.has(k.id)) continue;
       const p = (t - k.spawnAt) / k.ttl;
-      if (p >= ZONE[0] && p <= ZONE[1] && t >= k.spawnAt && t <= k.spawnAt + k.ttl && p > bestP) {
+      if (
+        p >= ZONE[0] &&
+        p <= ZONE[1] &&
+        t >= k.spawnAt &&
+        t <= k.spawnAt + k.ttl &&
+        p > bestP
+      ) {
         best = k;
         bestP = p;
       }
     }
     setFlash((f) => f + 1);
     if (!best) {
-      pop('光圈里没东西', 'idle');
+      pop('等礼物进圈，再接住', 'idle');
       return;
     }
     done.current.add(best.id);
@@ -228,69 +338,168 @@ function ProjectPanel({ onClose }: { onClose: () => void }) {
         if (stage === 'playing' && !e.repeat) act();
         else if (stage === 'brief') void start();
       }
-      if (e.code === 'Escape' && (stage === 'brief' || stage === 'result' || stage === 'error')) onClose();
+      if (
+        e.code === 'Escape' &&
+        (stage === 'brief' || stage === 'result' || stage === 'error')
+      )
+        onClose();
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   });
 
   const remaining = run ? Math.max(0, run.durationMs - now) : 0;
-  const visible = tasks.filter((k) => now >= k.spawnAt && now <= k.spawnAt + k.ttl && !done.current.has(k.id));
-  const preview = Math.floor((live.score * (100 + (run?.skills.incomePct ?? 0))) / 100);
+  const visible = tasks.filter(
+    (k) =>
+      now >= k.spawnAt && now <= k.spawnAt + k.ttl && !done.current.has(k.id),
+  );
+  const preview = Math.floor(
+    (live.score * (100 + (run?.skills.incomePct ?? 0))) / 100,
+  );
 
+  const finish = () => {
+    onClose();
+    if (award)
+      useGame.getState().celebrate({
+        key: `year:${snap.me.id}:${award.year}`,
+        title: `第 ${award.year} 年 · 年终奖到啦`,
+        body: '老板的努力，换成你喜欢的小东西。奖金已放进钱包。',
+        amount: award.total,
+      });
+  };
   return (
-    <div className="project-overlay" role="dialog" aria-label="紧急项目" data-testid="project-overlay">
+    <div
+      ref={panel}
+      tabIndex={-1}
+      className="project-overlay arcade-overlay"
+      role="dialog"
+      aria-modal="true"
+      aria-label="老板来接招"
+      data-testid="project-overlay"
+    >
       {stage === 'brief' && (
-        <div className="panel pg-card">
-          <h3>🚨 紧急项目</h3>
-          <div className="pg-rule">
-            卡片滑进<b className="ring-word">光圈</b>时按 <kbd>空格</kbd>，别碰 🥧
+        <div className="panel pg-card arcade-brief">
+          <button
+            className="v3-icon arcade-close"
+            onClick={onClose}
+            aria-label="关闭小游戏"
+          >
+            <X size={19} />
+          </button>
+          <div className="arcade-brief-model">
+            <Portrait look={bossLook} wave />
           </div>
-          <div className="pg-buffs">
-            <span>⏱ {projectDuration(sk) / 1000}s</span>
-            <span>💰 +{sk.incomePct}%</span>
-            <span>🛡 ×{sk.shield}</span>
-          </div>
-          <div className="modal-actions">
-            <button className="btn ghost" onClick={onClose}>
-              算了
+          <div className="arcade-brief-copy">
+            <span className="eyebrow">A LITTLE GAME, A HAPPY DAY</span>
+            <h3>老板，来接招！</h3>
+            <p>
+              礼物进圈就接住，
+              <br />
+              大饼来了别伸手。
+            </p>
+            <div className="arcade-rewards">
+              <span>
+                <Timer size={15} />
+                {projectDuration(sk) / 1000} 秒
+              </span>
+              <span>
+                <Coins size={15} />
+                金币
+              </span>
+              <span>
+                <Crown size={15} />
+                成长值
+              </span>
+            </div>
+            <div className="arcade-skill-note">
+              {team.length ? `${boss.name}为你助阵` : '一个人也能开心玩'} ·
+              队伍与职级收益 +{sk.incomePct}%
+            </div>
+            <button
+              className="v3-primary wide"
+              onClick={() => void start()}
+              autoFocus
+              data-testid="btn-project-start"
+            >
+              <Play size={18} />
+              {snap.activeRun ? '继续这一局' : '开始快乐营业'}
+              <kbd>空格</kbd>
             </button>
-            <button className="btn primary" onClick={() => void start()} autoFocus data-testid="btn-project-start">
-              {snap.activeRun ? '继续' : '开始'}
-            </button>
+            <small className="quiet-note">
+              有命中的3局小游戏，解锁一份年终奖
+            </small>
           </div>
         </div>
       )}
-      {stage === 'starting' && <div className="panel pg-card center">⏳</div>}
+      {stage === 'starting' && (
+        <div className="panel pg-card center">老板正在热身…</div>
+      )}
       {(stage === 'playing' || stage === 'settling') && run && (
-        <div className="panel pg-board">
-          <div className="pg-top">
-            <b className="pg-time" data-testid="project-timer">
-              {(remaining / 1000).toFixed(1)}
-            </b>
-            <div className="timebar">
-              <i style={{ width: `${(remaining / run.durationMs) * 100}%` }} />
-            </div>
-            <span className={`pg-combo ${live.combo >= 5 ? 'hot' : ''}`}>×{live.combo}</span>
-            {run.skills.shield > 0 && <span className="pg-shield">🛡{live.shieldLeft}</span>}
+        <div className="panel pg-board arcade-board">
+          <div className="arcade-heading">
+            <span>
+              <Avatar look={bossLook} size={42} />
+              <b>
+                {boss.name}正在接招<small>接住快乐，拒绝大饼</small>
+              </b>
+            </span>
+            <strong>
+              <Timer size={18} />
+              <span data-testid="project-timer">
+                {(remaining / 1000).toFixed(1)}
+              </span>
+              <small>秒</small>
+            </strong>
+          </div>
+          <div className="timebar">
+            <i style={{ width: `${(remaining / run.durationMs) * 100}%` }} />
+          </div>
+          <div className="arcade-score-row">
+            <span className={`pg-combo ${live.combo >= 5 ? 'hot' : ''}`}>
+              连击 <b>×{live.combo}</b>
+            </span>
+            <span className="arcade-shields">
+              <Shield size={16} />
+              {live.shieldLeft} 次救场
+            </span>
             <span className="pg-score" data-testid="project-score">
+              <Coins size={17} />
               {fmt(preview)}
             </span>
           </div>
           <div className="belt" onPointerDown={act} data-testid="project-belt">
-            <div className="belt-zone" style={{ left: `${ZONE[0] * 100}%`, width: `${(ZONE[1] - ZONE[0]) * 100}%` }} key={flash} />
+            <div className="belt-lines" />
+            <div
+              className="belt-zone"
+              style={{
+                left: `${ZONE[0] * 100}%`,
+                width: `${(ZONE[1] - ZONE[0]) * 100}%`,
+              }}
+              key={flash}
+            >
+              <span>接住区</span>
+            </div>
             {visible.map((k) => {
               const p = (now - k.spawnAt) / k.ttl;
               const inZone = p >= ZONE[0] && p <= ZONE[1];
+              const meta = ARCADE[k.kind];
+              const Icon = meta.Icon;
               return (
                 <span
                   key={k.id}
                   className={`belt-item ${k.kind === 'trap' ? 'trap' : ''} ${inZone ? 'in' : ''}`}
-                  style={{ left: `${p * 100}%`, ['--c' as string]: TASK_META[k.kind].color }}
+                  style={
+                    {
+                      left: `${p * 100}%`,
+                      '--c': TASK_META[k.kind].color,
+                    } as React.CSSProperties
+                  }
                   data-testid={`task-${k.kind}`}
                   data-in-zone={inZone ? '1' : '0'}
+                  aria-label={meta.name}
                 >
-                  {TASK_META[k.kind].icon}
+                  <Icon size={35} strokeWidth={1.8} />
+                  <small>{meta.name}</small>
                 </span>
               );
             })}
@@ -300,43 +509,89 @@ function ProjectPanel({ onClose }: { onClose: () => void }) {
               </span>
             ))}
           </div>
-          <button className="btn primary pg-act" onPointerDown={(e) => (e.preventDefault(), act())} data-testid="btn-project-act">
-            处理 <kbd>空格</kbd>
-          </button>
-          {stage === 'settling' && <div className="settling">结算中…</div>}
+          <div className="arcade-act-row">
+            <span>
+              <Donut size={19} />
+              这是大饼，别接！
+            </span>
+            <button
+              className="v3-primary pg-act"
+              onPointerDown={(e) => {
+                e.preventDefault();
+                act();
+              }}
+              data-testid="btn-project-act"
+            >
+              接住！<kbd>空格</kbd>
+            </button>
+          </div>
+          {stage === 'settling' && (
+            <div className="settling">老板正在数金币…</div>
+          )}
         </div>
       )}
       {stage === 'result' && result && (
-        <div className="panel pg-card result" data-testid="project-result">
+        <div
+          className="panel pg-card result arcade-result"
+          data-testid="project-result"
+        >
+          <span className="eyebrow">NICE CATCH, NICE DAY</span>
+          <div className="result-emblem">
+            <Gift size={40} strokeWidth={1.4} />
+          </div>
+          <h3>
+            {result.hits ? '快乐营业，圆满收工！' : '再试一次，快乐不打烊'}
+          </h3>
           <div className="result-total">
-            +<b>{fmt(result.total)}</b>
+            <Coins size={27} />+<b>{fmt(result.total)}</b>
+          </div>
+          <div className="growth-earned">
+            <Crown size={16} />
+            成长值 +{growth}
           </div>
           <div className="pg-stats">
-            <span>✅ {result.hits}</span>
-            <span>🔥 最高×{result.maxCombo}</span>
-            {result.incomeBonus > 0 && <span>💰 +{result.incomeBonus}</span>}
-            {result.shieldsUsed > 0 && <span>🛡 {result.shieldsUsed}</span>}
+            <span>接住 {result.hits} 次</span>
+            <span>最高连击 ×{result.maxCombo}</span>
+            {result.shieldsUsed > 0 && (
+              <span>救场 {result.shieldsUsed} 次</span>
+            )}
           </div>
+          {award ? (
+            <div className="annual-mini" data-testid="annual-award">
+              <Gift size={20} />
+              <span>
+                第 {award.year} 年年终奖<b>额外 +{fmt(award.total)} 金币</b>
+              </span>
+              <Sparkles size={18} />
+            </div>
+          ) : (
+            <div className="result-year">
+              {result.hits
+                ? `本年已玩 ${snap.year.completed}/3 场，离年终奖又近一步`
+                : '接住至少一件礼物，才计入年终进度'}
+            </div>
+          )}
           {matches != null && (
             <p className="fine" data-testid="project-verify">
-              {matches ? '✓ 与服务器结算一致' : '以服务器结算为准'}
+              {matches ? '✓ 结算已核对' : '以最终结算为准'}
             </p>
           )}
-          <div className="modal-actions">
-            <button className="btn primary" onClick={onClose} autoFocus data-testid="btn-project-close">
-              收下
-            </button>
-          </div>
+          <button
+            className="v3-primary wide"
+            onClick={finish}
+            autoFocus
+            data-testid="btn-project-close"
+          >
+            {award ? '打开我的年终奖' : '收下快乐，回园区'}
+          </button>
         </div>
       )}
       {stage === 'error' && (
         <div className="panel pg-card" role="alert">
           <p>{error}</p>
-          <div className="modal-actions">
-            <button className="btn primary" onClick={onClose}>
-              知道了
-            </button>
-          </div>
+          <button className="v3-primary" onClick={onClose}>
+            回到园区
+          </button>
         </div>
       )}
     </div>

@@ -1,10 +1,16 @@
+import { dressed, dressedColleague } from '../look.ts';
 import { useEffect, useState } from 'react';
 import type { ColleagueView } from '../../shared/types.ts';
 import { useGame } from '../store.ts';
 import { api } from '../api.ts';
 import { fmt } from './common.tsx';
 import { Avatar } from './Avatar.tsx';
-import { ConfirmTrade, blockReason, displayName, skillShort } from './Confirm.tsx';
+import {
+  ConfirmTrade,
+  blockReason,
+  displayName,
+  skillShort,
+} from './Confirm.tsx';
 import { walkNear } from '../scene/Avatars.tsx';
 import { rt } from '../world/runtime.ts';
 
@@ -38,7 +44,10 @@ function Messages() {
       {snap.messages.length === 0 && <p className="muted">暂无消息</p>}
       <ul className="msg-list">
         {snap.messages.map((m) => (
-          <li key={m.id} className={`msg ${m.scope} ${m.read ? '' : 'unread'} k-${m.kind}`}>
+          <li
+            key={m.id}
+            className={`msg ${m.scope} ${m.read ? '' : 'unread'} k-${m.kind}`}
+          >
             <span className="mi">{KIND_ICON[m.kind] ?? '•'}</span>
             <div>
               <b>{m.title}</b>
@@ -64,14 +73,20 @@ function Leaderboard() {
           const av = snap.colleagues.find((c) => c.id === p.avatarColleagueId);
           const team = snap.colleagues.filter((c) => c.ownerId === p.id);
           return (
-            <li key={p.id} className={p.id === snap.me.id ? 'me' : ''} data-testid={`board-${p.id}`}>
+            <li
+              key={p.id}
+              className={p.id === snap.me.id ? 'me' : ''}
+              data-testid={`board-${p.id}`}
+            >
               <span className="rank">{['🥇', '🥈', '🥉'][i] ?? i + 1}</span>
-              {av && <Avatar look={av.look} size={42} ring={p.color} />}
+              {av && <Avatar look={dressed(av.look, p.style)} size={42} ring={p.color} />}
               <div className="b-main">
                 <b>
                   {p.name} <span className={`dot ${p.online ? 'on' : ''}`} />
                 </b>
-                <small>👥 {team.map((c) => c.name).join('、') || '还没有队员'}</small>
+                <small>
+                  👥 {team.map((c) => c.name).join('、') || '还没有队员'}
+                </small>
               </div>
               <div className="b-val">
                 {fmt(p.assets)}
@@ -98,8 +113,12 @@ function Roster() {
           const reason = blockReason(c, snap);
           const owner = snap.players.find((p) => p.id === c.ownerId);
           return (
-            <li key={c.id} className={c.ownerId === snap.me.id ? 'mine' : ''} data-testid={`mcard-${c.id}`}>
-              <Avatar look={c.look} size={40} ring={owner?.color} />
+            <li
+              key={c.id}
+              className={c.ownerId === snap.me.id ? 'mine' : ''}
+              data-testid={`mcard-${c.id}`}
+            >
+              <Avatar look={dressedColleague(c, snap.players.find(p=>p.id===c.ownerId)?.style)} size={40} ring={owner?.color} />
               <div className="r-main">
                 <b>{displayName(c, snap)}</b>
                 <small>
@@ -116,14 +135,21 @@ function Roster() {
               >
                 带我去
               </button>
-              <button className={`btn sm ${c.ownerId ? 'poach' : 'primary'}`} disabled={!!reason} onClick={() => setConfirm(c)} data-testid={`sign-${c.id}`}>
+              <button
+                className={`btn sm ${c.ownerId ? 'poach' : 'primary'}`}
+                disabled={!!reason}
+                onClick={() => setConfirm(c)}
+                data-testid={`sign-${c.id}`}
+              >
                 {reason ?? `${c.ownerId ? '挖' : '招'} ${fmt(c.price)}`}
               </button>
             </li>
           );
         })}
       </ul>
-      {confirm && <ConfirmTrade colleague={confirm} onClose={() => setConfirm(null)} />}
+      {confirm && (
+        <ConfirmTrade colleague={confirm} onClose={() => setConfirm(null)} />
+      )}
     </div>
   );
 }
@@ -132,14 +158,31 @@ function Rules() {
   return (
     <div className="drawer-body guide" data-testid="guide">
       <ul className="rules">
-        <li>🚶 WASD/方向键走动，点地面自动走，手机用左下摇杆。拖拽旋转镜头，滚轮缩放，M 看全图。</li>
-        <li>🧑‍💼 人才街的同事走近按 E 招募；别人队里的同事也能挖，价格每次涨约 25%。</li>
+        <li>
+          🚶
+          WASD/方向键走动，点地面自动走，手机用左下摇杆。拖拽旋转镜头，滚轮缩放，M
+          看全图。
+        </li>
+        <li>
+          🧑‍💼 人才街的同事走近按 E 招募；别人队里的同事也能挖，价格每次涨约 25%。
+        </li>
         <li>🥂 走到在线玩家身边碰杯，双方各 +15（每人每分钟一次）。</li>
-        <li>🚨 「接项目」15 秒：目标进入光圈时按空格/点击处理，避开 🥧。</li>
+        <li>
+          🎮 「老板来接招」15 秒：礼物进入光圈时按空格/点击接住，避开大饼。
+        </li>
+        <li>
+          🎁 完成3场有命中的小游戏，发一份年终奖；去好物商店给自己或老板换装。
+        </li>
+        <li>👑 每次成功接住 +10 成长值，达标可晋升，接下来奖金更高。</li>
         <li>💰 队员技能：收益 +%、项目时长 +秒、失误护盾。最多 3 人。</li>
-        <li>🎉 你的分身被别人招募/挖走，你拿成交价 5%；被挖走的队员原老板拿 90%。</li>
+        <li>
+          🎉 你的分身被别人招募/挖走，你拿成交价 5%；被挖走的队员原老板拿 90%。
+        </li>
       </ul>
-      <p className="fine">所有金币为整数，分成向下取整，余数归系统。登录为测试身份，未接入真实 SSO。</p>
+      <p className="fine">
+        所有金币为整数，分成向下取整，余数归系统。登录为测试身份，未接入真实
+        SSO。
+      </p>
     </div>
   );
 }
@@ -153,14 +196,38 @@ export function Drawers() {
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, [drawer, setDrawer]);
-  if (!drawer) return null;
-  const title = { messages: '消息', leaderboard: '排行榜', guide: '玩法', market: '同事名册' }[drawer];
+  if (
+    !drawer ||
+    drawer === 'career' ||
+    drawer === 'shop' ||
+    drawer === 'squad' ||
+    drawer === 'friends'
+  )
+    return null;
+  const title = {
+    messages: '消息',
+    leaderboard: '排行榜',
+    guide: '玩法',
+    market: '同事名册',
+  }[drawer];
   return (
     <div className="drawer-backdrop" onClick={() => setDrawer(null)}>
-      <aside className="panel drawer" role="dialog" aria-modal="true" aria-label={title} onClick={(e) => e.stopPropagation()}>
+      <aside
+        className="panel drawer"
+        role="dialog"
+        aria-modal="true"
+        aria-label={title}
+        onClick={(e) => e.stopPropagation()}
+      >
         <header>
           <h3>{title}</h3>
-          <button className="icon-close" onClick={() => setDrawer(null)} aria-label="关闭" autoFocus data-testid="drawer-close">
+          <button
+            className="icon-close"
+            onClick={() => setDrawer(null)}
+            aria-label="关闭"
+            autoFocus
+            data-testid="drawer-close"
+          >
             ✕
           </button>
         </header>

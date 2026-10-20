@@ -1,0 +1,198 @@
+{
+  "source": "Independent IAB interactions against a dedicated QA database; no fabricated action logs",
+  "players": [
+    {
+      "id": "li",
+      "coins": 195
+    },
+    {
+      "id": "liu",
+      "coins": 600
+    },
+    {
+      "id": "mei",
+      "coins": 600
+    },
+    {
+      "id": "wang",
+      "coins": 1368
+    }
+  ],
+  "careers": [
+    {
+      "player_id": "li",
+      "rank": 0,
+      "performance": 0,
+      "completed_projects": 0
+    },
+    {
+      "player_id": "liu",
+      "rank": 0,
+      "performance": 0,
+      "completed_projects": 0
+    },
+    {
+      "player_id": "mei",
+      "rank": 0,
+      "performance": 0,
+      "completed_projects": 0
+    },
+    {
+      "player_id": "wang",
+      "rank": 1,
+      "performance": 410,
+      "completed_projects": 3
+    }
+  ],
+  "years": [
+    {
+      "player_id": "li",
+      "year": 1,
+      "rounds": 0,
+      "rank": 0,
+      "team_points": 0,
+      "play_points": 0,
+      "friend_pct": 10
+    },
+    {
+      "player_id": "liu",
+      "year": 1,
+      "rounds": 0,
+      "rank": 0,
+      "team_points": 0,
+      "play_points": 0,
+      "friend_pct": 0
+    },
+    {
+      "player_id": "mei",
+      "year": 1,
+      "rounds": 0,
+      "rank": 0,
+      "team_points": 0,
+      "play_points": 0,
+      "friend_pct": 0
+    },
+    {
+      "player_id": "wang",
+      "year": 2,
+      "rounds": 0,
+      "rank": 0,
+      "team_points": 0,
+      "play_points": 0,
+      "friend_pct": 0
+    }
+  ],
+  "awards": [
+    {
+      "player_id": "wang",
+      "award": {
+        "year": 1,
+        "base": 300,
+        "teamPct": 28,
+        "playPct": 13,
+        "friendPct": 10,
+        "total": 453
+      }
+    }
+  ],
+  "items": [
+    {
+      "player_id": "li",
+      "item_id": "mint-aura"
+    },
+    {
+      "player_id": "li",
+      "item_id": "mint-shirt"
+    },
+    {
+      "player_id": "wang",
+      "item_id": "sunglasses"
+    }
+  ],
+  "styles": [
+    {
+      "player_id": "li",
+      "shirt": "#7bbcac",
+      "accessory": "",
+      "aura": "#70c8b2",
+      "boss_shirt": "",
+      "boss_accessory": "",
+      "boss_aura": ""
+    },
+    {
+      "player_id": "liu",
+      "shirt": "",
+      "accessory": "",
+      "aura": "",
+      "boss_shirt": "",
+      "boss_accessory": "",
+      "boss_aura": ""
+    },
+    {
+      "player_id": "mei",
+      "shirt": "",
+      "accessory": "",
+      "aura": "",
+      "boss_shirt": "",
+      "boss_accessory": "",
+      "boss_aura": ""
+    },
+    {
+      "player_id": "wang",
+      "shirt": "",
+      "accessory": "",
+      "aura": "",
+      "boss_shirt": "",
+      "boss_accessory": "sunglasses",
+      "boss_aura": ""
+    }
+  ],
+  "projects": [
+    {
+      "player_id": "wang",
+      "reward": 227,
+      "result": {
+        "hits": 14,
+        "misses": 6,
+        "traps": 2,
+        "shieldsUsed": 0,
+        "maxCombo": 8,
+        "rejected": 0,
+        "basePoints": 182,
+        "incomeBonus": 45,
+        "total": 227
+      }
+    },
+    {
+      "player_id": "wang",
+      "reward": 96,
+      "result": {
+        "hits": 7,
+        "misses": 13,
+        "traps": 2,
+        "shieldsUsed": 0,
+        "maxCombo": 4,
+        "rejected": 0,
+        "basePoints": 74,
+        "incomeBonus": 22,
+        "total": 96
+      }
+    },
+    {
+      "player_id": "wang",
+      "reward": 397,
+      "result": {
+        "hits": 20,
+        "misses": 1,
+        "traps": 3,
+        "shieldsUsed": 0,
+        "maxCombo": 10,
+        "rejected": 0,
+        "basePoints": 306,
+        "incomeBonus": 91,
+        "total": 397
+      }
+    }
+  ],
+  "wallet_ledger_mismatches": []
+}

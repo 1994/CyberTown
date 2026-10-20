@@ -90,3 +90,28 @@ CREATE TABLE IF NOT EXISTS player_careers (
   performance INTEGER NOT NULL DEFAULT 0 CHECK (performance >= 0),
   completed_projects INTEGER NOT NULL DEFAULT 0 CHECK (completed_projects >= 0)
 );
+CREATE TABLE IF NOT EXISTS player_years (
+  player_id TEXT PRIMARY KEY REFERENCES players(id),
+  year INTEGER NOT NULL DEFAULT 1,
+  rounds INTEGER NOT NULL DEFAULT 0 CHECK(rounds BETWEEN 0 AND 3),
+  rank INTEGER NOT NULL DEFAULT 0,
+  team_points INTEGER NOT NULL DEFAULT 0,
+  play_points INTEGER NOT NULL DEFAULT 0,
+  friend_pct INTEGER NOT NULL DEFAULT 0
+);
+CREATE TABLE IF NOT EXISTS year_awards (
+  player_id TEXT NOT NULL REFERENCES players(id),
+  year INTEGER NOT NULL,
+  award TEXT NOT NULL,
+  PRIMARY KEY(player_id,year)
+);
+CREATE TABLE IF NOT EXISTS player_items (
+  player_id TEXT NOT NULL REFERENCES players(id),
+  item_id TEXT NOT NULL,
+  PRIMARY KEY(player_id,item_id)
+);
+CREATE TABLE IF NOT EXISTS player_styles (
+  player_id TEXT PRIMARY KEY REFERENCES players(id),
+  shirt TEXT NOT NULL DEFAULT '',accessory TEXT NOT NULL DEFAULT '',aura TEXT NOT NULL DEFAULT '',
+  boss_shirt TEXT NOT NULL DEFAULT '',boss_accessory TEXT NOT NULL DEFAULT '',boss_aura TEXT NOT NULL DEFAULT ''
+);

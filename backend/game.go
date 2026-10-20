@@ -247,6 +247,10 @@ func (g *Game) FinishProject(player, id string, actions []Action) (Finish, error
 		if err != nil {
 			return err
 		}
+		out.YearAward, err = advanceYear(tx, player, r.Skills, out.Result, now)
+		if err != nil {
+			return err
+		}
 		if err = message(tx, ptr(player), "project", fmt.Sprintf("紧急项目完成 +%d", out.Result.Total), fmt.Sprintf("完成 %d 项任务，最高连击 %d，护盾抵消 %d 次失误，技能加成 +%d，共获得 %d 金币。", out.Result.Hits, out.Result.MaxCombo, out.Result.ShieldsUsed, out.Result.IncomeBonus, out.Result.Total), out.Result, now); err != nil {
 			return err
 		}

@@ -21,3 +21,7 @@
 | modernc.org/sqlite | BSD-3-Clause（SQLite本身为公共领域） |
 
 完整依赖及锁定版本见 `package-lock.json`、`go.mod`、`go.sum`。演示录像来自实际网页操作，步骤字幕是录制脚本额外加入的说明层，已在画面标记「演示步骤」，不冒充游戏功能界面。
+
+## V3 图标
+
+新增界面使用 lucide-react 的标准线性图标，采用ISC许可；其中源自Feather的部分图标采用MIT许可。完整版权与许可随仓库保存在 [lucide.txt](licenses/lucide.txt)。商店和小队展示复用游戏自己的3D人物、材质与动画，没有从其他游戏拷贝人物或UI。

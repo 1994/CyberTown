@@ -224,6 +224,30 @@ func (a *App) handle(w http.ResponseWriter, r *http.Request) error {
 			return err
 		}
 		respond(w, 200, career)
+	case path == "/api/shop/buy" && method == "POST":
+		body, err := readBody(w, r)
+		if err != nil {
+			return err
+		}
+		var price *int
+		if json.Unmarshal(body["expectedPrice"], &price) != nil || price == nil || *price <= 0 {
+			return fail(400, "BAD_PRICE", "请提交当前道具价格")
+		}
+		if err = a.Game.BuyItem(player, stringField(body, "itemId"), *price); err != nil {
+			return err
+		}
+		a.Broadcast(map[string]any{"kind": "shop", "playerId": player, "at": a.Game.Now()})
+		respond(w, 200, map[string]bool{"ok": true})
+	case path == "/api/shop/equip" && method == "POST":
+		body, err := readBody(w, r)
+		if err != nil {
+			return err
+		}
+		if err = a.Game.EquipItem(player, stringField(body, "itemId"), stringField(body, "kind"), stringField(body, "target")); err != nil {
+			return err
+		}
+		a.Broadcast(map[string]any{"kind": "style", "playerId": player, "at": a.Game.Now()})
+		respond(w, 200, map[string]bool{"ok": true})
 	case path == "/api/career/promote" && method == "POST":
 		body, err := readBody(w, r)
 		if err != nil {

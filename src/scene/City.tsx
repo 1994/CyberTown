@@ -15,9 +15,9 @@ function Sky() {
         depthWrite: false,
         fog: false,
         uniforms: {
-          top: { value: new THREE.Color('#050816') },
-          mid: { value: new THREE.Color('#1b1745') },
-          horizon: { value: new THREE.Color('#ff7a59') },
+          top: { value: new THREE.Color('#80b8cc') },
+          mid: { value: new THREE.Color('#c2dedb') },
+          horizon: { value: new THREE.Color('#f4d8b2') },
         },
         vertexShader: `varying vec3 vP; void main(){ vP = normalize(position); gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }`,
         fragmentShader: `uniform vec3 top; uniform vec3 mid; uniform vec3 horizon; varying vec3 vP;
@@ -33,7 +33,11 @@ function Sky() {
       const th = r() * Math.PI * 2;
       const ph = 0.12 + r() * 1.2;
       const R = 320;
-      pts.push(R * Math.cos(th) * Math.cos(ph), R * Math.sin(ph), R * Math.sin(th) * Math.cos(ph));
+      pts.push(
+        R * Math.cos(th) * Math.cos(ph),
+        R * Math.sin(ph),
+        R * Math.sin(th) * Math.cos(ph),
+      );
     }
     const g = new THREE.BufferGeometry();
     g.setAttribute('position', new THREE.Float32BufferAttribute(pts, 3));
@@ -45,11 +49,22 @@ function Sky() {
         <sphereGeometry args={[360, 32, 16]} />
       </mesh>
       <points geometry={stars}>
-        <pointsMaterial color="#cfe3ff" size={1.3} sizeAttenuation={false} transparent opacity={0.8} fog={false} />
+        <pointsMaterial
+          color="#cfe3ff"
+          size={1.3}
+          sizeAttenuation={false}
+          transparent
+          opacity={0}
+          fog={false}
+        />
       </points>
       <mesh position={[-140, 120, -210]}>
         <sphereGeometry args={[11, 32, 16]} />
-        <meshBasicMaterial color={new THREE.Color('#fff4d6').multiplyScalar(1.6)} toneMapped={false} fog={false} />
+        <meshBasicMaterial
+          color={new THREE.Color('#fff4d6').multiplyScalar(1.6)}
+          toneMapped={false}
+          fog={false}
+        />
       </mesh>
     </group>
   );
@@ -77,7 +92,15 @@ function useBuildings() {
       const z = Math.sin(ang) * dist;
       const near = dist < 80;
       const h = near ? 12 + r() * 30 : 20 + r() * 62 + (r() > 0.85 ? 25 : 0);
-      list.push({ x, z, w: 5 + r() * 9, d: 5 + r() * 9, h, tex: Math.floor(r() * 6), roof: r() > 0.6 });
+      list.push({
+        x,
+        z,
+        w: 5 + r() * 9,
+        d: 5 + r() * 9,
+        h,
+        tex: Math.floor(r() * 6),
+        roof: r() > 0.6,
+      });
     }
     return list;
   }, []);
@@ -92,21 +115,39 @@ function Buildings() {
         t.needsUpdate = true;
         t.repeat.set(1 + (i % 2), 2 + (i % 3));
         return new THREE.MeshStandardMaterial({
-          color: ['#1d2438', '#232a40', '#1a2030', '#2a2a3c', '#1c2a3a', '#251f35'][i],
+          color: [
+            '#96aeb2',
+            '#afb8b2',
+            '#8fa9ad',
+            '#b1aaa7',
+            '#93afab',
+            '#b6aaa5',
+          ][i],
           emissive: '#ffffff',
           emissiveMap: t,
-          emissiveIntensity: 1.25,
+          emissiveIntensity: 0.12,
           roughness: 0.6,
           metalness: 0.3,
         });
       }),
     [],
   );
-  const roofMat = useMemo(() => new THREE.MeshStandardMaterial({ color: '#141826', roughness: 0.8 }), []);
-  const beacon = useMemo(() => new THREE.MeshBasicMaterial({ color: new THREE.Color('#ff3b3b').multiplyScalar(3), toneMapped: false }), []);
+  const roofMat = useMemo(
+    () => new THREE.MeshStandardMaterial({ color: '#141826', roughness: 0.8 }),
+    [],
+  );
+  const beacon = useMemo(
+    () =>
+      new THREE.MeshBasicMaterial({
+        color: new THREE.Color('#ff3b3b').multiplyScalar(3),
+        toneMapped: false,
+      }),
+    [],
+  );
   const beacons = useRef<THREE.Group>(null);
   useFrame(({ clock }) => {
-    if (beacons.current) beacons.current.visible = Math.sin(clock.elapsedTime * 3) > -0.2;
+    if (beacons.current)
+      beacons.current.visible = Math.sin(clock.elapsedTime * 3) > -0.2;
   });
   return (
     <group position={[0, GROUND_Y, 0]}>
@@ -126,7 +167,11 @@ function Buildings() {
         {list
           .filter((b) => b.h > 50)
           .map((b, i) => (
-            <mesh key={i} position={[b.x, b.h + (b.roof ? 2.6 : 0.4), b.z]} material={beacon}>
+            <mesh
+              key={i}
+              position={[b.x, b.h + (b.roof ? 2.6 : 0.4), b.z]}
+              material={beacon}
+            >
               <sphereGeometry args={[0.45, 8, 8]} />
             </mesh>
           ))}
@@ -157,14 +202,19 @@ function Streets() {
     if (!m) return;
     const t = clock.elapsedTime;
     data.forEach((c, i) => {
-      const along = ((c.offset + t * c.speed * c.dir) % 400 + 400) % 400 - 200;
+      const along =
+        ((((c.offset + t * c.speed * c.dir) % 400) + 400) % 400) - 200;
       const across = c.lane * 32 + 2;
       if (c.axis === 0) dummy.position.set(along, GROUND_Y + 0.4, across);
       else dummy.position.set(across, GROUND_Y + 0.4, along);
       dummy.rotation.y = c.axis === 0 ? 0 : Math.PI / 2;
       dummy.updateMatrix();
       m.setMatrixAt(i, dummy.matrix);
-      if (!colorsSet.current) m.setColorAt(i, new THREE.Color(c.warm ? '#ff5a3a' : '#fff1c9').multiplyScalar(3));
+      if (!colorsSet.current)
+        m.setColorAt(
+          i,
+          new THREE.Color(c.warm ? '#ff5a3a' : '#fff1c9').multiplyScalar(3),
+        );
     });
     colorsSet.current = true;
     m.instanceMatrix.needsUpdate = true;
@@ -174,7 +224,13 @@ function Streets() {
     <group>
       <mesh rotation-x={-Math.PI / 2} position={[0, GROUND_Y, 0]}>
         <planeGeometry args={[520, 520]} />
-        <meshStandardMaterial map={ground} emissive="#ffffff" emissiveMap={ground} emissiveIntensity={0.7} roughness={0.9} />
+        <meshStandardMaterial
+          map={ground}
+          emissive="#ffffff"
+          emissiveMap={ground}
+          emissiveIntensity={0.7}
+          roughness={0.9}
+        />
       </mesh>
       <instancedMesh ref={cars} args={[undefined, undefined, data.length]}>
         <boxGeometry args={[1.6, 0.4, 0.6]} />
@@ -185,17 +241,29 @@ function Streets() {
 }
 
 function CityNeon() {
-  const kpi = neonText([{ text: '24H 加班', color: '#3ef0ff', size: 150 }]);
+  const kpi = neonText([{ text: '准点下班', color: '#fff0b7', size: 150 }]);
   const coffee = neonText([{ text: '续命咖啡', color: '#ff4fb8', size: 150 }]);
   return (
     <group>
       <mesh position={[-34, 6, -40]} rotation-y={0.5}>
         <planeGeometry args={[16, 4]} />
-        <meshBasicMaterial map={kpi} transparent toneMapped={false} color={new THREE.Color(2, 2, 2)} depthWrite={false} />
+        <meshBasicMaterial
+          map={kpi}
+          transparent
+          toneMapped={false}
+          color={new THREE.Color(2, 2, 2)}
+          depthWrite={false}
+        />
       </mesh>
       <mesh position={[-46, -2, 12]} rotation-y={Math.PI / 2}>
         <planeGeometry args={[16, 4]} />
-        <meshBasicMaterial map={coffee} transparent toneMapped={false} color={new THREE.Color(2, 2, 2)} depthWrite={false} />
+        <meshBasicMaterial
+          map={coffee}
+          transparent
+          toneMapped={false}
+          color={new THREE.Color(2, 2, 2)}
+          depthWrite={false}
+        />
       </mesh>
     </group>
   );

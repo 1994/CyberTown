@@ -2,9 +2,19 @@ import { create } from 'zustand';
 import type { StateSnapshot, TradeEvent, GameEvent } from '../shared/types.ts';
 import { api, ApiError, session } from './api.ts';
 import type { Identity } from './api.ts';
+import { useWorld } from './world/runtime.ts';
 
 export type Phase = 'boot' | 'login' | 'game';
-export type Drawer = null | 'messages' | 'leaderboard' | 'guide' | 'market';
+export type Drawer =
+  | null
+  | 'messages'
+  | 'leaderboard'
+  | 'guide'
+  | 'market'
+  | 'career'
+  | 'shop'
+  | 'squad'
+  | 'friends';
 
 export interface Toast {
   id: number;
@@ -38,6 +48,20 @@ interface GameStore {
   /** 被挖走的工位：显示补偿提示（按桌位索引） */
   poachMarkers: Record<number, PoachMarker>;
   busy: Record<string, boolean>;
+  celebration: {
+    key: string;
+    title: string;
+    body: string;
+    amount?: number;
+  } | null;
+  lastCelebrationKey: string;
+  celebrate: (c: {
+    key: string;
+    title: string;
+    body: string;
+    amount?: number;
+  }) => void;
+  closeCelebration: () => void;
 
   boot: () => Promise<void>;
   loginAs: (playerId: string) => Promise<void>;
@@ -75,6 +99,20 @@ export const useGame = create<GameStore>((set, get) => ({
   projectActive: false,
   poachMarkers: {},
   busy: {},
+  celebration: null,
+  lastCelebrationKey: '',
+  celebrate(c) {
+    if (get().lastCelebrationKey === c.key) return;
+    set({ celebration: c, lastCelebrationKey: c.key });
+    window.dispatchEvent(
+      new CustomEvent('world-celebrate', {
+        detail: { id: get().snapshot?.me.id },
+      }),
+    );
+  },
+  closeCelebration() {
+    set({ celebration: null });
+  },
 
   async boot() {
     set({ bootError: null });
@@ -84,7 +122,12 @@ export const useGame = create<GameStore>((set, get) => ({
       if (session.get()) {
         try {
           const snap = await api.state();
-          set({ snapshot: snap, phase: 'game', lastSyncAt: Date.now(), clockOffset: snap.serverTime - Date.now() });
+          set({
+            snapshot: snap,
+            phase: 'game',
+            lastSyncAt: Date.now(),
+            clockOffset: snap.serverTime - Date.now(),
+          });
           get().replayIntro();
           return;
         } catch (e) {
@@ -110,6 +153,8 @@ export const useGame = create<GameStore>((set, get) => ({
       clockOffset: snap.serverTime - Date.now(),
       poachMarkers: {},
       toasts: [],
+      celebration: null,
+      lastCelebrationKey: '',
     });
     get().replayIntro();
   },
@@ -121,7 +166,16 @@ export const useGame = create<GameStore>((set, get) => ({
       /* 会话可能已失效，忽略 */
     }
     session.clear();
-    set({ phase: 'login', snapshot: null, drawer: null, poachMarkers: {}, toasts: [], projectActive: false });
+    set({
+      phase: 'login',
+      snapshot: null,
+      drawer: null,
+      poachMarkers: {},
+      toasts: [],
+      projectActive: false,
+      celebration: null,
+      lastCelebrationKey: '',
+    });
   },
 
   async refresh() {
@@ -134,13 +188,20 @@ export const useGame = create<GameStore>((set, get) => ({
         do {
           refreshAgain = false;
           const snap = await api.state();
-          set({ snapshot: snap, lastSyncAt: Date.now(), clockOffset: snap.serverTime - Date.now() });
+          set({
+            snapshot: snap,
+            lastSyncAt: Date.now(),
+            clockOffset: snap.serverTime - Date.now(),
+          });
         } while (refreshAgain);
       } catch (e) {
         if (e instanceof ApiError && e.status === 401) {
           session.clear();
           set({ phase: 'login', snapshot: null });
-          get().toast({ tone: 'info', title: '会话已失效，请重新选择测试身份' });
+          get().toast({
+            tone: 'info',
+            title: '会话已失效，请重新选择测试身份',
+          });
         } else {
           set({ conn: 'offline' });
         }
@@ -190,12 +251,33 @@ export const useGame = create<GameStore>((set, get) => ({
       return;
     }
     const me = snap.me.id;
-    const nameOf = (id: string | null) => snap.players.find((p) => p.id === id)?.name ?? id ?? '系统';
+    const nameOf = (id: string | null) =>
+      snap.players.find((p) => p.id === id)?.name ?? id ?? '系统';
+    if (e.kind === 'promotion') {
+      if (e.playerId === me)
+        get().celebrate({
+          key: `promotion:${me}:${e.toRank}:${e.at}`,
+          title: `晋升 · ${e.rankName}`,
+          body: `接下来的游戏，收益加成 +${e.incomePct}%`,
+        });
+      else
+        get().toast({
+          tone: 'gold',
+          title: `${nameOf(e.playerId)}晋升为${e.rankName}了`,
+        });
+      return;
+    }
     if (e.kind === 'highfive') {
       window.dispatchEvent(new CustomEvent('world-highfive', { detail: e }));
       if (e.playerId === me || e.targetId === me) {
         const other = e.playerId === me ? e.targetId : e.playerId;
-        get().toast({ tone: 'gold', title: `🥂 和${nameOf(other)}碰杯 +${e.reward}` });
+        useWorld.setState((s) => ({
+          highfiveCooldown: { ...s.highfiveCooldown, [other]: e.at + 60000 },
+        }));
+        get().toast({
+          tone: 'gold',
+          title: `🥂 和${nameOf(other)}碰杯 +${e.reward}`,
+        });
       }
       return;
     }
@@ -208,24 +290,43 @@ export const useGame = create<GameStore>((set, get) => ({
         set((s) => ({
           poachMarkers: {
             ...s.poachMarkers,
-            [t.previousDeskSlot!]: { name: t.colleagueName, buyerName: nameOf(t.buyerId), amount: t.ownerShare, until: Date.now() + 14000 },
+            [t.previousDeskSlot!]: {
+              name: t.colleagueName,
+              buyerName: nameOf(t.buyerId),
+              amount: t.ownerShare,
+              until: Date.now() + 14000,
+            },
           },
         }));
       }
-      get().toast({ tone: 'bad', title: `😱 ${t.colleagueName}被${nameOf(t.buyerId)}挖走 · 补偿 +${t.ownerShare}`, ttl: 7000 });
+      get().toast({
+        tone: 'bad',
+        title: `😱 ${t.colleagueName}被${nameOf(t.buyerId)}挖走 · 补偿 +${t.ownerShare}`,
+        ttl: 7000,
+      });
     }
     if (t.selfPlayerId === me && t.buyerId !== me) {
-      get().toast({ tone: 'gold', title: `🎉 分身被${nameOf(t.buyerId)}${t.sellerId ? '挖走' : '招募'} · 分红 +${t.selfShare}`, ttl: 6000 });
+      get().toast({
+        tone: 'gold',
+        title: `🎉 分身被${nameOf(t.buyerId)}${t.sellerId ? '挖走' : '招募'} · 分红 +${t.selfShare}`,
+        ttl: 6000,
+      });
     }
     if (t.buyerId !== me && t.sellerId !== me && t.selfPlayerId !== me) {
-      get().toast({ tone: 'info', title: `📣 ${nameOf(t.buyerId)}${t.sellerId ? '挖走了' : '招募了'}${t.colleagueName}`, ttl: 3500 });
+      get().toast({
+        tone: 'info',
+        title: `📣 ${nameOf(t.buyerId)}${t.sellerId ? '挖走了' : '招募了'}${t.colleagueName}`,
+        ttl: 3500,
+      });
     }
   },
 }));
 
 export function myTeam(snap: StateSnapshot | null) {
   if (!snap) return [];
-  return snap.colleagues.filter((c) => c.ownerId === snap.me.id).sort((a, b) => (a.deskSlot ?? 0) - (b.deskSlot ?? 0));
+  return snap.colleagues
+    .filter((c) => c.ownerId === snap.me.id)
+    .sort((a, b) => (a.deskSlot ?? 0) - (b.deskSlot ?? 0));
 }
 
 export function serverNow(): number {

@@ -92,9 +92,9 @@ func (g *Game) seed(reset bool) error {
 			return err
 		}
 		if count > 0 && !reset {
-			return ensureCareers(tx)
+			return ensureProgress(tx)
 		}
-		for _, t := range []string{"sessions", "trades", "ledger", "project_runs", "social_rewards", "player_careers", "messages", "colleagues", "players", "meta"} {
+		for _, t := range []string{"sessions", "trades", "ledger", "project_runs", "social_rewards", "player_items", "player_styles", "year_awards", "player_years", "player_careers", "messages", "colleagues", "players", "meta"} {
 			if _, err := tx.Exec("DELETE FROM " + t); err != nil {
 				return err
 			}
@@ -138,7 +138,7 @@ func (g *Game) seed(reset bool) error {
 		if _, err := tx.Exec("INSERT INTO meta(key,value) VALUES('version','1')"); err != nil {
 			return err
 		}
-		return ensureCareers(tx)
+		return ensureProgress(tx)
 	})
 }
 func ledger(q queryer, account string, delta int, reason, ref string, now int64) error {
@@ -329,6 +329,10 @@ func (g *Game) Snapshot(id string, online map[string]bool) (Snapshot, error) {
 			}
 			snap.Players[i].Rank = career.Rank
 			snap.Players[i].RankName = career.Name
+			snap.Players[i].Style, err = readStyle(tx, snap.Players[i].ID)
+			if err != nil {
+				return err
+			}
 		}
 		sortPlayers(snap.Players)
 		found := false
@@ -347,6 +351,14 @@ func (g *Game) Snapshot(id string, online map[string]bool) (Snapshot, error) {
 			return err
 		}
 		snap.ProjectSkills = careerSkills(snap.TeamSkills, snap.Career)
+		snap.Year, err = readYear(tx, id)
+		if err != nil {
+			return err
+		}
+		snap.Shop, err = readShop(tx, id)
+		if err != nil {
+			return err
+		}
 		run, err := scanRun(tx.QueryRow("SELECT "+runColumns+" FROM project_runs WHERE player_id=? AND status='active' ORDER BY started_at DESC LIMIT 1", id))
 		if err != nil && err != sql.ErrNoRows {
 			return err

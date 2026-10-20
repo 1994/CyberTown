@@ -1,6 +1,6 @@
 # Go 服务端
 
-由 Codex 负责实现。前端由本机 Claude Code 负责。服务端采用 Go 标准库 `net/http`、`database/sql`、纯 Go 的 `modernc.org/sqlite` 和 SSE；没有 Node 运行时服务端。Node 仅用于前端构建和浏览器测试/录制脚本。
+由 Codex 负责实现。前端初版由本机 Claude Code 开发，本轮经用户授权由 Codex 接手续改。服务端采用 Go 标准库 `net/http`、`database/sql`、纯 Go 的 `modernc.org/sqlite` 和 SSE；没有 Node 运行时服务端。Node 仅用于前端构建和浏览器测试/录制脚本。
 
 ## 启动与构建
 
@@ -61,7 +61,7 @@ JSON 错误统一为 `{ "error": { "code": "...", "message": "..." } }`。普通
 
 ## 职场晋升
 
-晋升规则见 [模式定案](COMMUNITY-MODE.md)，前端接入规格见 [Claude 交接](CLAUDE-CAREER-HANDOFF.md)。目前 Go 后端已实现，网页晋升入口尚未接入。
+晋升规则见 [模式定案](COMMUNITY-MODE.md)，前端接入规格见 [Claude 交接](CLAUDE-CAREER-HANDOFF.md)。Go 后端及网页晋升入口已实现，当前验收见 [V3](REVIEW-V3.md)。
 
 每个经服务器核验的非陷阱命中 +10 业绩，一局有命中才计为一个有效项目。结算同时更新奖励、账本、项目状态、业绩与有效项目数；重复提交不会重复累计。空局、过期或未结算项目没有晋升进度。买卖、分红和碰杯不增加业绩。
 
@@ -119,3 +119,16 @@ location / {
 当前是预置测试身份，未接公司 SSO，也不包含生产账号管理、强反机器人、防刷与压力测试。结算规则防止伪造奖励值和无效任务，但有意构造符合规则的完整操作记录仍可被脚本提交，不能宣称生产级反作弊。全部币为游戏积分，无真实资金。上线公司环境前需替换测试登录、接入身份授权、限制重置并建立生产运维。
 
 驱动的纯Go实现及事务锁参数参见 [modernc SQLite 官方文档](https://pkg.go.dev/modernc.org/sqlite)；规则与API以仓库实际代码和测试为准。
+
+## 年终奖与永久道具（V3）
+
+`GET /api/state` 增加 `year,shop`；每位 `players[]` 及 `me` 增加 `style`。项目结算响应增加 `yearAward`（未到三局为null），金币字段已包括年终奖。
+
+3场至少一个核验命中的项目组成一个演示年。`player_years`记录轮次、第一场有效结算时的职级、技能与命中加成累计和同事碰杯加成。三局平均加成取整：每局技能最高30%、命中最高20%，碰杯最多10%。基础奖金按职级为300/450/650/900/1200。`year_awards(player_id,year)`唯一键防重复，同一项目结算事务内更新项目、成长、即时金币、奖金、账本、消息和新年进度；失败全部回滚。老存档的旧项目不追发年终奖，新奖励表从第一年零进度初始化；原金币、队伍与职级保留。
+
+- `POST /api/shop/buy {itemId,expectedPrice}`：校验目录价格、余额与未拥有，扣金币、入库存、系统回收和账本同一事务。并发重复购买最多成功一次。错误包括400 `BAD_PRICE`、402 `INSUFFICIENT`、404 `NO_ITEM`、409 `PRICE_CHANGED/ALREADY_OWNED_ITEM`。
+- `POST /api/shop/equip {itemId,kind,target}`：kind为`shirt/accessory/aura`，target为`player/boss`。必须拥有且槽位匹配。itemId为空字符串恢复默认穿戴，不删除收藏，不扣币。错误400 `BAD_SLOT/BAD_TARGET/BAD_ITEM`、403 `ITEM_NOT_OWNED`。
+- `player_items`保存永久收藏，`player_styles`保存自己与老板各三个槽位的实际外观值。`style`为`shirt,accessory,aura,bossShirt,bossAccessory,bossAura`；老板穿搭跟随队伍主人，适用于张总与钱多多。
+- 购买/穿戴成功提交后SSE广播`event.kind=shop/style`与playerId，其他客户端刷新快照。服务端不采信客户端提交的价格以外属性或道具效果。
+
+道具目前纯外观，不额外加金币或能力。现有老板收入技能和职级收益仍由开局快照锁定。数值养成、好友关系、借调与非独占分身尚未实现。

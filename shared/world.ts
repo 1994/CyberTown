@@ -25,11 +25,46 @@ export interface Zone {
 
 export const ZONES: Zone[] = [
   { id: 'plaza', name: '共享广场', icon: '⛲', x: 0, z: 12, color: '#ffd166' },
-  { id: 'office', name: '总部办公室', icon: '🏢', x: 0, z: 0, color: '#3ef0ff' },
-  { id: 'coffee', name: '咖啡社交区', icon: '☕', x: -17, z: 0, color: '#ff8fb8' },
-  { id: 'talent', name: '人才街', icon: '🧑‍💼', x: -16, z: -13, color: '#7dffa8' },
-  { id: 'project', name: '项目区', icon: '🚨', x: 18, z: 0, color: '#ff6b6b' },
-  { id: 'garden', name: '露台花园', icon: '🌿', x: 18, z: -13, color: '#9be26a' },
+  {
+    id: 'office',
+    name: '总部办公室',
+    icon: '🏢',
+    x: 0,
+    z: 0,
+    color: '#3ef0ff',
+  },
+  {
+    id: 'coffee',
+    name: '咖啡社交区',
+    icon: '☕',
+    x: -17,
+    z: 0,
+    color: '#ff8fb8',
+  },
+  {
+    id: 'talent',
+    name: '人才街',
+    icon: '🧑‍💼',
+    x: -16,
+    z: -13,
+    color: '#7dffa8',
+  },
+  {
+    id: 'project',
+    name: '小游戏俱乐部',
+    icon: '🎮',
+    x: 18,
+    z: 0,
+    color: '#e4aa65',
+  },
+  {
+    id: 'garden',
+    name: '露台花园',
+    icon: '🌿',
+    x: 18,
+    z: -13,
+    color: '#9be26a',
+  },
 ];
 
 /** 项目区里的「项目终端」：走过去按 E 也能接紧急项目 */
@@ -43,6 +78,8 @@ export const BOOTHS: { x: number; z: number; face: number }[] = (() => {
   xs.forEach((x) => list.push({ x: x + 1.6, z: -15.1, face: Math.PI })); // 南侧摊位，面朝北
   list.push({ x: -27.2, z: -13, face: Math.PI / 2 });
   list.push({ x: -6.6, z: -13, face: -Math.PI / 2 });
+  // 第一位老板在广场迎接玩家，让开局就能体验标题里的身份反转。
+  list[0] = { x: -2.3, z: 11.7, face: 0.5 };
   return list;
 })();
 
@@ -55,7 +92,10 @@ export const PODS: { x: number; z: number }[] = [
   { x: 22.4, z: 4 },
 ];
 export const POD_DESK_DX = [-2.2, 0, 2.2];
-export function podSeat(ownerId: string, slot: number): { x: number; z: number } {
+export function podSeat(
+  ownerId: string,
+  slot: number,
+): { x: number; z: number } {
   const i = Math.max(0, POD_ORDER.indexOf(ownerId)) % PODS.length;
   const p = PODS[i];
   return { x: p.x + POD_DESK_DX[slot % 3], z: p.z - 0.8 };
@@ -75,8 +115,14 @@ export interface Circle {
   r: number;
 }
 
-const box = (minX: number, maxX: number, minZ: number, maxZ: number): Box => ({ minX, maxX, minZ, maxZ });
-const centered = (x: number, z: number, w: number, d: number): Box => box(x - w / 2, x + w / 2, z - d / 2, z + d / 2);
+const box = (minX: number, maxX: number, minZ: number, maxZ: number): Box => ({
+  minX,
+  maxX,
+  minZ,
+  maxZ,
+});
+const centered = (x: number, z: number, w: number, d: number): Box =>
+  box(x - w / 2, x + w / 2, z - d / 2, z + d / 2);
 
 /** 办公室门洞：后墙（通往人才街）与左墙（通往咖啡区），前侧与右侧开放 */
 export const OFFICE_DOORS = {
@@ -104,7 +150,9 @@ export const BOXES: Box[] = [
   ...[-25, -21, -17, -13, -9.5].map((x) => centered(x, -9.6, 2.6, 1.2)),
   ...[-25, -21, -17, -13, -9.5].map((x) => centered(x + 1.6, -16.4, 2.6, 1.2)),
   // ── 项目区工位组与大屏 ──
-  ...PODS.flatMap((p) => POD_DESK_DX.map((dx) => centered(p.x + dx, p.z, 1.9, 0.96))),
+  ...PODS.flatMap((p) =>
+    POD_DESK_DX.map((dx) => centered(p.x + dx, p.z, 1.9, 0.96)),
+  ),
   centered(18, 0.2, 1.4, 0.9), // 项目终端
   box(27.6, 28.4, -5, 5), // LED 大屏
   // ── 露台花园 ──
@@ -144,17 +192,60 @@ export const CIRCLES: Circle[] = [
 
 /** 园区树木（装饰 + 碰撞） */
 export const TREES: [number, number][] = [
-  [-27, 8], [-22, 9], [-27, 15], [-21, 19], [-14, 20], [-12, 14], [-26, -20], [-20, -20], [-12, -20], [-6, -19],
-  [-27, -6], [-27, 3], [-11, -6.5], [-11, 6.5], [11, 7.5], [11, -7], [27, 8], [27, -7], [12, 19], [27, 20],
-  [11, -19], [16, -20], [21, -20], [26, -19], [27, -14], [10.5, -14], [-8, 20], [8, 20], [-3, -9], [3, -9],
-  [7, -11], [-20, 13], [-16, 9],
+  [-27, 8],
+  [-22, 9],
+  [-27, 15],
+  [-21, 19],
+  [-14, 20],
+  [-12, 14],
+  [-26, -20],
+  [-20, -20],
+  [-12, -20],
+  [-6, -19],
+  [-27, -6],
+  [-27, 3],
+  [-11, -6.5],
+  [-11, 6.5],
+  [11, 7.5],
+  [11, -7],
+  [27, 8],
+  [27, -7],
+  [12, 19],
+  [27, 20],
+  [11, -19],
+  [16, -20],
+  [21, -20],
+  [26, -19],
+  [27, -14],
+  [10.5, -14],
+  [-8, 20],
+  [8, 20],
+  [-3, -9],
+  [3, -9],
+  [7, -11],
+  [-20, 13],
+  [-16, 9],
 ];
 for (const [x, z] of TREES) CIRCLES.push({ x, z, r: 0.45 });
 
 /** 路灯（装饰 + 碰撞） */
 export const LAMPS: [number, number][] = [
-  [-9, 9.4], [9, 9.4], [-16, 9.4], [16, 9.4], [-24, 9.4], [24, 9.4], [-15.4, -6.5], [-15.4, 6], [16.6, -6.6], [16.6, 6.6],
-  [-27, -12.2], [-5.8, -12.2], [12, -15], [24.5, -15], [-3, 20], [3, 20],
+  [-9, 9.4],
+  [9, 9.4],
+  [-16, 9.4],
+  [16, 9.4],
+  [-24, 9.4],
+  [24, 9.4],
+  [-15.4, -6.5],
+  [-15.4, 6],
+  [16.6, -6.6],
+  [16.6, 6.6],
+  [-27, -12.2],
+  [-5.8, -12.2],
+  [12, -15],
+  [24.5, -15],
+  [-3, 20],
+  [3, 20],
 ];
 for (const [x, z] of LAMPS) CIRCLES.push({ x, z, r: 0.18 });
 
@@ -174,7 +265,13 @@ export const PATHS: Box[] = [
 
 export function blockedAt(x: number, z: number, r = PLAYER_RADIUS): boolean {
   const b = WORLD_BOUNDS;
-  if (x < b.minX + 0.6 || x > b.maxX - 0.6 || z < b.minZ + 0.6 || z > b.maxZ - 0.6) return true;
+  if (
+    x < b.minX + 0.6 ||
+    x > b.maxX - 0.6 ||
+    z < b.minZ + 0.6 ||
+    z > b.maxZ - 0.6
+  )
+    return true;
   for (const o of BOXES) {
     const cx = Math.max(o.minX, Math.min(x, o.maxX));
     const cz = Math.max(o.minZ, Math.min(z, o.maxZ));
@@ -192,7 +289,12 @@ export function blockedAt(x: number, z: number, r = PLAYER_RADIUS): boolean {
 }
 
 /** 带滑墙的移动：先整体位移，受阻则分别尝试 x / z 轴 */
-export function moveWithCollision(x: number, z: number, dx: number, dz: number): [number, number] {
+export function moveWithCollision(
+  x: number,
+  z: number,
+  dx: number,
+  dz: number,
+): [number, number] {
   if (!blockedAt(x + dx, z + dz)) return [x + dx, z + dz];
   if (dx && !blockedAt(x + dx, z)) return [x + dx, z];
   if (dz && !blockedAt(x, z + dz)) return [x, z + dz];
@@ -213,7 +315,13 @@ function buildGrid() {
   grid = new Uint8Array(GW * GH);
   for (let j = 0; j < GH; j++) {
     for (let i = 0; i < GW; i++) {
-      grid[j * GW + i] = blockedAt(b.minX + i * CELL, b.minZ + j * CELL, PLAYER_RADIUS + 0.12) ? 1 : 0;
+      grid[j * GW + i] = blockedAt(
+        b.minX + i * CELL,
+        b.minZ + j * CELL,
+        PLAYER_RADIUS + 0.12,
+      )
+        ? 1
+        : 0;
     }
   }
 }
@@ -222,8 +330,12 @@ const toCell = (x: number, z: number): [number, number] => [
   Math.round((x - WORLD_BOUNDS.minX) / CELL),
   Math.round((z - WORLD_BOUNDS.minZ) / CELL),
 ];
-const toWorld = (i: number, j: number): [number, number] => [WORLD_BOUNDS.minX + i * CELL, WORLD_BOUNDS.minZ + j * CELL];
-const free = (i: number, j: number) => i >= 0 && j >= 0 && i < GW && j < GH && grid![j * GW + i] === 0;
+const toWorld = (i: number, j: number): [number, number] => [
+  WORLD_BOUNDS.minX + i * CELL,
+  WORLD_BOUNDS.minZ + j * CELL,
+];
+const free = (i: number, j: number) =>
+  i >= 0 && j >= 0 && i < GW && j < GH && grid![j * GW + i] === 0;
 
 function nearestFree(i: number, j: number): [number, number] | null {
   if (free(i, j)) return [i, j];
@@ -245,15 +357,31 @@ function lineClear(ax: number, az: number, bx: number, bz: number): boolean {
   const steps = Math.max(1, Math.ceil(d / 0.05));
   for (let s = 1; s <= steps; s++) {
     const t = s / steps;
-    if (blockedAt(ax + (bx - ax) * t, az + (bz - az) * t, PLAYER_RADIUS + LOS_MARGIN)) return false;
+    if (
+      blockedAt(
+        ax + (bx - ax) * t,
+        az + (bz - az) * t,
+        PLAYER_RADIUS + LOS_MARGIN,
+      )
+    )
+      return false;
   }
   return true;
 }
 
 /** A* 寻路（8 方向，网格 0.5m），返回已拉直的折线（不含起点）。找不到返回 null。 */
-export function findPath(sx: number, sz: number, tx: number, tz: number): [number, number][] | null {
+export function findPath(
+  sx: number,
+  sz: number,
+  tx: number,
+  tz: number,
+): [number, number][] | null {
   if (!grid) buildGrid();
-  if (!blockedAt(tx, tz, PLAYER_RADIUS + LOS_MARGIN) && lineClear(sx, sz, tx, tz)) return [[tx, tz]];
+  if (
+    !blockedAt(tx, tz, PLAYER_RADIUS + LOS_MARGIN) &&
+    lineClear(sx, sz, tx, tz)
+  )
+    return [[tx, tz]];
   const s = nearestFree(...toCell(sx, sz));
   const t = nearestFree(...toCell(tx, tz));
   if (!s || !t) return null;
@@ -341,11 +469,16 @@ export function findPath(sx: number, sz: number, tx: number, tz: number): [numbe
   }
   if (!found) return null;
   const cells: [number, number][] = [];
-  for (let c = ti; c !== -1; c = came[c]) cells.push(toWorld(c % GW, Math.floor(c / GW)));
+  for (let c = ti; c !== -1; c = came[c])
+    cells.push(toWorld(c % GW, Math.floor(c / GW)));
   cells.reverse();
   // 终点用真实目标（若可站立）
   const [lx, lz] = cells[cells.length - 1];
-  if (!blockedAt(tx, tz, PLAYER_RADIUS + LOS_MARGIN) && lineClear(lx, lz, tx, tz)) cells.push([tx, tz]);
+  if (
+    !blockedAt(tx, tz, PLAYER_RADIUS + LOS_MARGIN) &&
+    lineClear(lx, lz, tx, tz)
+  )
+    cells.push([tx, tz]);
   // 拉直：从当前点出发，尽量直连更远的点
   const out: [number, number][] = [];
   let ax = sx;
@@ -381,5 +514,8 @@ export function zoneAt(x: number, z: number): Zone | null {
 
 export function clampToBounds(x: number, z: number): [number, number] {
   const b = WORLD_BOUNDS;
-  return [Math.max(b.minX + 0.7, Math.min(b.maxX - 0.7, x)), Math.max(b.minZ + 0.7, Math.min(b.maxZ - 0.7, z))];
+  return [
+    Math.max(b.minX + 0.7, Math.min(b.maxX - 0.7, x)),
+    Math.max(b.minZ + 0.7, Math.min(b.maxZ - 0.7, z)),
+  ];
 }

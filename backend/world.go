@@ -150,6 +150,9 @@ func (g *Game) highfiveReward(first, second string) (int64, error) {
 		}
 		ref := "social:" + randomID()
 		for _, id := range ids {
+			if _, err = tx.Exec("UPDATE player_years SET friend_pct=10 WHERE player_id=?", id); err != nil {
+				return err
+			}
 			res, e := tx.Exec("UPDATE players SET coins=coins+15 WHERE id=?", id)
 			if e != nil {
 				return e

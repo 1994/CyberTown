@@ -12,7 +12,11 @@ import { MePlayer, RemotePlayers, walkNear } from './Avatars.tsx';
 import { Effects } from './Effects.tsx';
 import { FollowCamera } from './FollowCamera.tsx';
 import { PALETTE } from './materials.ts';
-import { HIGHFIVE_RANGE, INTERACT_RANGE, PROJECT_TERMINAL } from '../../shared/world.ts';
+import {
+  HIGHFIVE_RANGE,
+  INTERACT_RANGE,
+  PROJECT_TERMINAL,
+} from '../../shared/world.ts';
 import { rt, useWorld } from '../world/runtime.ts';
 import type { Near } from '../world/runtime.ts';
 import { useGame } from '../store.ts';
@@ -37,8 +41,8 @@ function Sun() {
   return (
     <directionalLight
       ref={light}
-      intensity={2.0}
-      color="#ffe0b8"
+      intensity={2.7}
+      color="#fff0d6"
       castShadow={!LOW_FX}
       shadow-mapSize={[2048, 2048]}
       shadow-camera-left={-22}
@@ -56,13 +60,30 @@ function Sun() {
 function Lights() {
   return (
     <>
-      <hemisphereLight args={['#8090ff', '#3a2618', 0.85]} />
+      <hemisphereLight args={['#d7efff', '#b5aa86', 1.65]} />
       <Sun />
-      <directionalLight position={[-24, 12, -18]} intensity={1.1} color="#8fb4ff" />
+      <directionalLight
+        position={[-24, 12, -18]}
+        intensity={1.25}
+        color="#c3e4e7"
+      />
       {[-3.3, 0, 3.3].map((x) => (
-        <pointLight key={x} position={[x, 2.8, -1.6]} intensity={7} distance={5} decay={2} color={PALETTE.warmLight} />
+        <pointLight
+          key={x}
+          position={[x, 2.8, -1.6]}
+          intensity={7}
+          distance={5}
+          decay={2}
+          color={PALETTE.warmLight}
+        />
       ))}
-      <pointLight position={[4.9, 2.6, 3.2]} intensity={6} distance={5} decay={2} color="#ffc47a" />
+      <pointLight
+        position={[4.9, 2.6, 3.2]}
+        intensity={6}
+        distance={5}
+        decay={2}
+        color="#ffc47a"
+      />
     </>
   );
 }
@@ -82,11 +103,12 @@ function NearScanner() {
       if (!best || n.dist < best.dist) best = n;
     };
     for (const c of snap.colleagues) {
-      if (c.ownerId === snap.me.id) continue;
+      if (c.ownerId === snap.me.id || c.selfPlayerId === snap.me.id) continue;
       const p = rt.colleaguePos.get(c.id);
       if (!p) continue;
       const d = Math.hypot(p.x - me.x, p.z - me.z);
-      if (d <= INTERACT_RANGE) consider({ kind: 'colleague', id: c.id, dist: d });
+      if (d <= INTERACT_RANGE)
+        consider({ kind: 'colleague', id: c.id, dist: d });
     }
     for (const [id, r] of rt.remote) {
       const d = Math.hypot(r.x - me.x, r.z - me.z);
@@ -113,20 +135,31 @@ export function OfficeCanvas({ myId }: { myId: string | null }) {
       className="office-canvas"
       shadows={LOW_FX ? false : { type: THREE.PCFShadowMap }}
       dpr={LOW_FX ? 1 : [1, 1.75]}
-      camera={{ position: [34, 34, 46], fov: 38, near: 0.1, far: 900 }}
+      camera={{ position: [34, 34, 46], fov: 38, near: 0.5, far: 600 }}
       gl={{ antialias: true, powerPreference: 'high-performance' }}
       onCreated={({ gl, scene }) => {
         gl.toneMapping = THREE.ACESFilmicToneMapping;
-        gl.toneMappingExposure = 1.2;
-        scene.fog = new THREE.Fog('#151a36', 90, 340);
+        gl.toneMappingExposure = 1.05;
+        scene.fog = new THREE.Fog('#d7e1d7', 65, 230);
       }}
     >
       <Suspense fallback={null}>
         <Lights />
         <Environment resolution={128} frames={1}>
-          <Lightformer form="rect" intensity={3} color="#ffd6a8" position={[0, 6, 6]} scale={[10, 3, 1]} />
-          <Lightformer form="rect" intensity={2.5} color="#6f8dff" position={[-8, 3, -8]} scale={[12, 4, 1]} />
-          <Lightformer form="ring" intensity={4} color={PALETTE.neonPink} position={[6, 3, -6]} scale={2} />
+          <Lightformer
+            form="rect"
+            intensity={2.3}
+            color="#fff1d9"
+            position={[0, 6, 6]}
+            scale={[10, 3, 1]}
+          />
+          <Lightformer
+            form="rect"
+            intensity={1.8}
+            color="#bde0e0"
+            position={[-8, 3, -8]}
+            scale={[12, 4, 1]}
+          />
         </Environment>
         <City />
         <Campus onGround={onGround} />
@@ -139,8 +172,14 @@ export function OfficeCanvas({ myId }: { myId: string | null }) {
         <FollowCamera active={playing} />
         {!LOW_FX && (
           <EffectComposer multisampling={4}>
-            <Bloom mipmapBlur luminanceThreshold={0.95} luminanceSmoothing={0.2} intensity={0.8} radius={0.7} />
-            <Vignette offset={0.3} darkness={0.5} />
+            <Bloom
+              mipmapBlur
+              luminanceThreshold={1.4}
+              luminanceSmoothing={0.3}
+              intensity={0.25}
+              radius={0.5}
+            />
+            <Vignette offset={0.3} darkness={0.22} />
           </EffectComposer>
         )}
       </Suspense>

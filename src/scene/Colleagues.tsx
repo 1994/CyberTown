@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { ThreeEvent } from '@react-three/fiber';
 import { useFrame } from '@react-three/fiber';
-import { Html } from '@react-three/drei';
+import { WorldLabel } from './WorldLabel.tsx';
 import * as THREE from 'three';
 import type { ColleagueView } from '../../shared/types.ts';
 import { SKILL_META } from '../../shared/rules.ts';
@@ -13,6 +13,9 @@ import type { Rig } from './Character.tsx';
 import { applyPose, idlePose, turnTowards } from './pose.ts';
 import { useFx } from './Effects.tsx';
 import { walkNear } from './Avatars.tsx';
+import { FootRing } from './Avatars.tsx';
+import { dressedColleague, isBoss } from '../look.ts';
+import { Crown } from 'lucide-react';
 
 /**
  * 同事在园区里的位置（所有客户端按同一规则计算，因此看到的是同一个空间）：
@@ -23,7 +26,10 @@ import { walkNear } from './Avatars.tsx';
  * 被招募 → 摊位前庆祝 → 走向新老板。
  */
 
-type Assign = { mode: 'booth'; i: number } | { mode: 'follow'; owner: string; slot: number } | { mode: 'desk'; owner: string; slot: number };
+type Assign =
+  | { mode: 'booth'; i: number }
+  | { mode: 'follow'; owner: string; slot: number }
+  | { mode: 'desk'; owner: string; slot: number };
 
 const SCALE = 1.12;
 const TRAVEL_SPEED = 4.4;
@@ -42,7 +48,10 @@ function desired(a: Assign): { x: number; z: number; yaw: number | null } {
     const s = podSeat(a.owner, a.slot);
     return { x: s.x, z: s.z, yaw: 0 };
   }
-  const [x, z] = trailPoint(a.owner, 1.5 + a.slot * 1.15, { x: op.x - 1 - a.slot * 0.6, z: op.z + 0.8 });
+  const [x, z] = trailPoint(a.owner, 1.5 + a.slot * 1.15, {
+    x: op.x - 1 - a.slot * 0.6,
+    z: op.z + 0.8,
+  });
   return { x, z, yaw: null };
 }
 
@@ -50,16 +59,29 @@ interface Run {
   x: number;
   z: number;
   yaw: number;
-  trans: null | { kind: 'pack' | 'cheer' | 'travel' | 'arrive'; t0: number; fx: boolean };
+  trans: null | {
+    kind: 'pack' | 'cheer' | 'travel' | 'arrive';
+    t0: number;
+    fx: boolean;
+  };
   path: [number, number][] | null;
   repathAt: number;
   phase: number;
 }
 
-function ColleagueActor({ c, assign, onlineKey }: { c: ColleagueView; assign: Assign; onlineKey: string }) {
+function ColleagueActor({
+  c,
+  assign,
+  onlineKey,
+}: {
+  c: ColleagueView;
+  assign: Assign;
+  onlineKey: string;
+}) {
   const rig = useRef<Rig>(null);
   const group = useRef<THREE.Group>(null);
   const tag = useRef<HTMLDivElement>(null);
+  const bossTalk = useRef<HTMLDivElement>(null);
   const [bubble, setBubble] = useState<string | null>(null);
   const addFx = useFx((s) => s.add);
   const prev = useRef<{ owner: string | null; mode: string } | null>(null);
@@ -68,7 +90,15 @@ function ColleagueActor({ c, assign, onlineKey }: { c: ColleagueView; assign: As
   assignRef.current = assign;
   if (!run.current) {
     const d = desired(assign);
-    run.current = { x: d.x, z: d.z, yaw: d.yaw ?? 0, trans: null, path: null, repathAt: 0, phase: 0 };
+    run.current = {
+      x: d.x,
+      z: d.z,
+      yaw: d.yaw ?? 0,
+      trans: null,
+      path: null,
+      repathAt: 0,
+      phase: 0,
+    };
   }
 
   // 归属/模式变化 → 触发演出
@@ -86,7 +116,14 @@ function ColleagueActor({ c, assign, onlineKey }: { c: ColleagueView; assign: As
       } else if (!p.owner && owner) {
         r.trans = { kind: 'cheer', t0: now, fx: false };
         const meta = SKILL_META[c.skill.kind];
-        addFx({ x: r.x, y: 1.4, z: r.z, color: meta.color, label: `${meta.icon} ${meta.describe(c.skill.value)}`, sub: `${c.name} 加入小队` });
+        addFx({
+          x: r.x,
+          y: 1.4,
+          z: r.z,
+          color: meta.color,
+          label: `${meta.icon} ${meta.describe(c.skill.value)}`,
+          sub: `${c.name} 加入小队`,
+        });
         setBubble('收到！这就过去 🏃');
       } else {
         r.trans = { kind: 'travel', t0: now, fx: false };
@@ -110,6 +147,7 @@ function ColleagueActor({ c, assign, onlineKey }: { c: ColleagueView; assign: As
     const d = desired(a);
     const t = state.clock.elapsedTime + c.id.length;
     const pose = idlePose(t);
+    const boss = isBoss(c.id);
     const now = performance.now();
     let moving = false;
     let faceYaw: number | null = d.yaw;
@@ -117,7 +155,11 @@ function ColleagueActor({ c, assign, onlineKey }: { c: ColleagueView; assign: As
     const travel = (speed: number, arriveDist: number): boolean => {
       // 目标在动（跟随主人）时定期重算路径
       const end = r.path?.[r.path.length - 1];
-      if (!r.path || now > r.repathAt || (end && Math.hypot(end[0] - d.x, end[1] - d.z) > 2)) {
+      if (
+        !r.path ||
+        now > r.repathAt ||
+        (end && Math.hypot(end[0] - d.x, end[1] - d.z) > 2)
+      ) {
         r.path = findPath(r.x, r.z, d.x, d.z) ?? [[d.x, d.z]];
         r.repathAt = now + 1200;
       }
@@ -166,7 +208,14 @@ function ColleagueActor({ c, assign, onlineKey }: { c: ColleagueView; assign: As
           r.path = null;
           if (tr.fx) {
             const meta = SKILL_META[c.skill.kind];
-            addFx({ x: r.x, y: 1.4, z: r.z, color: meta.color, label: `${meta.icon} ${meta.describe(c.skill.value)}`, sub: `${c.name} 入职新小队` });
+            addFx({
+              x: r.x,
+              y: 1.4,
+              z: r.z,
+              color: meta.color,
+              label: `${meta.icon} ${meta.describe(c.skill.value)}`,
+              sub: `${c.name} 入职新小队`,
+            });
             r.trans = { kind: 'arrive', t0: now, fx: false };
             setBubble('报到！🙋');
           } else {
@@ -216,6 +265,34 @@ function ColleagueActor({ c, assign, onlineKey }: { c: ColleagueView; assign: As
       r.phase += dt * 10;
       pose.walkPhase = r.phase;
     }
+    if (boss && !r.trans) {
+      R.briefcase.visible = moving;
+      if (
+        !moving &&
+        a.mode === 'follow' &&
+        useGame.getState().projectActive &&
+        a.owner === rt.myId
+      )
+        pose.typing = 1;
+      else if (!moving && Math.sin(t * 0.65) > 0.75) pose.cup = 1;
+      if (bossTalk.current) {
+        const lines =
+          a.mode === 'booth'
+            ? [
+                '今天，我向你汇报。',
+                '老板待命，随时上岗。',
+                '你负责快乐，我负责努力。',
+              ]
+            : [
+                '你去玩，这边有我。',
+                '放心，今年奖金我来挣。',
+                '今天准点下班！',
+              ];
+        const line = lines[Math.floor(t / 7) % lines.length];
+        if (bossTalk.current.textContent !== line)
+          bossTalk.current.textContent = line;
+      }
+    }
     if (faceYaw != null) r.yaw = turnTowards(r.yaw, faceYaw, dt, 8);
     g.position.set(r.x, 0, r.z);
     g.rotation.y = r.yaw;
@@ -223,7 +300,9 @@ function ColleagueActor({ c, assign, onlineKey }: { c: ColleagueView; assign: As
     rt.colleaguePos.set(c.id, { x: r.x, z: r.z });
     // 远处的名牌隐藏，减少画面杂讯
     if (tag.current) {
-      const far = Math.hypot(rt.me.x - r.x, rt.me.z - r.z) > 15 && !useWorld.getState().overview;
+      const far =
+        useWorld.getState().overview ||
+        Math.hypot(rt.me.x - r.x, rt.me.z - r.z) > 15;
       tag.current.style.opacity = far ? '0' : '1';
     }
   });
@@ -232,6 +311,13 @@ function ColleagueActor({ c, assign, onlineKey }: { c: ColleagueView; assign: As
     e.stopPropagation();
     if (e.delta > 6) return;
     const r = run.current;
+    if (
+      c.ownerId === useGame.getState().snapshot?.me.id &&
+      Math.hypot(rt.me.x - r.x, rt.me.z - r.z) < 4
+    ) {
+      useGame.getState().setDrawer('squad');
+      return;
+    }
     walkNear(r.x, r.z, 1.5);
   };
 
@@ -240,22 +326,46 @@ function ColleagueActor({ c, assign, onlineKey }: { c: ColleagueView; assign: As
   const owner = snapshot?.players.find((p) => p.id === c.ownerId);
   const self = snapshot?.players.find((p) => p.id === c.selfPlayerId);
   const mine = c.ownerId === snapshot?.me.id;
+  const boss = isBoss(c.id);
+  const look = dressedColleague(c, owner?.style);
   return (
     <group ref={group} onClick={onClick}>
-      <Character ref={rig} look={c.look} scale={SCALE} />
-      <Html position={[0, 2.15, 0]} center zIndexRange={[15, 0]} style={{ pointerEvents: 'none' }}>
-        <div ref={tag} className={`ctag ${mine ? 'mine' : ''}`} data-colleague={c.id} data-owner={c.ownerId ?? ''}>
+      {boss && <FootRing color={owner?.style.bossAura || '#d0a34e'} />}
+      <Character ref={rig} look={look} scale={boss ? SCALE * 1.08 : SCALE} />
+      <WorldLabel
+        position={[0, boss ? 2.4 : 2.15, 0]}
+        center
+        zIndexRange={[15, 0]}
+        style={{ pointerEvents: 'none' }}
+      >
+        <div
+          ref={tag}
+          className={`ctag ${mine ? 'mine' : ''} ${boss ? 'boss-tag' : ''}`}
+          data-colleague={c.id}
+          data-owner={c.ownerId ?? ''}
+        >
           {bubble && <div className="bubble">{bubble}</div>}
+          {boss && !bubble && (
+            <div className="boss-thought" ref={bossTalk}>
+              今天，我向你汇报。
+            </div>
+          )}
           <div className="cname">
             <span className="cicon" style={{ background: meta.color }}>
-              {meta.icon}
+              {boss ? <Crown size={12} /> : meta.icon}
             </span>
             {self ? `${self.name}的分身` : c.name}
             {!c.ownerId && <em className="cprice">{c.price}</em>}
-            {owner && !mine && <i className="cowner" style={{ background: owner.color }} title={`属于${owner.name}`} />}
+            {owner && !mine && (
+              <i
+                className="cowner"
+                style={{ background: owner.color }}
+                title={`属于${owner.name}`}
+              />
+            )}
           </div>
         </div>
-      </Html>
+      </WorldLabel>
     </group>
   );
 }
@@ -265,7 +375,10 @@ export function Colleagues() {
   const players = useWorld((s) => s.players);
   // 自己永远算在线（即便 SSE 还没连上），保证自己的小队跟随自己
   const myId = snapshot?.me.id;
-  const online = useMemo(() => new Set([...players.map((p) => p.id), ...(myId ? [myId] : [])]), [players, myId]);
+  const online = useMemo(
+    () => new Set([...players.map((p) => p.id), ...(myId ? [myId] : [])]),
+    [players, myId],
+  );
   const onlineKey = [...online].sort().join(',');
   if (!snapshot) return null;
   return (
@@ -273,9 +386,17 @@ export function Colleagues() {
       {snapshot.colleagues.map((c, i) => {
         let assign: Assign;
         if (!c.ownerId) assign = { mode: 'booth', i };
-        else if (online.has(c.ownerId)) assign = { mode: 'follow', owner: c.ownerId, slot: c.deskSlot ?? 0 };
+        else if (online.has(c.ownerId))
+          assign = { mode: 'follow', owner: c.ownerId, slot: c.deskSlot ?? 0 };
         else assign = { mode: 'desk', owner: c.ownerId, slot: c.deskSlot ?? 0 };
-        return <ColleagueActor key={c.id} c={c} assign={assign} onlineKey={onlineKey} />;
+        return (
+          <ColleagueActor
+            key={c.id}
+            c={c}
+            assign={assign}
+            onlineKey={onlineKey}
+          />
+        );
       })}
     </>
   );

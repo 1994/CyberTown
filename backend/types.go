@@ -39,6 +39,7 @@ type Player struct {
 	Online            bool    `json:"online"`
 	Rank              int     `json:"rank"`
 	RankName          string  `json:"rankName"`
+	Style             Style   `json:"style"`
 }
 type Colleague struct {
 	ID           string  `json:"id"`
@@ -85,6 +86,8 @@ type Snapshot struct {
 	TeamSkills    Skills      `json:"teamSkills"`
 	ProjectSkills Skills      `json:"projectSkills"`
 	Career        Career      `json:"career"`
+	Year          Year        `json:"year"`
+	Shop          []ShopItem  `json:"shop"`
 	ActiveRun     *Run        `json:"activeRun"`
 	Messages      []Message   `json:"messages"`
 	Unread        int         `json:"unread"`
@@ -132,6 +135,7 @@ type Finish struct {
 	Coins             int           `json:"coins"`
 	PerformanceEarned int           `json:"performanceEarned"`
 	Career            Career        `json:"career"`
+	YearAward         *YearAward    `json:"yearAward"`
 }
 type Audit struct {
 	Mismatches  []string `json:"mismatches"`

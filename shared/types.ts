@@ -1,7 +1,9 @@
 import type { ProjectResult, Skill, TeamSkills } from './rules.ts';
 
-export type HairStyle = 'short' | 'bob' | 'spiky' | 'bun' | 'bald' | 'long' | 'cap';
-export type Accessory = 'none' | 'glasses' | 'tie' | 'headset' | 'scarf' | 'sunglasses';
+export type HairStyle =
+  'short' | 'bob' | 'spiky' | 'bun' | 'bald' | 'long' | 'cap';
+export type Accessory =
+  'none' | 'glasses' | 'tie' | 'headset' | 'scarf' | 'sunglasses';
 
 export interface Look {
   skin: string;
@@ -23,6 +25,9 @@ export interface PlayerPublic {
   teamSize: number;
   avatarColleagueId: string | null;
   online: boolean;
+  rank: number;
+  rankName: string;
+  style: PlayerStyle;
 }
 
 export interface ColleagueView {
@@ -71,6 +76,10 @@ export interface StateSnapshot {
   players: PlayerPublic[];
   colleagues: ColleagueView[];
   teamSkills: TeamSkills;
+  projectSkills: TeamSkills;
+  career: Career;
+  year: GameYear;
+  shop: ShopItem[];
   activeRun: ProjectRunView | null;
   messages: MessageView[];
   unread: number;
@@ -108,7 +117,16 @@ export interface HighfiveEvent {
   at: number;
 }
 
-export type GameEvent = TradeEvent | ProjectEvent | HighfiveEvent | { kind: 'reset'; at: number } | { kind: 'presence'; at: number };
+export type GameEvent =
+  | TradeEvent
+  | ProjectEvent
+  | HighfiveEvent
+  | PromotionEvent
+  | {
+      kind: 'reset' | 'presence' | 'shop' | 'style';
+      at: number;
+      playerId?: string;
+    };
 
 // ───────────── 多人园区（/api/world） ─────────────
 
@@ -144,4 +162,69 @@ export interface WorldSnapshot {
 export interface FinishResponse {
   result: ProjectResult;
   coins: number;
+  performanceEarned: number;
+  career: Career;
+  yearAward: YearAward | null;
+}
+
+export interface CareerLevel {
+  rank: number;
+  name: string;
+  requiredPerformance: number;
+  requiredProjects: number;
+  incomePct: number;
+}
+export interface Career {
+  rank: number;
+  name: string;
+  performance: number;
+  completedProjects: number;
+  incomePct: number;
+  next: CareerLevel | null;
+  canPromote: boolean;
+}
+export interface PromotionEvent {
+  kind: 'promotion';
+  playerId: string;
+  fromRank: number;
+  toRank: number;
+  rankName: string;
+  incomePct: number;
+  at: number;
+}
+export interface YearAward {
+  year: number;
+  base: number;
+  teamPct: number;
+  playPct: number;
+  friendPct: number;
+  total: number;
+}
+export interface GameYear {
+  number: number;
+  completed: number;
+  required: number;
+  base: number;
+  estimate: number;
+  teamPct: number;
+  playPct: number;
+  friendPct: number;
+  lastAward: YearAward | null;
+}
+export interface PlayerStyle {
+  shirt: string;
+  accessory: string;
+  aura: string;
+  bossShirt: string;
+  bossAccessory: string;
+  bossAura: string;
+}
+export interface ShopItem {
+  id: string;
+  name: string;
+  kind: 'shirt' | 'accessory' | 'aura';
+  price: number;
+  value: string;
+  description: string;
+  owned: boolean;
 }

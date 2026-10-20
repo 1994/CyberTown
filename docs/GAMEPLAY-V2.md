@@ -1,5 +1,7 @@
 # 自由探索与社交改版
 
+> 本页为V2历史策划。当前主线为娱乐、养成与交友，通过晋升拿更多年终奖和道具；见 [当前模式](COMMUNITY-MODE.md) 与 [V3验收](REVIEW-V3.md)。
+
 ## 问题判断
 
 本轮先在真实网页进入游戏、跳过片头、查看默认引导与主界面。当前证据：[初次引导](../artifacts/redesign/01-before-guide.png)、[办公室](../artifacts/redesign/02-before-office.png)。

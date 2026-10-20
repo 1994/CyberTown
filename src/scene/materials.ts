@@ -16,18 +16,28 @@ export const PALETTE = {
   pot: '#e7e2da',
   terracotta: '#c76b4a',
   base: '#1b2030',
-  neonPink: '#ff4fb8',
-  neonCyan: '#3ef0ff',
+  neonPink: '#e5ac97',
+  neonCyan: '#92c4ad',
   warmLight: '#ffd29a',
 };
 
 const mats = new Map<string, THREE.Material>();
 
-export function std(color: string, roughness = 0.62, metalness = 0, extra: Partial<THREE.MeshStandardMaterialParameters> = {}) {
+export function std(
+  color: string,
+  roughness = 0.62,
+  metalness = 0,
+  extra: Partial<THREE.MeshStandardMaterialParameters> = {},
+) {
   const key = `${color}|${roughness}|${metalness}|${JSON.stringify(extra)}`;
   let m = mats.get(key);
   if (!m) {
-    m = new THREE.MeshStandardMaterial({ color, roughness, metalness, ...extra });
+    m = new THREE.MeshStandardMaterial({
+      color,
+      roughness,
+      metalness,
+      ...extra,
+    });
     mats.set(key, m);
   }
   return m as THREE.MeshStandardMaterial;

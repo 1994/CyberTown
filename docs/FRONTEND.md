@@ -1,5 +1,7 @@
 # 自由探索改版说明
 
+> 当前前端由Codex在用户授权后接手续改，已接入白天园区、晋升、年终奖与3D试衣间；见 [V3验收](REVIEW-V3.md)。下方保留初版实现资料。
+
 当前前端已由 Claude 改为园区自由行走、跟随镜头、近身互动、短句/表情、三人小队跟随和单输入项目。主要入口为 `GameHud.tsx`、`Campus.tsx`、`Avatars.tsx`、`Colleagues.tsx`、`FollowCamera.tsx` 与 `src/world/`；静态地图、碰撞和寻路位于 `shared/world.ts`。
 
 本轮状态与待修项以 [独立review](REVIEW-V2.md) 为准。下面保留的是初版办公室的交付说明，其中旧组件名、默认市场、旧项目卡片、长片头与旧E2E通过记录不代表当前版本。
