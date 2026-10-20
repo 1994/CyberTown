@@ -146,8 +146,8 @@ function ElevatorCore() {
   const cabLight = useRef<THREE.PointLight>(null);
   const DOOR_W = 1.5;
   const sign = neonText([
-    { text: '今天老板给我打工', color: PALETTE.neonPink, size: 104 },
-    { text: 'BOSS · WORKS · FOR · ME', color: PALETTE.neonCyan, size: 46 },
+    { text: '今天老板给我打工', color: '#ff4fb8', size: 104 },
+    { text: 'BOSS · WORKS · FOR · ME', color: '#3ef0ff', size: 46 },
   ]);
   const signMat = useMemo(() => new THREE.MeshBasicMaterial({ map: sign, transparent: true, toneMapped: false, depthWrite: false, color: new THREE.Color(1.9, 1.9, 1.9) }), [sign]);
   useFrame((st, dt) => {
@@ -174,9 +174,12 @@ function ElevatorCore() {
         <boxGeometry args={[DOOR_W, WALL_H - 2.3, coreD]} />
       </mesh>
       {/* 木饰面 + 强调色 */}
-      <mesh position={[cx, 0.6, doorFrontZ + 0.01]} material={std(PALETTE.walnut, 0.5)}>
-        <boxGeometry args={[coreW, 1.2, 0.02]} />
-      </mesh>
+      {[{ min: ELEVATOR.coreMinX, max: ELEVATOR.x - DOOR_W / 2 },
+        { min: ELEVATOR.x + DOOR_W / 2, max: FLOOR.maxX }].map(({ min, max }) => (
+        <mesh key={min} position={[(min + max) / 2, 0.6, doorFrontZ + 0.01]} material={std(PALETTE.walnut, 0.5)}>
+          <boxGeometry args={[max - min, 1.2, 0.02]} />
+        </mesh>
+      ))}
       <mesh position={[ELEVATOR.coreMinX + 0.02, WALL_H / 2, cz]} material={accent}>
         <boxGeometry args={[0.04, WALL_H, coreD]} />
       </mesh>

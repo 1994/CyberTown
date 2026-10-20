@@ -30,7 +30,7 @@ export const rt = {
   remote: new Map<string, Smooth>(),
   /** 每个在线玩家的足迹（最新在前），用于小队跟随 */
   trails: new Map<string, [number, number][]>(),
-  colleaguePos: new Map<string, { x: number; z: number }>(),
+  colleaguePos: new Map<string, { x: number; z: number; yaw: number }>(),
   keys: new Set<string>(),
   joy: { x: 0, z: 0 },
   camYaw: Math.PI / 4,

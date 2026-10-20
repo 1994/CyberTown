@@ -720,6 +720,175 @@ kbd {
   color: #ab715b;
   border-color: #edc2ab;
 }
+.game-interface {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  transition: opacity 0.4s ease;
+}
+.game-interface > * {
+  pointer-events: auto;
+}
+.game-interface > .v3-top,
+.game-interface > .hud-bottom,
+.game-interface > .v3-brand,
+.game-interface > .toasts {
+  pointer-events: none;
+}
+.cinematic .game-interface {
+  opacity: 0;
+  visibility: hidden;
+}
+.is-film .ptag,
+.is-film .ctag {
+  opacity: 0 !important;
+  visibility: hidden;
+}
+.cinema-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 55;
+  overflow: hidden;
+  color: #fff8e7;
+  pointer-events: none;
+  background: linear-gradient(0deg, #16281cc9, transparent 43%);
+}
+.cinema-bar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  background: #101b15;
+  height: clamp(36px, 7.5vh, 80px);
+  animation: cinema-bars 0.6s ease both;
+}
+.cinema-bar.top { top: 0; }
+.cinema-bar.bottom { bottom: 0; }
+.cinema-title {
+  position: absolute;
+  left: 6vw;
+  bottom: 18vh;
+  text-shadow: 0 3px 30px #1020196b;
+  animation: cinema-title 9s ease both;
+}
+.cinema-title small,
+.cinema-event-title small {
+  font-size: 10px;
+  letter-spacing: 0.27em;
+  color: #e7d89f;
+}
+.cinema-title h1 {
+  margin: 18px 0;
+  font-size: clamp(38px, 5.6vw, 78px);
+  font-weight: 850;
+  line-height: 1.25;
+  letter-spacing: -0.04em;
+}
+.cinema-title h1 span { color: #efd18a; }
+.cinema-title p,
+.cinema-event-title p {
+  margin: 0;
+  color: #f2ecda;
+  font-size: clamp(11px, 1.25vw, 16px);
+  letter-spacing: 0.06em;
+}
+.cinema-chapter {
+  position: absolute;
+  bottom: calc(clamp(36px, 7.5vh, 80px) + 24px);
+  left: 6vw;
+  display: flex;
+  gap: 18px;
+  align-items: center;
+  font-size: 12px;
+  letter-spacing: 0.12em;
+}
+.cinema-chapter i {
+  color: #e9ce8a;
+  font-size: 10px;
+  font-style: normal;
+}
+.cinema-progress {
+  position: absolute;
+  bottom: clamp(36px, 7.5vh, 80px);
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: #ffffff15;
+}
+.cinema-progress i {
+  display: block;
+  height: 100%;
+  background: #e5c77c;
+  transition: width 0.12s linear;
+}
+.cinema-skip {
+  position: absolute;
+  top: 16px;
+  right: 4vw;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  border: 0;
+  border-radius: 8px;
+  padding: 8px 12px;
+  background: #ffffff0b;
+  color: #f9f3df;
+  font: inherit;
+  font-size: 11px;
+  cursor: pointer;
+  pointer-events: auto;
+}
+.cinema-skip kbd { font-size: 9px; opacity: 0.6; }
+.cinema-skip:focus-visible { outline: 2px solid #e5c77c; outline-offset: 3px; }
+.event-film .cinema-bar { height: clamp(32px, 6vh, 60px); }
+.cinema-event-title {
+  position: absolute;
+  left: 6vw;
+  bottom: 15vh;
+  animation: cinema-caption 0.65s ease both;
+}
+.cinema-event-title h2 {
+  font-size: clamp(24px, 3.2vw, 42px);
+  margin: 12px 0;
+  color: #fff8e7;
+}
+.cinema-wipe {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(110deg, #1e3b2c 0 98.5%, #e1be72 98.5%);
+  animation: cinema-wipe 0.65s cubic-bezier(0.65, 0, 0.35, 1) both;
+}
+@keyframes cinema-bars {
+  from { opacity: 0; transform: scaleY(0); }
+  to { opacity: 1; transform: scaleY(1); }
+}
+@keyframes cinema-title {
+  0% { opacity: 0; transform: translateY(18px); }
+  10%, 37% { opacity: 1; transform: translateY(0); }
+  53%, 100% { opacity: 0; transform: translateY(-10px); }
+}
+@keyframes cinema-caption {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes cinema-wipe {
+  0% { transform: translateX(-105%); }
+  42%, 52% { transform: translateX(0); }
+  100% { transform: translateX(105%); }
+}
+@media (max-width: 600px) {
+  .cinema-title { left: 7vw; bottom: 23vh; }
+  .cinema-title h1 { font-size: 43px; }
+  .cinema-title p { max-width: 230px; line-height: 1.8; }
+  .cinema-title small { font-size: 8px; letter-spacing: 0.15em; }
+  .cinema-chapter { gap: 10px; font-size: 10px; }
+  .cinema-event-title { left: 7vw; bottom: 18vh; max-width: 83vw; }
+  .cinema-event-title h2 { line-height: 1.4; }
+  .cinema-event-title p { line-height: 1.7; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cinema-wipe { display: none; }
+  .cinema-title { animation: none; }
+}
 .intro-skip {
   top: 58px;
   right: auto;

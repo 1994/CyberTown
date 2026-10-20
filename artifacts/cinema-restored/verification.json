@@ -1,0 +1,57 @@
+{
+  "positionAfterMovement": {
+    "x": 1.53,
+    "z": 9.9
+  },
+  "coins": [
+    {
+      "id": "wang",
+      "coins": 702
+    },
+    {
+      "id": "li",
+      "coins": 52
+    },
+    {
+      "id": "liu",
+      "coins": 600
+    },
+    {
+      "id": "mei",
+      "coins": 600
+    }
+  ],
+  "audit": {
+    "mismatches": [],
+    "doubleOwned": 0,
+    "negative": 0,
+    "overfull": 0
+  },
+  "stage": "after-three-poaches",
+  "afterRosterHire": {
+    "coins": [
+      {
+        "id": "wang",
+        "coins": 402
+      },
+      {
+        "id": "li",
+        "coins": 52
+      },
+      {
+        "id": "liu",
+        "coins": 600
+      },
+      {
+        "id": "mei",
+        "coins": 600
+      }
+    ],
+    "audit": {
+      "mismatches": [],
+      "doubleOwned": 0,
+      "negative": 0,
+      "overfull": 0
+    }
+  }
+}

@@ -17,6 +17,8 @@ import {
 } from './Confirm.tsx';
 import { Minimap } from './Minimap.tsx';
 import { Joystick } from './Joystick.tsx';
+import { CinematicOverlay } from './CinematicOverlay.tsx';
+import { useCinema } from '../scene/cinema.ts';
 import { Drawers } from './Drawers.tsx';
 import { ProjectGame } from './ProjectGame.tsx';
 import {
@@ -53,6 +55,7 @@ function MapPanel() {
   const [map, setMap] = useState(false);
   const setDrawer = useGame((s) => s.setDrawer);
   const logout = useGame((s) => s.logout);
+  const replayIntro = useGame((s) => s.replayIntro);
   const [zone, setZone] = useState('共享广场');
   useEffect(() => {
     const id = setInterval(
@@ -131,6 +134,9 @@ function MapPanel() {
           </button>
           <button onClick={() => open('guide')} data-testid="btn-guide">
             怎么玩
+          </button>
+          <button onClick={() => { setMenu(false); replayIntro(); }} data-testid="btn-replay-intro">
+            重播电影片头
           </button>
           <button onClick={() => void logout()} data-testid="btn-switch">
             切换体验身份
@@ -544,20 +550,6 @@ function Toasts() {
   );
 }
 
-function IntroSkip() {
-  const playing = useGame((s) => s.introPlaying);
-  if (!playing) return null;
-  return (
-    <button
-      className="intro-skip"
-      onClick={() => window.dispatchEvent(new CustomEvent('world-skip-intro'))}
-      data-testid="btn-skip-intro"
-    >
-      跳过 ▶▶
-    </button>
-  );
-}
-
 function ConnBanner() {
   const conn = useGame((s) => s.conn);
   if (conn !== 'offline') return null;
@@ -571,8 +563,12 @@ function ConnBanner() {
 export function GameHud() {
   const online = useWorld((s) => s.players.length);
   const setDrawer = useGame((s) => s.setDrawer);
+  const playing = useGame((s) => s.introPlaying);
+  const shot = useCinema((s) => s.shot);
+  const cinematic = playing || !!shot;
   return (
-    <div className="hud v3-hud">
+    <div className={`hud v3-hud ${cinematic ? 'cinematic' : ''}`}>
+      <div className="game-interface" inert={cinematic} aria-hidden={cinematic}>
       <div className="v3-brand">
         今天老板给我打工 <span>A LITTLE BREAK, A LOT OF FUN</span>
       </div>
@@ -588,7 +584,6 @@ export function GameHud() {
       <MapPanel />
       <Toasts />
       <ConnBanner />
-      <IntroSkip />
       <div className="hud-bottom">
         {isTouch ? <Joystick /> : null}
         <ChatBar />
@@ -598,6 +593,8 @@ export function GameHud() {
       <ProjectGame />
       <Drawers />
       <Progression />
+      </div>
+      <CinematicOverlay />
     </div>
   );
 }

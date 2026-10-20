@@ -16,6 +16,7 @@ import { walkNear } from './Avatars.tsx';
 import { FootRing } from './Avatars.tsx';
 import { dressedColleague, isBoss } from '../look.ts';
 import { Crown } from 'lucide-react';
+import { useCinema } from './cinema.ts';
 
 /**
  * 同事在园区里的位置（所有客户端按同一规则计算，因此看到的是同一个空间）：
@@ -110,11 +111,25 @@ function ColleagueActor({
     const r = run.current;
     const now = performance.now();
     if (p.owner !== owner) {
+      const game = useGame.getState();
+      const me = game.snapshot?.me.id;
+      if ((owner === me || p.owner === me) && !game.introPlaying && !game.projectActive && !useWorld.getState().projectOpen) {
+        const meta = SKILL_META[c.skill.kind];
+        game.setDrawer(null);
+        game.setMarketOpen(false);
+        useWorld.getState().setOverview(false);
+        useCinema.getState().focus({
+          colleagueId: c.id,
+          kind: p.owner ? 'poach' : 'hire',
+          title: p.owner === me ? `${c.name} 被挖走了` : `${c.name}，欢迎入队`,
+          subtitle: p.owner === me ? `收拾行李，去下一站。补偿 +${Math.floor((c.lastPrice ?? 0) * 0.9)} 金币` : `${meta.describe(c.skill.value)} · 今天为你打工`,
+        }, p.owner ? 6.2 : 5.5);
+      }
       if (p.owner && owner) {
         r.trans = { kind: 'pack', t0: now, fx: true };
         setBubble('📦 被挖走了，收拾一下…');
       } else if (!p.owner && owner) {
-        r.trans = { kind: 'cheer', t0: now, fx: false };
+        r.trans = { kind: 'cheer', t0: now, fx: true };
         const meta = SKILL_META[c.skill.kind];
         addFx({
           x: r.x,
@@ -197,7 +212,7 @@ function ColleagueActor({
       } else if (tr.kind === 'cheer') {
         pose.celebrate = 1;
         if (el > 1.3) {
-          r.trans = { kind: 'travel', t0: now, fx: false };
+          r.trans = { kind: 'travel', t0: now, fx: tr.fx };
           setBubble(null);
         }
       } else if (tr.kind === 'travel') {
@@ -218,6 +233,14 @@ function ColleagueActor({
             });
             r.trans = { kind: 'arrive', t0: now, fx: false };
             setBubble('报到！🙋');
+            if (c.ownerId === rt.myId && useCinema.getState().shot?.colleagueId === c.id && !useGame.getState().introPlaying && !useGame.getState().projectActive && !useGame.getState().drawer && !useWorld.getState().projectOpen) {
+              useCinema.getState().focus({
+                colleagueId: c.id,
+                kind: 'arrival',
+                title: `${c.name}，报到`,
+                subtitle: `${meta.describe(c.skill.value)} · 小队技能已激活`,
+              }, 3);
+            }
           } else {
             r.trans = null;
             setBubble(null);
@@ -297,7 +320,7 @@ function ColleagueActor({
     g.position.set(r.x, 0, r.z);
     g.rotation.y = r.yaw;
     applyPose(R, pose, dt);
-    rt.colleaguePos.set(c.id, { x: r.x, z: r.z });
+    rt.colleaguePos.set(c.id, { x: r.x, z: r.z, yaw: r.yaw });
     // 远处的名牌隐藏，减少画面杂讯
     if (tag.current) {
       const far =

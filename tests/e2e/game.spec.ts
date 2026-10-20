@@ -22,6 +22,8 @@ async function openPlayer(
   page.on('pageerror', (e) => errors.push(e.message));
   await page.goto('/');
   await page.getByTestId(`identity-${id}`).click();
+  await expect(page.getByTestId('intro-overlay')).toBeVisible();
+  await page.getByTestId('btn-skip-intro').click();
   await expect(page.getByTestId('my-coins')).toBeVisible();
   await expect(page.locator(`.ptag.you[data-player="${id}"]`)).toBeVisible();
   await expect(page.getByTestId('btn-skip-intro')).toBeHidden({
@@ -66,7 +68,9 @@ async function sign(p: Page, id: string) {
   await p.getByTestId('confirm-trade-ok').click();
   expect((await response).status()).toBe(200);
   await expect(p.getByTestId('confirm-trade')).toBeHidden();
-  await closeDrawer(p);
+  await expect(p.getByTestId('event-cinematic')).toBeVisible();
+  await p.getByTestId('btn-skip-shot').click();
+  await expect(p.getByTestId('event-cinematic')).toBeHidden();
 }
 async function project(p: Page) {
   await p.getByTestId('btn-project').click();

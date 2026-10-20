@@ -3,6 +3,7 @@ import type { StateSnapshot, TradeEvent, GameEvent } from '../shared/types.ts';
 import { api, ApiError, session } from './api.ts';
 import type { Identity } from './api.ts';
 import { useWorld } from './world/runtime.ts';
+import { useCinema } from './scene/cinema.ts';
 
 export type Phase = 'boot' | 'login' | 'game';
 export type Drawer =
@@ -173,6 +174,7 @@ export const useGame = create<GameStore>((set, get) => ({
       poachMarkers: {},
       toasts: [],
       projectActive: false,
+      introPlaying: false,
       celebration: null,
       lastCelebrationKey: '',
     });
@@ -228,7 +230,8 @@ export const useGame = create<GameStore>((set, get) => ({
     set({ marketOpen: v });
   },
   replayIntro() {
-    set((s) => ({ introNonce: s.introNonce + 1, introPlaying: true }));
+    useCinema.getState().prepareIntro();
+    set((s) => ({ introNonce: s.introNonce + 1, introPlaying: true, drawer: null, celebration: null }));
   },
   setIntroPlaying(v) {
     set({ introPlaying: v });

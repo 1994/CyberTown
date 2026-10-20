@@ -13,7 +13,7 @@ export function isTypingTarget(t: EventTarget | null): boolean {
 /** 抽屉、确认框、项目小游戏等打开时锁定移动 */
 export function movementLocked(): boolean {
   const g = useGame.getState();
-  return useWorld.getState().locks.length > 0 || g.drawer !== null || g.projectActive;
+  return useWorld.getState().locks.length > 0 || g.drawer !== null || g.projectActive || g.introPlaying;
 }
 
 export function clearKeys() {
@@ -88,7 +88,7 @@ export function useWorldInput(enabled: boolean) {
   useEffect(
     () =>
       useGame.subscribe((s, p) => {
-        if ((s.drawer && !p.drawer) || (s.projectActive && !p.projectActive) || (s.phase !== 'game' && p.phase === 'game')) {
+        if ((s.drawer && !p.drawer) || (s.projectActive && !p.projectActive) || (s.introPlaying && !p.introPlaying) || (s.phase !== 'game' && p.phase === 'game')) {
           clearKeys();
           rt.path = null;
         }
