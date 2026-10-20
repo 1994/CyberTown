@@ -111,7 +111,7 @@ async function start() {
           // A busy port may briefly serve another process while this child exits.
           await delay(200);
           if (exited || !alive(child.pid)) throw new Error('服务进程已退出。');
-          console.log(`服务已启动：${url}\nPID: ${child.pid}\n日志：make logs\n停止：make down`);
+          console.log(`服务已启动：${url}\nPID: ${child.pid}\n日志：make logs\n停止：make stop`);
           return;
         }
       } catch { /* Retry until this child's health endpoint is ready. */ }

@@ -25,7 +25,7 @@ make up
 ```sh
 make status    # 查看状态和访问地址
 make logs      # 查看日志，Ctrl+C 退出日志查看，服务继续运行
-make down      # 停止服务，保留数据库
+make stop      # 停止服务，保留数据库（make down 也可用）
 make restart   # 使用已有构建重启
 git pull
 make up        # 更新代码后重新构建并重启
@@ -36,7 +36,7 @@ make up        # 更新代码后重新构建并重启
 `make up` 的后台进程适合本地或单机 Demo，不会注册开机自启。更多命令用 `make help`。需要热更新开发时：
 
 ```sh
-make down
+make stop
 make dev       # Go API 8787 + Vite 5173，浏览器访问 http://localhost:5173
 ```
 
