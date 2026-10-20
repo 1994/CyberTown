@@ -1714,6 +1714,7 @@ kbd {
   letter-spacing: 3px;
 }
 .belt-item {
+  margin: 0;
   height: 80px;
   width: 64px;
   display: flex;
@@ -1724,18 +1725,19 @@ kbd {
   top: 44%;
   font-size: 31px;
   box-shadow: 0 6px 12px #0508171a;
-  transform: translate(-50%, -50%) rotate(-5deg);
+  transform: translate(-50%, -50%);
   background: #111b32;
   border: 1px solid #77a0db4d;
   border-radius: 15px;
   color: var(--c);
-  transition: scale 0.1s;
+  transition: transform 0.1s;
 }
 .belt-item > small {
   font-size: 9px;
   color: #adbed9;
 }
 .belt-item.in {
+  transform: translate(-50%, -50%) scale(1.08);
   filter: none;
   box-shadow:
     0 0 0 2px #05081780,
@@ -1811,7 +1813,6 @@ kbd {
   background: #111b32;
   color: #ffdb81;
   margin: 20px 0 15px;
-  transform: rotate(-7deg);
 }
 .arcade-result h3 {
   font-size: 21px;
@@ -3107,3 +3108,57 @@ button:focus-visible, .cinema-skip:focus-visible { outline-color: var(--cyan); }
 .celebration-confetti > i { background: #66f4ff; }
 .celebration-confetti > i:nth-child(3n) { background: #b49aff; }
 .celebration-confetti > i:nth-child(3n + 1) { background: #ff70ce; }
+
+/* 横握手机也要完整露出计时、传送带和接住键。 */
+@media (max-height: 520px) and (orientation: landscape) {
+  .project-overlay {
+    padding: 12px;
+  }
+  .arcade-board {
+    display: block;
+    padding: 14px 20px;
+  }
+  .arcade-heading {
+    margin-bottom: 8px;
+  }
+  .arcade-heading > strong {
+    font-size: 23px;
+  }
+  .arcade-board .timebar,
+  .arcade-score-row {
+    margin-bottom: 8px;
+  }
+  .arcade-board .belt {
+    height: clamp(90px, 30dvh, 128px);
+  }
+  .arcade-board .belt-item {
+    width: 50px;
+    height: 64px;
+    gap: 4px;
+  }
+  .arcade-act-row {
+    margin-top: 12px;
+  }
+  .arcade-brief-model {
+    height: min(310px, calc(100dvh - 24px));
+  }
+  .arcade-brief-copy {
+    padding: 24px 32px 16px;
+  }
+  .arcade-brief-copy h3 {
+    font-size: 24px;
+    margin: 10px 0 12px;
+  }
+  .arcade-brief-copy > p {
+    font-size: 13px;
+    margin-bottom: 12px;
+  }
+  .arcade-skill-note {
+    margin: 10px 0 12px;
+  }
+  .arcade-result {
+    flex-shrink: 0;
+    max-height: calc(100dvh - 24px);
+    overflow: auto;
+  }
+}

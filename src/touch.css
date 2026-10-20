@@ -1,0 +1,401 @@
+/* ───── 任务提示：一句话引导下一步 ───── */
+.hint {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  color: #edf4ff;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 8px 16px 8px 12px;
+  border-radius: 99px;
+  border-color: #ffdb8166;
+  background: #111b32e8;
+  box-shadow: 0 8px 26px #02061566, inset 0 1px #ffdb8114;
+  animation: hint-fade 0.5s ease both;
+}
+.hint > i {
+  flex: none;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--gold, #ffdb81);
+  box-shadow: 0 0 0 4px #ffdb8126, 0 0 12px #ffdb8199;
+  animation: hint-beat 1.4s ease-in-out infinite;
+}
+.hint b {
+  color: var(--gold, #ffdb81);
+  margin: 0 2px;
+}
+@keyframes hint-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes hint-beat {
+  50% { opacity: 0.35; }
+}
+
+/* ───── 触屏双拇指操作（.touch-ui 由 useTouchUi 响应式切换：窄屏或触控设备） ───── */
+.touch-ui {
+  --sb: env(safe-area-inset-bottom, 0px);
+  --sl: env(safe-area-inset-left, 0px);
+  --sr: env(safe-area-inset-right, 0px);
+  --st: env(safe-area-inset-top, 0px);
+  --joy: 128px;
+  --act: 92px;
+  --gap: 14px;
+}
+.touch-ui kbd {
+  display: none;
+}
+
+/* 左拇指：摇杆 */
+.touch-ui .joystick {
+  position: absolute;
+  left: calc(var(--sl) + var(--gap));
+  bottom: calc(var(--sb) + var(--gap) + 6px);
+  width: var(--joy);
+  height: var(--joy);
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: radial-gradient(circle, #0b1428e0 0 60%, #0b142899 61%);
+  border: 2px solid #66f4ff66;
+  box-shadow: 0 0 0 5px #66f4ff10, 0 10px 28px #02061599, inset 0 0 22px #66f4ff1c;
+  pointer-events: auto;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.touch-ui .joystick::before {
+  content: '';
+  position: absolute;
+  inset: 15px;
+  border-radius: 50%;
+  border: 1px dashed #66f4ff3d;
+  pointer-events: none;
+}
+.touch-ui .joystick > i {
+  position: relative;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #fff, #9ef8ff 45%, #29b3d1);
+  box-shadow: 0 4px 0 #0d5468, 0 0 18px #66f4ff66;
+  will-change: transform;
+  transition: transform 0.14s ease-out;
+  pointer-events: none;
+}
+.touch-ui .joystick[data-active] {
+  border-color: var(--gold, #ffdb81);
+  box-shadow: 0 0 0 6px #ffdb8122, 0 0 26px #ffdb8133, inset 0 0 22px #ffdb811a;
+}
+.touch-ui .joystick[data-active] > i {
+  transition: none;
+}
+.thumb-label {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  transform: translate(-50%, 50%);
+  padding: 2px 10px;
+  border-radius: 99px;
+  background: #111b32;
+  border: 1px solid #66f4ff55;
+  color: #9ef8ff;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 2px;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+/* 右拇指：情境互动键 */
+.touch-action {
+  position: absolute;
+  right: calc(var(--sr) + var(--gap) + 6px);
+  bottom: calc(var(--sb) + var(--gap) + 22px);
+  width: var(--act);
+  height: var(--act);
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  padding: 0;
+  color: #fff;
+  border: 2px solid #ec6ed5;
+  background: radial-gradient(circle at 35% 28%, #d93aab, #6c2eaa 72%);
+  box-shadow: 0 5px 0 #300d43, 0 0 0 6px #ec4ccc1c, 0 0 26px #ec4ccc55;
+  font-family: inherit;
+  pointer-events: auto;
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  cursor: pointer;
+  transition: transform 0.1s ease, box-shadow 0.1s ease, filter 0.15s;
+}
+.touch-action > b {
+  font-size: 16px;
+  font-weight: 900;
+  line-height: 1.1;
+  letter-spacing: 1px;
+}
+.touch-action > small {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  max-width: calc(var(--act) - 18px);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: 9px;
+  font-weight: 700;
+  opacity: 0.9;
+}
+.touch-emoji {
+  font-size: 22px;
+  line-height: 1;
+}
+.touch-action:active {
+  transform: translateY(3px) scale(0.95);
+  box-shadow: 0 2px 0 #300d43, 0 0 0 8px #ec4ccc26, 0 0 30px #ec4ccc77;
+}
+.touch-action::after {
+  content: '';
+  position: absolute;
+  inset: -9px;
+  border-radius: 50%;
+  border: 2px solid currentColor;
+  opacity: 0;
+  pointer-events: none;
+  animation: touch-ping 1.7s ease-out infinite;
+}
+.touch-action[data-tone='play'] {
+  border-color: #66f4ff;
+  background: radial-gradient(circle at 35% 28%, #2ad0ea, #17508a 72%);
+  box-shadow: 0 5px 0 #0b2546, 0 0 0 6px #66f4ff1c, 0 0 26px #66f4ff55;
+}
+.touch-action[data-tone='cheer'] {
+  color: #2a1a05;
+  border-color: #ffe7a8;
+  background: radial-gradient(circle at 35% 28%, #fff1c2, #f2b53d 72%);
+  box-shadow: 0 5px 0 #6b4510, 0 0 0 6px #ffdb811f, 0 0 26px #ffdb8166;
+}
+.touch-action[data-tone='idle'] {
+  color: #9ef8ff;
+  border-color: #66f4ff55;
+  background: #111b32ee;
+  box-shadow: 0 5px 0 #050817, 0 10px 26px #02061599;
+}
+.touch-action[data-tone='idle']::after,
+.touch-action[data-blocked]::after {
+  animation: none;
+}
+.touch-action[data-blocked] {
+  filter: saturate(0.35) brightness(0.8);
+}
+@keyframes touch-ping {
+  0% { transform: scale(0.88); opacity: 0.6; }
+  100% { transform: scale(1.16); opacity: 0; }
+}
+
+/* 通用触屏布局（横屏 / 平板）：拇指在两角，主菜单居中，聊天与地图分别在两拇指上方 */
+.touch-ui .game-dock {
+  left: 50%;
+  right: auto;
+  transform: translateX(-50%);
+  bottom: calc(var(--sb) + 12px);
+  width: max-content;
+  max-width: calc(100% - 2 * (var(--joy) + var(--gap) + 18px));
+  height: 62px;
+  padding: 5px;
+  gap: 3px;
+  border-radius: 20px;
+  justify-content: center;
+}
+.touch-ui .game-dock > button {
+  flex: 0 0 auto;
+  min-width: 52px;
+  width: 58px;
+  height: 50px;
+  gap: 4px;
+  font-size: 9px;
+  border-radius: 14px;
+  touch-action: manipulation;
+}
+.touch-ui .game-dock > button svg {
+  width: 19px;
+  height: 19px;
+}
+.touch-ui .game-dock > button.dock-play {
+  width: auto;
+  min-width: 100px;
+  padding: 0 10px;
+  grid-template-columns: 22px auto;
+  grid-template-rows: 20px 13px;
+  column-gap: 6px;
+  border-radius: 15px;
+}
+.touch-ui .dock-play > span {
+  font-size: 14px;
+}
+.touch-ui .dock-play > small {
+  font-size: 8px;
+}
+.touch-ui .dock-divider {
+  margin: 0 2px;
+}
+.touch-ui .chatbar {
+  top: auto;
+  left: calc(var(--sl) + var(--gap));
+  bottom: calc(var(--sb) + var(--joy) + 32px);
+  padding: 4px;
+  gap: 3px;
+  border-radius: 16px;
+}
+.touch-ui .emote-btn {
+  width: 44px;
+  height: 44px;
+  font-size: 19px;
+  border-radius: 12px;
+  touch-action: manipulation;
+}
+.touch-ui .emote-btn svg {
+  width: 19px;
+  height: 19px;
+}
+.touch-ui .chat-form input {
+  width: 150px;
+  min-height: 44px;
+  font-size: 16px; /* ≥16px 避免 iOS 聚焦时放大页面 */
+}
+.touch-ui .map-panel {
+  top: auto;
+  right: calc(var(--sr) + var(--gap));
+  bottom: calc(var(--sb) + var(--gap) + var(--act) + 40px);
+}
+.touch-ui .map-bar {
+  gap: 5px;
+}
+.touch-ui .zone-name {
+  display: none;
+}
+.touch-ui .chip-btn {
+  min-width: 44px;
+  height: 44px;
+  border-radius: 13px;
+  touch-action: manipulation;
+}
+.touch-ui .chip-btn svg {
+  width: 18px;
+  height: 18px;
+}
+.touch-ui .interact-slot {
+  bottom: calc(var(--sb) + 84px);
+  width: max-content;
+  max-width: min(480px, calc(100% - 2 * (var(--joy) + var(--gap) + 18px)));
+}
+.touch-ui .icard {
+  min-width: 0;
+  max-width: 100%;
+  padding: 9px 11px;
+  gap: 9px;
+}
+.touch-ui .ic-act,
+.touch-ui .ic-acts .btn {
+  min-height: 44px;
+  min-width: 44px;
+}
+.touch-ui .hint {
+  bottom: calc(var(--sb) + 88px);
+  font-size: 12px;
+  padding: 8px 14px 8px 11px;
+  white-space: normal;
+  max-width: calc(100% - 2 * (var(--joy) + var(--gap) + 18px));
+  width: max-content;
+}
+
+/* 竖屏：拇指区在最底部；主菜单在拇指上方一行；聊天在左上、地图在右上，让出角色周围 */
+@media (orientation: portrait) {
+  .touch-ui {
+    --joy: 132px;
+    --act: 96px;
+  }
+  .touch-ui .game-dock {
+    bottom: calc(var(--sb) + var(--joy) + 30px);
+    max-width: calc(100% - 24px);
+  }
+  .touch-ui .interact-slot {
+    bottom: calc(var(--sb) + var(--joy) + 102px);
+    width: calc(100% - 24px);
+    max-width: 520px;
+  }
+  .touch-ui .hint {
+    bottom: calc(var(--sb) + var(--joy) + 104px);
+    max-width: calc(100% - 32px);
+  }
+  .touch-ui .chatbar {
+    top: calc(var(--st) + 200px);
+    bottom: auto;
+    left: calc(var(--sl) + 13px);
+  }
+  .touch-ui .map-panel {
+    top: calc(var(--st) + 142px);
+    bottom: auto;
+    right: calc(var(--sr) + 13px);
+    flex-direction: column-reverse;
+  }
+  .touch-ui .toasts {
+    top: calc(var(--st) + 262px);
+    bottom: auto;
+  }
+}
+
+/* 矮横屏（手机横握）：压缩顶部信息，把画面留给园区 */
+@media (orientation: landscape) and (max-height: 520px) {
+  .touch-ui {
+    --joy: 112px;
+    --act: 86px;
+    --gap: 12px;
+  }
+  .touch-ui .v3-brand,
+  .touch-ui .year-card,
+  .touch-ui .online-chip {
+    display: none;
+  }
+  .touch-ui .v3-top {
+    top: calc(var(--st) + 8px);
+    left: calc(var(--sl) + 12px);
+    right: calc(var(--sr) + 12px);
+  }
+  .touch-ui .quick-squad {
+    top: calc(var(--st) + 98px);
+    left: calc(var(--sl) + 12px);
+  }
+  .touch-ui .chatbar {
+    bottom: calc(var(--sb) + var(--joy) + 28px);
+  }
+  .touch-ui .map-panel {
+    bottom: calc(var(--sb) + var(--gap) + var(--act) + 36px);
+  }
+  .touch-ui .toasts {
+    top: calc(var(--st) + 10px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hint,
+  .hint > i,
+  .touch-action::after {
+    animation: none;
+  }
+  .touch-ui .joystick > i,
+  .touch-action {
+    transition: none;
+  }
+}

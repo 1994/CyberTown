@@ -17,7 +17,8 @@ import {
   skillShort,
 } from './Confirm.tsx';
 import { Minimap } from './Minimap.tsx';
-import { Joystick } from './Joystick.tsx';
+import { Joystick, TouchAction } from './Joystick.tsx';
+import { useTouchUi } from './useTouchUi.ts';
 import { CinematicOverlay } from './CinematicOverlay.tsx';
 import { useCinema } from '../scene/cinema.ts';
 import { GamePhone } from './GamePhone.tsx';
@@ -41,10 +42,6 @@ import {
   Users,
   X,
 } from 'lucide-react';
-
-const isTouch =
-  typeof window !== 'undefined' &&
-  window.matchMedia?.('(pointer: coarse)').matches;
 
 // ───────────────────── 左上：我 + 小队 ─────────────────────
 
@@ -389,17 +386,22 @@ function renderNear(near: Near, colleagues: ColleagueView[]) {
 function Hint() {
   const snap = useGame((s) => s.snapshot)!;
   const team = myTeam(snap).length;
+  const touch = useTouchUi();
+  const poor = snap.me.coins < 300;
   const text = useMemo(() => {
     if (team === 0)
-      return isTouch
-        ? '左下摇杆走动 · 找老板加入小队'
-        : 'W A S D 自由走动 · 点击地面也能走';
-    if (snap.me.coins < 300) return '玩一局，再攒一点快乐基金';
-    return '带着老板散散步，遇见同事就打个招呼';
-  }, [team, snap.me.coins]);
+      return touch ? (
+        <>推<b>摇杆</b>走近老板，点<b>招募</b>拉进小队</>
+      ) : (
+        <><b>WASD</b> 走近老板，按 <b>E</b> 拉进小队</>
+      );
+    if (poor) return <>点<b>玩一局</b>，再攒点快乐基金</>;
+    return '带老板散散步，遇到同事打个招呼';
+  }, [team, touch, poor]);
   return (
     <div className="hint" data-testid="hint">
-      {text}
+      <i aria-hidden />
+      <span>{text}</span>
     </div>
   );
 }
@@ -418,6 +420,7 @@ function ChatBar() {
   const [cool, setCool] = useState(false);
   const input = useRef<HTMLInputElement>(null);
   const toast = useGame((s) => s.toast);
+  const touch = useTouchUi();
   useEffect(() => {
     const on = () => {
       setOpen(true);
@@ -480,7 +483,7 @@ function ChatBar() {
             onFocus={() => useWorld.getState().lock('chat')}
             onBlur={() => useWorld.getState().unlock('chat')}
             onKeyDown={(e) => e.key === 'Escape' && input.current?.blur()}
-            placeholder={isTouch ? '说点什么' : '说点什么（Enter）'}
+            placeholder={touch ? '说点什么' : '说点什么（Enter）'}
             aria-label="发送一句话"
             data-testid="chat-input"
           />
@@ -581,8 +584,14 @@ export function GameHud() {
   const shot = useCinema((s) => s.shot);
   const cinematic = playing || !!shot;
   const phoneOpen = useGame((s) => s.phoneOpen);
+  const touch = useTouchUi();
+  // 手机、抽屉、小游戏、确认框、聊天输入、庆祝弹窗打开时收起拇指操作（卸载即归零移动）
+  const covered = useGame((s) => !!s.drawer || s.projectActive || !!s.celebration);
+  const projectOpen = useWorld((s) => s.projectOpen);
+  const locked = useWorld((s) => s.locks.length > 0);
+  const thumbs = touch && !cinematic && !phoneOpen && !covered && !projectOpen && !locked;
   return (
-    <div className={`hud v3-hud ${cinematic ? 'cinematic' : ''}`}>
+    <div className={`hud v3-hud ${cinematic ? 'cinematic' : ''} ${touch ? 'touch-ui' : ''}`}>
       <div className="game-interface" inert={cinematic || phoneOpen} aria-hidden={cinematic || phoneOpen}>
       <div className="v3-brand">
         今天老板给我打工 <span>A LITTLE BREAK, A LOT OF FUN</span>
@@ -600,7 +609,8 @@ export function GameHud() {
       <Toasts />
       <ConnBanner />
       <div className="hud-bottom">
-        {isTouch ? <Joystick /> : null}
+        {thumbs && <Joystick />}
+        {thumbs && <TouchAction />}
         <ChatBar />
         <Interact />
         <GameDock />

@@ -4,6 +4,7 @@ import { App } from './App.tsx';
 import './styles.css';
 import './playful.css';
 import './phone.css';
+import './touch.css';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

@@ -95,7 +95,7 @@ export function useWorldInput(enabled: boolean) {
   useEffect(
     () =>
       useGame.subscribe((s, p) => {
-        if ((s.drawer && !p.drawer) || (s.projectActive && !p.projectActive) || (s.introPlaying && !p.introPlaying) || (s.phase !== 'game' && p.phase === 'game')) {
+        if ((s.drawer && !p.drawer) || (s.projectActive && !p.projectActive) || (s.phoneOpen && !p.phoneOpen) || (s.introPlaying && !p.introPlaying) || (s.phase !== 'game' && p.phase === 'game')) {
           clearKeys();
           rt.path = null;
         }
