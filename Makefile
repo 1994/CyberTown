@@ -1,10 +1,11 @@
 .DEFAULT_GOAL := up
 
-.PHONY: help check deps build up stop down restart status logs dev test
+.PHONY: help check deps build up lan stop down restart status logs dev test
 
 help:
 	@printf '%s\n' \
 	  'make up       安装依赖、构建并后台启动（默认命令）' \
+	  'make lan      构建并启动局域网联机，显示可分享地址' \
 	  'make stop     停止服务，保留数据库（make down 同样有效）' \
 	  'make restart  使用已有构建重启服务' \
 	  'make status   查看服务状态和访问地址' \
@@ -28,6 +29,9 @@ build: deps
 
 up: build
 	node scripts/server.mjs up
+
+lan: build
+	HOST=0.0.0.0 node scripts/server.mjs up
 
 down:
 	node scripts/server.mjs down

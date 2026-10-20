@@ -3,6 +3,7 @@ import { spawn, execFileSync } from 'node:child_process';
 import { appendFileSync, closeSync, existsSync, mkdirSync, openSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { createConnection } from 'node:net';
+import { networkInterfaces } from 'node:os';
 import { fileURLToPath } from 'node:url';
 import { setTimeout as delay } from 'node:timers/promises';
 
@@ -36,6 +37,19 @@ function readState() {
   const state = JSON.parse(readFileSync(stateFile, 'utf8'));
   if (!Number.isSafeInteger(state.pid) || state.pid <= 1) throw new Error('无效的 .run/server.json，请检查后移走该文件。');
   return state;
+}
+
+function addresses(state) {
+  const host = state.host ?? new URL(state.url).hostname;
+  const port = state.port ?? new URL(state.url).port;
+  if (host !== '0.0.0.0' && host !== '::') return `访问地址：${state.url}`;
+  const ips = [...new Set(Object.values(networkInterfaces()).flat()
+    .filter((entry) => entry && !entry.internal && entry.family === 'IPv4')
+    .map((entry) => entry.address))];
+  const lan = ips.length
+    ? ips.map((ip) => `局域网访问：http://${ip}:${port}`).join('\n')
+    : '未检测到局域网 IPv4 地址，请连接 Wi-Fi 或有线网络后运行 make status。';
+  return `本机访问：${state.url}\n${lan}`;
 }
 
 function alive(pid) {
@@ -97,7 +111,7 @@ async function start() {
   let exited = false;
   child.on('exit', () => { exited = true; });
   await new Promise((resolve, reject) => { child.once('spawn', resolve); child.once('error', reject); });
-  const state = { pid: child.pid, url, startedAt: new Date().toISOString() };
+  const state = { pid: child.pid, url, host: env.HOST, port: env.PORT, startedAt: new Date().toISOString() };
   writeFileSync(stateFile, `${JSON.stringify(state, null, 2)}\n`);
   child.unref();
   try {
@@ -111,7 +125,7 @@ async function start() {
           // A busy port may briefly serve another process while this child exits.
           await delay(200);
           if (exited || !alive(child.pid)) throw new Error('服务进程已退出。');
-          console.log(`服务已启动：${url}\nPID: ${child.pid}\n日志：make logs\n停止：make stop`);
+          console.log(`服务已启动\n${addresses(state)}\nPID: ${child.pid}\n日志：make logs\n停止：make stop`);
           return;
         }
       } catch { /* Retry until this child's health endpoint is ready. */ }
@@ -128,7 +142,7 @@ async function main() {
   const action = process.argv[2];
   if (action === 'status') {
     const state = readState();
-    if (state && owned(state)) console.log(`运行中：${state.url}\nPID: ${state.pid}\n启动时间：${state.startedAt}`);
+    if (state && owned(state)) console.log(`运行中\n${addresses(state)}\nPID: ${state.pid}\n启动时间：${state.startedAt}`);
     else { console.log('服务未运行，使用 make up 启动。'); process.exitCode = 1; }
     return;
   }

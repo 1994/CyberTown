@@ -15,7 +15,7 @@
 需要 **Go 1.26+**、**Node.js 22.18+（含 npm）** 和 **Make**，支持 macOS / Linux。本机实际验证 Go 1.27.2、Node 25.9.0。
 
 ```sh
-gh repo clone 1994/boss-works-for-me -- --branch review/social-campus
+gh repo clone 1994/boss-works-for-me
 cd boss-works-for-me
 make up
 ```
@@ -31,7 +31,16 @@ git pull
 make up        # 更新代码后重新构建并重启
 ```
 
-默认只允许本机访问。如需局域网内其他设备访问，可以运行 `HOST=0.0.0.0 make up`，然后打开 `http://这台机器的IP:8787`。修改端口可用 `PORT=9000 make up`；也可复制 `.env.example` 为 `.env` 后修改配置。数据库默认位于 `data/boss.db`，日志和 PID 位于 `.run/`，均不提交 Git。
+同一 Wi-Fi / 有线局域网联机：
+
+```sh
+make lan       # 构建并后台启动，监听 0.0.0.0:8787
+make status    # 再次查看本机地址和局域网地址
+```
+
+启动后会打印 `局域网访问：http://192.168.x.x:8787` 等本机网卡地址，将适用的地址发给同一网络下的同事即可。各自选择不同测试身份，就能在同一个园区相遇、聊天和互动，API 与实时同步共用同一地址。手机也可以打开；低端设备可在地址后加 `?lowfx=1`。若显示多个地址，选择当前 Wi-Fi / 有线网卡的地址。设备间需能互访；访客 Wi-Fi 的客户端隔离会阻止联机，系统防火墙弹窗时需允许本服务接收入站连接。
+
+`make lan` 会覆盖 `.env` 的 HOST 设置；默认 `make up` 仍仅本机访问，也可用 `HOST=0.0.0.0 make up`。修改端口可用 `PORT=9000 make lan`；也可复制 `.env.example` 为 `.env` 后修改配置。数据库默认位于 `data/boss.db`，日志和 PID 位于 `.run/`，均不提交 Git。
 
 `make up` 的后台进程适合本地或单机 Demo，不会注册开机自启。更多命令用 `make help`。需要热更新开发时：
 
@@ -61,12 +70,12 @@ npm run start:binary
 4. 「年终好物」买衬衫、眼镜和光环，给自己或老板3D试穿、穿戴。刷新保留，其他玩家也看得到。
 5. 不同标签页选择不同身份，可互相走近、挥手、聊天、碰杯；本年碰杯为年终奖增加10%。
 
-当前为 `review/social-campus` 分支，稳定main尚不包含这轮改版。已有仓库切换：
+新版已合并到 `main`。已有仓库更新：
 
 ```sh
 git fetch origin
-git switch review/social-campus
-git pull
+git switch main
+git pull --ff-only
 make up
 ```
 
