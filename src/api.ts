@@ -75,6 +75,7 @@ async function call<T>(
 }
 
 export interface Identity {
+  avatarUrl?: string;
   id: string;
   name: string;
   title: string;
@@ -91,6 +92,8 @@ export const api = {
     }),
   logout: () => call<{ ok: true }>('POST', '/api/logout'),
   state: () => call<StateSnapshot>('GET', '/api/state'),
+  setAvatar: (avatarUrl: string) =>
+    call<{ ok: true }>('POST', '/api/profile/avatar', { avatarUrl }),
   sign: (colleagueId: string, expectedPrice: number) =>
     call<{ trade: TradeEvent; coins: number }>(
       'POST',

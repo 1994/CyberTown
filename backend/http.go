@@ -213,6 +213,20 @@ func (a *App) handle(w http.ResponseWriter, r *http.Request) error {
 			return err
 		}
 		respond(w, 200, snap)
+	case path == "/api/profile/avatar" && method == "POST":
+		body, err := readBody(w, r)
+		if err != nil {
+			return err
+		}
+		var avatarURL string
+		if raw, ok := body["avatarUrl"]; !ok || string(raw) == "null" || json.Unmarshal(raw, &avatarURL) != nil {
+			return fail(400, "BAD_AVATAR", "请提交 avatarUrl 字符串，空字符串可还原默认头像")
+		}
+		if err = a.Game.SetAvatar(player, avatarURL); err != nil {
+			return err
+		}
+		a.Broadcast(map[string]any{"kind": "avatar", "playerId": player, "at": a.Game.Now()})
+		respond(w, 200, map[string]bool{"ok": true})
 	case path == "/api/messages/read" && method == "POST":
 		if err = a.Game.MarkRead(player); err != nil {
 			return err

@@ -6,6 +6,9 @@ export type Accessory =
   'none' | 'glasses' | 'tie' | 'headset' | 'scarf' | 'sunglasses';
 
 export interface Look {
+  /** Face-mask image; empty or failed URLs use the generated identity portrait. */
+  avatarUrl?: string;
+  avatarName?: string;
   skin: string;
   hair: string;
   hairStyle: HairStyle;
@@ -15,6 +18,7 @@ export interface Look {
 }
 
 export interface PlayerPublic {
+  avatarUrl?: string;
   id: string;
   name: string;
   title: string;
@@ -123,7 +127,7 @@ export type GameEvent =
   | HighfiveEvent
   | PromotionEvent
   | {
-      kind: 'reset' | 'presence' | 'shop' | 'style';
+      kind: 'reset' | 'presence' | 'shop' | 'style' | 'avatar';
       at: number;
       playerId?: string;
     };

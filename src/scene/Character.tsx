@@ -3,6 +3,7 @@ import { RoundedBox } from '@react-three/drei';
 import * as THREE from 'three';
 import type { Look } from '../../shared/types.ts';
 import { std } from './materials.ts';
+import { FaceMask } from './FaceMask.tsx';
 
 /** 可被动画驱动的骨骼节点（程序化 Q 版人物，统一比例：头身比约 1:1.5） */
 export interface Rig {
@@ -88,31 +89,11 @@ function Hair({ look }: { look: Look }) {
 }
 
 function Face({ look }: { look: Look }) {
-  const eye = std('#1b1b24', 0.2);
-  const white = std('#ffffff', 0.2);
   return (
     <group>
-      {[-0.105, 0.105].map((x) => (
-        <group key={x} position={[x, 0.3, 0.272]}>
-          <mesh material={eye} scale={[1, 1.25, 0.6]}>
-            <sphereGeometry args={[0.042, 14, 10]} />
-          </mesh>
-          <mesh position={[0.012, 0.018, 0.022]} material={white}>
-            <sphereGeometry args={[0.012, 8, 6]} />
-          </mesh>
-        </group>
-      ))}
-      {[-0.17, 0.17].map((x) => (
-        <mesh key={x} position={[x, 0.22, 0.24]} scale={[1.3, 0.7, 0.4]}>
-          <sphereGeometry args={[0.04, 10, 8]} />
-          <meshStandardMaterial color="#ff8a8a" transparent opacity={0.55} roughness={0.8} />
-        </mesh>
-      ))}
-      <mesh position={[0, 0.2, 0.29]} rotation-z={Math.PI} material={std('#7a2f2f', 0.5)}>
-        <torusGeometry args={[0.04, 0.011, 6, 12, Math.PI]} />
-      </mesh>
+      <FaceMask look={look} />
       {look.accessory === 'glasses' && (
-        <group position={[0, 0.3, 0.29]}>
+        <group position={[0, 0.3, 0.365]}>
           {[-0.105, 0.105].map((x) => (
             <mesh key={x} position={[x, 0, 0]} material={std('#222', 0.3, 0.5)}>
               <torusGeometry args={[0.062, 0.011, 6, 20]} />
@@ -124,7 +105,7 @@ function Face({ look }: { look: Look }) {
         </group>
       )}
       {look.accessory === 'sunglasses' && (
-        <group position={[0, 0.31, 0.29]}>
+        <group position={[0, 0.31, 0.37]}>
           {[-0.105, 0.105].map((x) => (
             <RoundedBox key={x} args={[0.15, 0.08, 0.02]} radius={0.02} position={[x, 0, 0]} material={std('#111', 0.1, 0.8)} />
           ))}

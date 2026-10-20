@@ -12,14 +12,17 @@ type Skills struct {
 	Shield    int `json:"shield"`
 }
 type Look struct {
-	Skin      string `json:"skin"`
-	Hair      string `json:"hair"`
-	HairStyle string `json:"hairStyle"`
-	Shirt     string `json:"shirt"`
-	Pants     string `json:"pants"`
-	Accessory string `json:"accessory"`
+	AvatarURL  string `json:"avatarUrl,omitempty"`
+	AvatarName string `json:"avatarName,omitempty"`
+	Skin       string `json:"skin"`
+	Hair       string `json:"hair"`
+	HairStyle  string `json:"hairStyle"`
+	Shirt      string `json:"shirt"`
+	Pants      string `json:"pants"`
+	Accessory  string `json:"accessory"`
 }
 type Identity struct {
+	AvatarURL         string  `json:"avatarUrl,omitempty"`
 	ID                string  `json:"id"`
 	Name              string  `json:"name"`
 	Title             string  `json:"title"`
@@ -27,6 +30,7 @@ type Identity struct {
 	AvatarColleagueID *string `json:"avatarColleagueId"`
 }
 type Player struct {
+	AvatarURL         string  `json:"avatarUrl,omitempty"`
 	ID                string  `json:"id"`
 	Name              string  `json:"name"`
 	Title             string  `json:"title"`

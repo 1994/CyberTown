@@ -38,6 +38,7 @@ JSON 错误统一为 `{ "error": { "code": "...", "message": "..." } }`。普通
 | GET | `/api/identities` | 四个测试身份及明确的非 SSO 声明 |
 | POST | `/api/auth/test-login` | `{playerId:"wang"/"li"/"mei"/"liu"}` → `{token,playerId}` |
 | GET | `/api/state` | 完整状态；前端类型见 `shared/types.ts` |
+| POST | `/api/profile/avatar` | `{avatarUrl:"https://.../avatar.png"}` 更新自己的头像面具；空字符串还原占位图 |
 | GET | `/api/events` | SSE `hello` 与 `sync`，含交易详情用于动画 |
 | POST | `/api/colleagues/:id/sign` | 必填整数 `expectedPrice`，变价返回409 |
 | POST | `/api/project/start` | 返回服务端种子、开始时间、截止时间、技能快照 |
@@ -50,6 +51,26 @@ JSON 错误统一为 `{ "error": { "code": "...", "message": "..." } }`。普通
 | POST | `/api/demo/reset` | 默认禁用，仅 `ALLOW_DEMO_RESET=1` 启用 |
 
 前端的 `sessionStorage` 仅保存会话凭证；金币、归属、项目、消息全由数据库保存。每个测试身份有自己的分身；NPC 的5%记在该虚拟同事的钱包及账本，对应玩家的分身则直接增加真实可登录账号的金币。
+
+## 头像面具接入
+
+统一的 3D `Character` 头部包含实体圆形面具、白色边框、侧绑带与正面头像贴图，会跟随头部动画转动；眼镜/墨镜位于面具外侧。未提供头像、图片加载失败或跨域受限时，继续显示本地生成的姓名肖像，不会让整个场景卡在加载状态。界面上的二维头像也使用同一 URL，加载失败回退原有卡通头像。
+
+获取用户 avatar 后，在当前登录会话下调用：
+
+```http
+POST /api/profile/avatar
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{"avatarUrl":"/avatars/wang.png"}
+```
+
+前端已提供 `api.setAvatar(avatarUrl)`。服务端身份接入也可在认证后调用 `Game.SetAvatar(playerID, avatarURL)`；通过此内部方法更新后，调用方需广播 `kind:"avatar"` 以即时刷新在线客户端。HTTP 接口已完成广播。这里只提供接入能力，不额外增加上传入口或读取真实公司头像。
+
+头像 URL 保存在该身份分身的 `colleagues.look.avatarUrl` 中，使用现有 JSON 字段，无需清空旧数据库；`avatarName` 随快照提供真实游戏姓名。`/api/state` 的 `me.avatarUrl`、`players[].avatarUrl` 及对应 `colleagues[].look.avatarUrl` 一致，`/api/identities` 也返回头像 URL。更新只作用于当前认证玩家，不接受覆盖其他玩家ID，分身被雇佣后仍显示分身本人的头像，刷新和重启保留。传 `{"avatarUrl":""}` 可还原默认面具。
+
+支持 HTTP(S) URL 或以 `/` 开头的站内路径，最长2048字符；不接受 `data:`、协议相对地址、内嵌账号密码或非字符串。前端按中心裁切为方形后贴到圆形面具，横/竖图不会拉伸；建议源图使用正方形并把脸留在中间。跨域图片服务器必须允许浏览器 CORS（`Access-Control-Allow-Origin`），否则 WebGL 无法使用。推荐把已授权头像存为同源静态文件，例如 `public/avatars/wang.png`，构建后用 `/avatars/wang.png`；局域网设备也能读取，避免使用 `localhost` 绝对链接。这里没有实现下载头像的服务器代理。
 
 ## 交易一致性
 

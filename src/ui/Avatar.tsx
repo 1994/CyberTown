@@ -1,7 +1,21 @@
 import type { Look } from '../../shared/types.ts';
+import { useState } from 'react';
 
-/** 与 3D 角色同一套外观参数生成的 2D 头像（SVG），保证 HUD 与场景人物一致可辨 */
+/** Match the face-mask URL; missing or failed images fall back to the local SVG. */
 export function Avatar({ look, size = 44, ring }: { look: Look; size?: number; ring?: string }) {
+  const [failedUrl, setFailedUrl] = useState<string | null>(null);
+  if (look.avatarUrl && failedUrl !== look.avatarUrl) {
+    return <img
+      className="avatar"
+      src={look.avatarUrl}
+      alt=""
+      width={size}
+      height={size}
+      referrerPolicy="no-referrer"
+      onError={() => setFailedUrl(look.avatarUrl!)}
+      style={{ objectFit: 'cover', borderRadius: '50%', ...(ring ? { boxShadow: `0 0 0 2px ${ring}` } : {}) }}
+    />;
+  }
   const hair = look.hair;
   return (
     <svg width={size} height={size} viewBox="0 0 100 100" className="avatar" aria-hidden="true" style={ring ? { boxShadow: `0 0 0 2px ${ring}` } : undefined}>

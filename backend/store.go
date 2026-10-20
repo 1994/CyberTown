@@ -186,6 +186,7 @@ func scanCol(row scanner) (Colleague, error) {
 	if err = json.Unmarshal([]byte(look), &c.Look); err != nil {
 		return c, err
 	}
+	c.Look.AvatarName = c.Name
 	c.Price = PriceFor(c.LastPrice)
 	return c, nil
 }
@@ -263,7 +264,7 @@ func (g *Game) MarkRead(player string) error {
 	return err
 }
 func (g *Game) Identities() ([]Identity, error) {
-	rows, err := g.DB.Query("SELECT p.id,p.name,p.title,p.color,c.id FROM players p LEFT JOIN colleagues c ON c.self_player_id=p.id ORDER BY p.created_at,p.rowid")
+	rows, err := g.DB.Query("SELECT p.id,p.name,p.title,p.color,c.id,COALESCE(c.look,'{}') FROM players p LEFT JOIN colleagues c ON c.self_player_id=p.id ORDER BY p.created_at,p.rowid")
 	if err != nil {
 		return nil, err
 	}
@@ -271,9 +272,15 @@ func (g *Game) Identities() ([]Identity, error) {
 	out := []Identity{}
 	for rows.Next() {
 		var p Identity
-		if err = rows.Scan(&p.ID, &p.Name, &p.Title, &p.Color, &p.AvatarColleagueID); err != nil {
+		var raw string
+		if err = rows.Scan(&p.ID, &p.Name, &p.Title, &p.Color, &p.AvatarColleagueID, &raw); err != nil {
 			return nil, err
 		}
+		var look Look
+		if err = json.Unmarshal([]byte(raw), &look); err != nil {
+			return nil, err
+		}
+		p.AvatarURL = look.AvatarURL
 		out = append(out, p)
 	}
 	return out, rows.Err()
@@ -312,6 +319,7 @@ func (g *Game) Snapshot(id string, online map[string]bool) (Snapshot, error) {
 				}
 				if same(c.SelfPlayerID, p.ID) {
 					p.AvatarColleagueID = ptr(c.ID)
+					p.AvatarURL = c.Look.AvatarURL
 				}
 			}
 			p.Assets = p.Coins + p.TeamValue
@@ -332,6 +340,15 @@ func (g *Game) Snapshot(id string, online map[string]bool) (Snapshot, error) {
 			snap.Players[i].Style, err = readStyle(tx, snap.Players[i].ID)
 			if err != nil {
 				return err
+			}
+		}
+		for i := range snap.Colleagues {
+			c := &snap.Colleagues[i]
+			for _, p := range snap.Players {
+				if same(c.SelfPlayerID, p.ID) {
+					c.Look.AvatarName = p.Name
+					break
+				}
 			}
 		}
 		sortPlayers(snap.Players)
