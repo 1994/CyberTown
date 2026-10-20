@@ -41,13 +41,13 @@ export function Minimap({ onNavigate }: { onNavigate?: () => void } = {}) {
       aria-label="园区小地图，点击设定步行目标"
       data-testid="minimap"
     >
-      <rect x={B.minX} y={B.minZ} width={W} height={H} rx={2} fill="#22361f" />
+      <rect x={B.minX} y={B.minZ} width={W} height={H} rx={2} fill="var(--map-ground, #22361f)" />
       {PATHS.map((p, i) => (
-        <rect key={i} x={p.minX} y={p.minZ} width={p.maxX - p.minX} height={p.maxZ - p.minZ} fill="#8f8677" opacity={0.75} />
+        <rect key={i} x={p.minX} y={p.minZ} width={p.maxX - p.minX} height={p.maxZ - p.minZ} fill="var(--map-road, #8f8677)" opacity={0.75} />
       ))}
-      <rect x={-8.5} y={-6} width={17} height={12} fill="#7a5a3d" stroke="#3ef0ff" strokeWidth={0.3} />
+      <rect x={-8.5} y={-6} width={17} height={12} fill="var(--map-office, #7a5a3d)" stroke="#3ef0ff" strokeWidth={0.3} />
       {BOXES.map((b, i) => (
-        <rect key={'o' + i} x={b.minX} y={b.minZ} width={b.maxX - b.minX} height={b.maxZ - b.minZ} fill="#0e1222" opacity={0.55} />
+        <rect key={'o' + i} x={b.minX} y={b.minZ} width={b.maxX - b.minX} height={b.maxZ - b.minZ} fill="var(--map-obstacle, #0e1222)" opacity={0.55} />
       ))}
       {ZONES.map((z) => (
         <g key={z.id} transform={`translate(${z.x} ${z.z})`}>
@@ -71,8 +71,8 @@ export function Minimap({ onNavigate }: { onNavigate?: () => void } = {}) {
           return p ? <circle key={c.id} cx={p.x} cy={p.z} r={0.6} fill="#ffd166" opacity={0.8} /> : null;
         })}
       <g transform={`translate(${me.x} ${me.z}) rotate(${(-me.yaw * 180) / Math.PI})`}>
-        <circle r={1.6} fill="#ffd166" stroke="#1b1d2e" strokeWidth={0.4} />
-        <path d="M0 2.8 L1.2 0.6 L-1.2 0.6 Z" fill="#1b1d2e" />
+        <circle r={1.6} fill="var(--map-self, #ffd166)" stroke="var(--map-self-outline, #1b1d2e)" strokeWidth={0.4} />
+        <path d="M0 2.8 L1.2 0.6 L-1.2 0.6 Z" fill="var(--map-self-outline, #1b1d2e)" />
       </g>
     </svg>
   );
