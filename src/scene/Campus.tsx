@@ -1,5 +1,7 @@
 import { LocalPointLight } from './LocalLights.tsx';
-import { useMemo, useRef } from 'react';
+import { memo, useMemo, useRef } from 'react';
+import { useShallow } from 'zustand/react/shallow';
+import { StaticBatch } from './StaticBatch.tsx';
 import type { ThreeEvent } from '@react-three/fiber';
 import { useFrame } from '@react-three/fiber';
 import { RoundedBox } from '@react-three/drei';
@@ -621,7 +623,7 @@ function TalentStreet() {
     (s) => !!s.snapshot?.colleagues.find((c) => c.id === 'c-zhang')?.ownerId,
   );
   return (
-    <group>
+    <StaticBatch worldStatic>
       {north.map((x, i) => (
         <Booth
           key={'n' + x}
@@ -681,7 +683,7 @@ function TalentStreet() {
           />
         </mesh>
       ))}
-    </group>
+    </StaticBatch>
   );
 }
 
@@ -743,13 +745,15 @@ function PodDesk({
 }
 
 function ProjectZone() {
-  const snapshot = useGame((s) => s.snapshot);
-  const nameOf = (id: string) => snapshot?.players.find((p) => p.id === id);
+  const owners = useGame(useShallow(s => POD_ORDER.flatMap(id => {
+    const p = s.snapshot?.players.find(player => player.id === id);
+    return [p?.name ?? id, p?.color ?? '#5ee1ff'];
+  })));
   return (
-    <group>
+    <StaticBatch worldStatic>
       {PODS.map((p, i) => {
-        const owner = nameOf(POD_ORDER[i]);
-        const color = owner?.color ?? '#5ee1ff';
+        const name = owners[i * 2];
+        const color = owners[i * 2 + 1];
         return (
           <group key={i}>
             {POD_DESK_DX.map((dx, k) => (
@@ -767,7 +771,7 @@ function ProjectZone() {
               <planeGeometry args={[1.6, 0.4]} />
               <meshBasicMaterial
                 map={signTexture(
-                  `${owner?.name ?? POD_ORDER[i]}的工位组`,
+                  `${name}的工位组`,
                   color,
                 )}
                 toneMapped={false}
@@ -836,7 +840,7 @@ function ProjectZone() {
         color="#dc9bfc"
         rotation={-0.3}
       />
-    </group>
+    </StaticBatch>
   );
 }
 
@@ -1009,7 +1013,7 @@ function Picnic() {
 
 // ───────────────────── 汇总 ─────────────────────
 
-export function Campus({
+export const Campus = memo(function Campus({
   onGround,
 }: {
   onGround: (e: ThreeEvent<MouseEvent>) => void;
@@ -1017,21 +1021,23 @@ export function Campus({
   return (
     <group>
       <Ground onGround={onGround} />
-      <Wayfinding />
-      <Railing />
-      <Plaza />
-      <CoffeeZone />
+      <StaticBatch worldStatic>
+        <Wayfinding />
+        <Railing />
+        <Plaza />
+        <CoffeeZone />
+        <Garden />
+        <Stage />
+        <Picnic />
+        {TREES.map(([x, z], i) => (
+          <Tree key={i} position={[x, 0, z]} seed={i} />
+        ))}
+        {LAMPS.map(([x, z], i) => (
+          <StreetLamp key={i} position={[x, 0, z]} light={i % 4 === 0} />
+        ))}
+      </StaticBatch>
       <TalentStreet />
       <ProjectZone />
-      <Garden />
-      <Stage />
-      <Picnic />
-      {TREES.map(([x, z], i) => (
-        <Tree key={i} position={[x, 0, z]} seed={i} />
-      ))}
-      {LAMPS.map(([x, z], i) => (
-        <StreetLamp key={i} position={[x, 0, z]} light={i % 4 === 0} />
-      ))}
     </group>
   );
-}
+});

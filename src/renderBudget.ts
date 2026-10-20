@@ -7,10 +7,10 @@ export const BALANCED_LEVELS = [
 export interface BudgetTrend { slow: number; fast: number }
 
 /** Two slow 2-second windows lower quality; six healthy windows restore one level. */
-export function nextRenderBudget(tier: number, trend: BudgetTrend, medianMs: number) {
-  if (!Number.isFinite(medianMs) || medianMs <= 0) return { tier, trend: { slow: 0, fast: 0 } };
-  const slow = medianMs > 26 ? trend.slow + 1 : 0;
-  const fast = medianMs < 19 ? trend.fast + 1 : 0;
+export function nextRenderBudget(tier: number, trend: BudgetTrend, medianMs: number, p95Ms = medianMs) {
+  if (!Number.isFinite(medianMs) || medianMs <= 0 || !Number.isFinite(p95Ms) || p95Ms <= 0) return { tier, trend: { slow: 0, fast: 0 } };
+  const slow = medianMs > 20.5 || p95Ms > 34 ? trend.slow + 1 : 0;
+  const fast = medianMs < 17.5 && p95Ms < 23 ? trend.fast + 1 : 0;
   if (slow >= 2) return { tier: Math.min(BALANCED_LEVELS.length - 1, tier + 1), trend: { slow: 0, fast: 0 } };
   if (fast >= 6) return { tier: Math.max(0, tier - 1), trend: { slow: 0, fast: 0 } };
   return { tier, trend: { slow, fast } };

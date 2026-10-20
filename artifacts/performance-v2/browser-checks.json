@@ -1,0 +1,140 @@
+{
+  "baselineDesktop": {
+    "fps": 58.1,
+    "medianMs": 16.7,
+    "p95Ms": 18.7,
+    "cpuMs": 6.8,
+    "p95CpuMs": 8.8,
+    "calls": 630,
+    "triangles": 214196,
+    "geometries": 1376,
+    "textures": 93,
+    "dpr": 1,
+    "frames": 291
+  },
+  "optimizedDesktop": {
+    "fps": 59.9,
+    "medianMs": 16.6,
+    "p95Ms": 19.6,
+    "cpuMs": 5.4,
+    "p95CpuMs": 7,
+    "shadowUpdates": 1714,
+    "lightSelections": 633,
+    "calls": 484,
+    "triangles": 228455,
+    "geometries": 725,
+    "textures": 93,
+    "dpr": 1,
+    "frames": 300
+  },
+  "arcadeClock": {
+    "frames": "900",
+    "updates": "150"
+  },
+  "arcadeResult": "NICE CATCH, NICE DAY快乐营业，圆满收工！+8成长值 +10接住 1 次最高连击 ×1本年已玩 1/3 场，离年终奖又近一步✓ 结算已核对收下快乐，回园区",
+  "optimizedMobile": {
+    "fps": 60,
+    "medianMs": 16.6,
+    "p95Ms": 19.4,
+    "cpuMs": 4.2,
+    "p95CpuMs": 6.1,
+    "shadowUpdates": 2632,
+    "lightSelections": 982,
+    "calls": 374,
+    "triangles": 162478,
+    "geometries": 718,
+    "textures": 93,
+    "dpr": 1,
+    "frames": 300
+  },
+  "controls": {
+    "keyboard": "Held D for 1200ms; moved out of recruit range",
+    "joystick": {
+      "active": false,
+      "knob": "transform: translate3d(0px, 0px, 0px);"
+    }
+  },
+  "lightBeforePhone": {
+    "fps": 60,
+    "medianMs": 16.7,
+    "p95Ms": 17.4,
+    "cpuMs": 4.6,
+    "p95CpuMs": 6.3,
+    "shadowUpdates": 1775,
+    "lightSelections": 634,
+    "calls": 355,
+    "triangles": 196248,
+    "geometries": 620,
+    "textures": 69,
+    "dpr": 1,
+    "frames": 301
+  },
+  "lightAfterPhone": {
+    "fps": 60,
+    "medianMs": 16.6,
+    "p95Ms": 20.9,
+    "cpuMs": 4.9,
+    "p95CpuMs": 6.4,
+    "shadowUpdates": 2498,
+    "lightSelections": 906,
+    "calls": 346,
+    "triangles": 190855,
+    "geometries": 620,
+    "textures": 69,
+    "dpr": 1,
+    "frames": 301
+  },
+  "consoleErrors": [],
+  "baselineMobile": {
+    "fps": 60,
+    "medianMs": 16.6,
+    "p95Ms": 19.6,
+    "cpuMs": 4.7,
+    "p95CpuMs": 6.7,
+    "calls": 438,
+    "triangles": 159859,
+    "geometries": 1376,
+    "textures": 93,
+    "dpr": 1,
+    "frames": 301
+  },
+  "baselineDesktopInitial": {
+    "fps": 60,
+    "medianMs": 16.7,
+    "p95Ms": 18.5,
+    "cpuMs": 3.3,
+    "p95CpuMs": 4.4,
+    "calls": 618,
+    "triangles": 208947,
+    "geometries": 1345,
+    "textures": 85,
+    "dpr": 1,
+    "frames": 301
+  },
+  "optimizedMobile8m": {
+    "fps": 60,
+    "medianMs": 16.6,
+    "p95Ms": 20.9,
+    "cpuMs": 4.9,
+    "p95CpuMs": 6.4,
+    "shadowUpdates": 2498,
+    "lightSelections": 906,
+    "calls": 346,
+    "triangles": 190855,
+    "geometries": 620,
+    "textures": 69,
+    "dpr": 1,
+    "frames": 301
+  },
+  "viewports": {
+    "desktop": {
+      "width": 1280,
+      "height": 720
+    },
+    "mobile": {
+      "height": 844,
+      "width": 390
+    }
+  },
+  "scope": "Production build; single active QA tab; desktop Chromium viewport simulation, not physical phones; whole-frame draw counts include shadow/composer passes."
+}

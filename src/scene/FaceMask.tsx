@@ -1,3 +1,4 @@
+import { SharedGeometry } from './SharedGeometry.tsx';
 import { useEffect, useMemo } from 'react';
 import * as THREE from 'three';
 import type { Look } from '../../shared/types.ts';
@@ -112,23 +113,23 @@ export function FaceMask({ look }: { look: Look }) {
     <group name="avatar-face-mask">
       {[-0.29, 0.29].map((x) => (
         <mesh key={x} position={[x, 0.3, 0.065]} material={std('#506257', 0.9)}>
-          <boxGeometry args={[0.026, 0.044, 0.49]} />
+          <SharedGeometry kind="box" args={[0.026, 0.044, 0.49]} />
         </mesh>
       ))}
       <group position={[0, 0.3, 0.315]}>
         <mesh rotation-x={Math.PI / 2} material={std('#e7dfcb', 0.8)} castShadow>
-          <cylinderGeometry args={[0.323, 0.323, 0.04, 48]} />
+          <SharedGeometry kind="cylinder" args={[0.323, 0.323, 0.04, 48]} />
         </mesh>
         <mesh position={[0, 0, 0.027]}>
-          <circleGeometry args={[0.303, 64]} />
+          <SharedGeometry kind="circle" args={[0.303, 64]} />
           <meshBasicMaterial map={texture} toneMapped={false} />
         </mesh>
         <mesh position={[0, 0, 0.03]} material={std('#fffcf2', 0.5)}>
-          <torusGeometry args={[0.311, 0.016, 8, 64]} />
+          <SharedGeometry kind="torus" args={[0.311, 0.016, 8, 64]} />
         </mesh>
         {[-0.313, 0.313].map((x) => (
           <mesh key={x} position={[x, 0, 0.035]} material={std('#b79b5d', 0.45, 0.35)}>
-            <sphereGeometry args={[0.017, 10, 8]} />
+            <SharedGeometry kind="sphere" args={[0.017, 10, 8]} />
           </mesh>
         ))}
       </group>

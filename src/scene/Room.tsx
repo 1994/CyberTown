@@ -1,5 +1,6 @@
 import { LocalPointLight } from './LocalLights.tsx';
-import { useMemo, useRef } from 'react';
+import { memo, useMemo, useRef } from 'react';
+import { StaticBatch } from './StaticBatch.tsx';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { FLOOR, WALL_H, ELEVATOR, DESK_SLOTS, BOSS_DESK, MEETING, LOUNGE } from './layout.ts';
@@ -248,38 +249,40 @@ function MeetingPartition() {
   );
 }
 
-export function Room() {
+export const Room = memo(function Room() {
   return (
     <group>
-      <Base />
-      <GlassWalls />
+      <StaticBatch worldStatic>
+        <Base />
+        <GlassWalls />
+        <MeetingArea position={[MEETING.x, 0, MEETING.z]} />
+        <MeetingPartition />
+        <Whiteboard position={[FLOOR.minX + 0.2, 0, MEETING.z]} rotation={Math.PI / 2} />
+        <Sofa position={[LOUNGE.x, 0, LOUNGE.z]} color={PALETTE.fabricTeal} />
+        <mesh position={[LOUNGE.x, 0.22, LOUNGE.z + 1.05]} material={std(PALETTE.oak, 0.4)} castShadow receiveShadow>
+          <cylinderGeometry args={[0.45, 0.45, 0.06, 32]} />
+        </mesh>
+        <mesh position={[LOUNGE.x, 0.1, LOUNGE.z + 1.05]} material={std(PALETTE.metal, 0.4, 0.6)}>
+          <cylinderGeometry args={[0.04, 0.2, 0.2, 12]} />
+        </mesh>
+        <FloorLamp position={[LOUNGE.x - 1.6, 0, LOUNGE.z - 0.3]} />
+        <FloorLamp position={[BOSS_DESK.x + 1.9, 0, BOSS_DESK.z - 1.0]} />
+        <BossDesk position={[BOSS_DESK.x, 0, BOSS_DESK.z]} />
+        <Chair position={[BOSS_DESK.x, 0, BOSS_DESK.seatZ]} rotation={0} exec color="#3a2a2a" />
+        <CoffeeBar position={[FLOOR.maxX - 0.45, 0, -0.9]} rotation={-Math.PI / 2} />
+        <VendingMachine position={[FLOOR.maxX - 0.5, 0, 0.9]} rotation={-Math.PI / 2} />
+        <Printer position={[-0.6, 0, 4.9]} rotation={Math.PI} />
+        <TallPlant position={[FLOOR.minX + 0.6, 0, FLOOR.minZ + 0.6]} seed={4} />
+        <TallPlant position={[FLOOR.minX + 0.6, 0, FLOOR.maxZ - 0.6]} seed={8} />
+        <TallPlant position={[ELEVATOR.coreMinX - 0.55, 0, FLOOR.minZ + 0.55]} seed={12} />
+        <TallPlant position={[FLOOR.maxX - 0.6, 0, FLOOR.maxZ - 0.6]} seed={16} />
+        <Plant position={[(DESK_SLOTS[0].x + DESK_SLOTS[1].x) / 2, 0, DESK_SLOTS[0].deskZ + 0.1]} seed={30} scale={0.9} />
+        <Plant position={[(DESK_SLOTS[1].x + DESK_SLOTS[2].x) / 2, 0, DESK_SLOTS[0].deskZ + 0.1]} seed={31} scale={0.9} />
+        <Plant position={[1.6, 0, 4.9]} seed={32} pot={PALETTE.terracotta} />
+        <Plant position={[-2.6, 0, FLOOR.minZ + 0.45]} seed={33} />
+      </StaticBatch>
       <ElevatorCore />
-      <MeetingArea position={[MEETING.x, 0, MEETING.z]} />
-      <MeetingPartition />
-      <Whiteboard position={[FLOOR.minX + 0.2, 0, MEETING.z]} rotation={Math.PI / 2} />
-      <Sofa position={[LOUNGE.x, 0, LOUNGE.z]} color={PALETTE.fabricTeal} />
       <OfficeCat position={[LOUNGE.x + 0.55, 0.5, LOUNGE.z + 0.05]} />
-      <mesh position={[LOUNGE.x, 0.22, LOUNGE.z + 1.05]} material={std(PALETTE.oak, 0.4)} castShadow receiveShadow>
-        <cylinderGeometry args={[0.45, 0.45, 0.06, 32]} />
-      </mesh>
-      <mesh position={[LOUNGE.x, 0.1, LOUNGE.z + 1.05]} material={std(PALETTE.metal, 0.4, 0.6)}>
-        <cylinderGeometry args={[0.04, 0.2, 0.2, 12]} />
-      </mesh>
-      <FloorLamp position={[LOUNGE.x - 1.6, 0, LOUNGE.z - 0.3]} />
-      <FloorLamp position={[BOSS_DESK.x + 1.9, 0, BOSS_DESK.z - 1.0]} />
-      <BossDesk position={[BOSS_DESK.x, 0, BOSS_DESK.z]} />
-      <Chair position={[BOSS_DESK.x, 0, BOSS_DESK.seatZ]} rotation={0} exec color="#3a2a2a" />
-      <CoffeeBar position={[FLOOR.maxX - 0.45, 0, -0.9]} rotation={-Math.PI / 2} />
-      <VendingMachine position={[FLOOR.maxX - 0.5, 0, 0.9]} rotation={-Math.PI / 2} />
-      <Printer position={[-0.6, 0, 4.9]} rotation={Math.PI} />
-      <TallPlant position={[FLOOR.minX + 0.6, 0, FLOOR.minZ + 0.6]} seed={4} />
-      <TallPlant position={[FLOOR.minX + 0.6, 0, FLOOR.maxZ - 0.6]} seed={8} />
-      <TallPlant position={[ELEVATOR.coreMinX - 0.55, 0, FLOOR.minZ + 0.55]} seed={12} />
-      <TallPlant position={[FLOOR.maxX - 0.6, 0, FLOOR.maxZ - 0.6]} seed={16} />
-      <Plant position={[(DESK_SLOTS[0].x + DESK_SLOTS[1].x) / 2, 0, DESK_SLOTS[0].deskZ + 0.1]} seed={30} scale={0.9} />
-      <Plant position={[(DESK_SLOTS[1].x + DESK_SLOTS[2].x) / 2, 0, DESK_SLOTS[0].deskZ + 0.1]} seed={31} scale={0.9} />
-      <Plant position={[1.6, 0, 4.9]} seed={32} pot={PALETTE.terracotta} />
-      <Plant position={[-2.6, 0, FLOOR.minZ + 0.45]} seed={33} />
       <RoboVac />
       {DESK_SLOTS.map((d, i) => (
         <group key={i}>
@@ -289,4 +292,4 @@ export function Room() {
       ))}
     </group>
   );
-}
+});

@@ -1,5 +1,5 @@
 import { LocalPointLight, LocalLightPool } from './LocalLights.tsx';
-import { Suspense, useEffect, useRef } from 'react';
+import { Suspense, useCallback, useEffect, useRef } from 'react';
 import type { ThreeEvent } from '@react-three/fiber';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { Environment, Lightformer } from '@react-three/drei';
@@ -13,7 +13,7 @@ import { MePlayer, RemotePlayers, walkNear } from './Avatars.tsx';
 import { Effects } from './Effects.tsx';
 import { FollowCamera } from './FollowCamera.tsx';
 import { PALETTE } from './materials.ts';
-import { PERF_ENABLED } from '../performance.ts';
+import { PERF_ENABLED, renderCounters } from '../performance.ts';
 import { RenderProbe } from './RenderProbe.tsx';
 import { AdaptiveQuality } from './AdaptiveQuality.tsx';
 import { BALANCED_LEVELS } from '../renderBudget.ts';
@@ -47,9 +47,13 @@ function Sun() {
     gl.shadowMap.needsUpdate = true;
     return () => { gl.shadowMap.autoUpdate = previous; };
   }, [gl, settings.shadow]);
-  useFrame(({ clock }) => {
-    if (clock.elapsedTime - lastShadow.current < 1 / settings.shadowHz) return;
-    lastShadow.current = clock.elapsedTime;
+  useFrame(() => {
+    // R3F resets its clock when frameloop changes between always/demand.
+    // A wall-clock deadline keeps shadows alive after closing an overlay.
+    const now = performance.now();
+    if (now - lastShadow.current < 1000 / settings.shadowHz) return;
+    lastShadow.current = now;
+    if (PERF_ENABLED) renderCounters.shadowUpdates++;
     const l = light.current;
     if (!l) return;
     const ov = useWorld.getState().overview;
@@ -165,13 +169,13 @@ export function OfficeCanvas({ myId }: { myId: string | null }) {
   const covered = coveredUi || projectOpen;
   const introPlaying = useGame(s => s.introPlaying);
   const playing = !!myId;
-  const onGround = (e: ThreeEvent<MouseEvent>) => {
+  const onGround = useCallback((e: ThreeEvent<MouseEvent>) => {
     if (!playing || e.delta > 6) return;
     const g = useGame.getState();
     if (g.projectActive || g.drawer || g.introPlaying || g.phoneOpen || useWorld.getState().locks.length) return;
     useWorld.getState().setOverview(false);
     walkNear(e.point.x, e.point.z);
-  };
+  }, [playing]);
   return (
     <Canvas
       className="office-canvas"

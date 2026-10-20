@@ -101,7 +101,7 @@ Content-Type: application/json
 
 全部需要 Bearer 测试会话。`GET /api/world` 返回 `serverTime`、地图边界和 `players`。只返回持有 SSE 连接的在线身份；位置为进程内临时状态，重启回广场，金币和队伍保留。相同身份的多个标签页共享同一世界人物。
 
-- `POST /api/world/move`：`{x,z,yaw,moving}`，移动推荐5Hz、闲时1Hz；限制坐标边界、有限数值、80ms最小间隔与基础步行速度，拒绝明显瞬移。当前家具碰撞由客户端处理，不宣称服务端完整物理校验。
+- `POST /api/world/move`：`{x,z,yaw,moving}`，前端移动中5Hz、静止每5秒心跳，起步/停步及时发送；隐藏后补停步包。SSE维护在线状态。服务端限制坐标边界、有限数值、80ms最小间隔与基础步行速度，拒绝明显瞬移。当前家具碰撞由客户端处理，不宣称服务端完整物理校验。
 - `POST /api/world/social`：`{emote?,text?}`；表情 `wave/dance/coffee` 持续3秒，短句最多40个Unicode码点、持续6秒，每人1秒冷却。
 - `POST /api/world/highfive`：`{targetId}`；双方在线、距离≤4米，双方各15金币，每对60秒冷却。冷却与奖励在同一 SQLite 事务中，防并发重复且重启保留；返回 `{reward:15,cooldownUntil}`。
 

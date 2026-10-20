@@ -1,4 +1,7 @@
-import { forwardRef, useImperativeHandle, useMemo, useRef } from 'react';
+import { SharedGeometry } from './SharedGeometry.tsx';
+import { forwardRef, memo, useImperativeHandle, useMemo, useRef } from 'react';
+import { shallow } from 'zustand/shallow';
+import { StaticBatch } from './StaticBatch.tsx';
 import { RoundedBox } from '@react-three/drei';
 import * as THREE from 'three';
 import type { Look } from '../../shared/types.ts';
@@ -28,27 +31,27 @@ function Hair({ look }: { look: Look }) {
     case 'bald':
       return (
         <mesh position={[0, 0.24, -0.02]} rotation-x={Math.PI / 2} material={hair}>
-          <torusGeometry args={[0.27, 0.05, 8, 24, Math.PI]} />
+          <SharedGeometry kind="torus" args={[0.27, 0.05, 8, 24, Math.PI]} />
         </mesh>
       );
     case 'cap':
       return (
         <group>
           <mesh position={[0, 0.33, 0]} material={std(look.shirt, 0.6)} castShadow>
-            <sphereGeometry args={[R + 0.01, 24, 12, 0, Math.PI * 2, 0, Math.PI / 2.1]} />
+            <SharedGeometry kind="sphere" args={[R + 0.01, 24, 12, 0, Math.PI * 2, 0, Math.PI / 2.1]} />
           </mesh>
           <mesh position={[0, 0.36, 0.24]} rotation-x={0.12} material={std(look.shirt, 0.6)}>
-            <boxGeometry args={[0.36, 0.025, 0.22]} />
+            <SharedGeometry kind="box" args={[0.36, 0.025, 0.22]} />
           </mesh>
           <mesh position={[0, 0.2, -0.12]} material={hair}>
-            <sphereGeometry args={[R - 0.005, 20, 10, Math.PI * 0.75, Math.PI * 1.5, Math.PI / 2.2, Math.PI / 3]} />
+            <SharedGeometry kind="sphere" args={[R - 0.005, 20, 10, Math.PI * 0.75, Math.PI * 1.5, Math.PI / 2.2, Math.PI / 3]} />
           </mesh>
         </group>
       );
     default: {
       const cap = (
         <mesh position={[0, 0.3, -0.015]} rotation-x={-0.25} material={hair} castShadow>
-          <sphereGeometry args={[R + 0.02, 28, 14, 0, Math.PI * 2, 0, Math.PI / 1.95]} />
+          <SharedGeometry kind="sphere" args={[R + 0.02, 28, 14, 0, Math.PI * 2, 0, Math.PI / 1.95]} />
         </mesh>
       );
       return (
@@ -56,28 +59,28 @@ function Hair({ look }: { look: Look }) {
           {cap}
           {/* 刘海 */}
           <mesh position={[0.06, 0.47, 0.2]} rotation={[0.9, 0, -0.3]} scale={[1.4, 0.5, 0.7]} material={hair}>
-            <sphereGeometry args={[0.12, 14, 10]} />
+            <SharedGeometry kind="sphere" args={[0.12, 14, 10]} />
           </mesh>
           {look.hairStyle === 'spiky' &&
             [-0.14, -0.04, 0.06, 0.16].map((x, i) => (
               <mesh key={i} position={[x, 0.6, -0.02 + (i % 2) * 0.06]} rotation={[-0.3, 0, x * 1.5]} material={hair}>
-                <coneGeometry args={[0.07, 0.2, 6]} />
+                <SharedGeometry kind="cone" args={[0.07, 0.2, 6]} />
               </mesh>
             ))}
           {look.hairStyle === 'bun' && (
             <mesh position={[0, 0.66, -0.08]} material={hair} castShadow>
-              <sphereGeometry args={[0.12, 16, 12]} />
+              <SharedGeometry kind="sphere" args={[0.12, 16, 12]} />
             </mesh>
           )}
           {look.hairStyle === 'bob' && (
             <mesh position={[0, 0.2, -0.02]} scale={[1.12, 0.85, 1.08]} material={hair}>
-              <sphereGeometry args={[R, 24, 12, Math.PI * 0.62, Math.PI * 1.76, Math.PI / 3, Math.PI / 2.6]} />
+              <SharedGeometry kind="sphere" args={[R, 24, 12, Math.PI * 0.62, Math.PI * 1.76, Math.PI / 3, Math.PI / 2.6]} />
             </mesh>
           )}
           {look.hairStyle === 'long' && (
             <>
               <mesh position={[0, 0.2, -0.02]} scale={[1.1, 0.9, 1.08]} material={hair}>
-                <sphereGeometry args={[R, 24, 12, Math.PI * 0.62, Math.PI * 1.76, Math.PI / 3, Math.PI / 2.2]} />
+                <SharedGeometry kind="sphere" args={[R, 24, 12, Math.PI * 0.62, Math.PI * 1.76, Math.PI / 3, Math.PI / 2.2]} />
               </mesh>
               <RoundedBox args={[0.5, 0.5, 0.14]} radius={0.06} position={[0, 0.02, -0.2]} material={hair} castShadow />
             </>
@@ -96,11 +99,11 @@ function Face({ look }: { look: Look }) {
         <group position={[0, 0.3, 0.365]}>
           {[-0.105, 0.105].map((x) => (
             <mesh key={x} position={[x, 0, 0]} material={std('#222', 0.3, 0.5)}>
-              <torusGeometry args={[0.062, 0.011, 6, 20]} />
+              <SharedGeometry kind="torus" args={[0.062, 0.011, 6, 20]} />
             </mesh>
           ))}
           <mesh material={std('#222', 0.3, 0.5)}>
-            <boxGeometry args={[0.08, 0.012, 0.012]} />
+            <SharedGeometry kind="box" args={[0.08, 0.012, 0.012]} />
           </mesh>
         </group>
       )}
@@ -110,7 +113,7 @@ function Face({ look }: { look: Look }) {
             <RoundedBox key={x} args={[0.15, 0.08, 0.02]} radius={0.02} position={[x, 0, 0]} material={std('#111', 0.1, 0.8)} />
           ))}
           <mesh material={std('#111', 0.2)}>
-            <boxGeometry args={[0.08, 0.015, 0.012]} />
+            <SharedGeometry kind="box" args={[0.08, 0.015, 0.012]} />
           </mesh>
         </group>
       )}
@@ -118,7 +121,7 @@ function Face({ look }: { look: Look }) {
   );
 }
 
-export const Character = forwardRef<Rig, { look: Look; scale?: number }>(function Character({ look, scale = 1 }, ref) {
+const CharacterRig = forwardRef<Rig, { look: Look; scale?: number }>(function Character({ look, scale = 1 }, ref) {
   const root = useRef<THREE.Group>(null!);
   const body = useRef<THREE.Group>(null!);
   const torso = useRef<THREE.Group>(null!);
@@ -164,7 +167,7 @@ export const Character = forwardRef<Rig, { look: Look; scale?: number }>(functio
         ).map(([x, r]) => (
           <group key={x} ref={r} position={[x, HIP_Y, 0]}>
             <mesh position={[0, -0.17, 0]} material={m.pants} castShadow>
-              <capsuleGeometry args={[0.078, 0.2, 4, 10]} />
+              <SharedGeometry kind="capsule" args={[0.078, 0.2, 4, 10]} />
             </mesh>
             <RoundedBox args={[0.15, 0.08, 0.22]} radius={0.035} position={[0, -0.35, 0.04]} material={m.shoe} castShadow />
           </group>
@@ -172,36 +175,36 @@ export const Character = forwardRef<Rig, { look: Look; scale?: number }>(functio
         {/* 躯干 */}
         <group ref={torso} position={[0, HIP_Y, 0]}>
           <mesh position={[0, 0.03, 0]} material={m.pants} castShadow>
-            <cylinderGeometry args={[0.19, 0.19, 0.12, 20]} />
+            <SharedGeometry kind="cylinder" args={[0.19, 0.19, 0.12, 20]} />
           </mesh>
           <mesh position={[0, 0.25, 0]} material={m.shirt} castShadow>
-            <capsuleGeometry args={[0.2, 0.16, 6, 20]} />
+            <SharedGeometry kind="capsule" args={[0.2, 0.16, 6, 20]} />
           </mesh>
           {/* 领口 */}
           <mesh position={[0, 0.45, 0.02]} material={m.skin}>
-            <cylinderGeometry args={[0.07, 0.08, 0.06, 12]} />
+            <SharedGeometry kind="cylinder" args={[0.07, 0.08, 0.06, 12]} />
           </mesh>
           {look.accessory === 'tie' && (
             <group position={[0, 0.3, 0.19]}>
               <mesh position={[0, 0.1, 0]} material={std('#c0392b', 0.5)}>
-                <boxGeometry args={[0.06, 0.05, 0.03]} />
+                <SharedGeometry kind="box" args={[0.06, 0.05, 0.03]} />
               </mesh>
               <mesh position={[0, -0.02, 0.01]} rotation-z={Math.PI / 4} material={std('#c0392b', 0.5)}>
-                <boxGeometry args={[0.07, 0.07, 0.02]} />
+                <SharedGeometry kind="box" args={[0.07, 0.07, 0.02]} />
               </mesh>
               <mesh position={[0, 0.03, 0.005]} material={std('#c0392b', 0.5)}>
-                <boxGeometry args={[0.05, 0.14, 0.02]} />
+                <SharedGeometry kind="box" args={[0.05, 0.14, 0.02]} />
               </mesh>
             </group>
           )}
           {look.accessory === 'scarf' && (
             <mesh position={[0, 0.43, 0]} rotation-x={Math.PI / 2} material={std('#ffd166', 0.8)}>
-              <torusGeometry args={[0.13, 0.05, 8, 20]} />
+              <SharedGeometry kind="torus" args={[0.13, 0.05, 8, 20]} />
             </mesh>
           )}
           {/* 工牌 */}
           <mesh position={[0.08, 0.2, 0.2]} material={std('#91eeff', 0.4, 0.2, { emissive: '#38b9d1', emissiveIntensity: 0.45 })}>
-            <boxGeometry args={[0.07, 0.09, 0.01]} />
+            <SharedGeometry kind="box" args={[0.07, 0.09, 0.01]} />
           </mesh>
           {/* 手臂（肩部为枢轴） */}
           {(
@@ -212,62 +215,64 @@ export const Character = forwardRef<Rig, { look: Look; scale?: number }>(functio
           ).map(([x, r]) => (
             <group key={x} ref={r} position={[x, 0.4, 0]}>
               <mesh position={[0, -0.14, 0]} material={m.shirt} castShadow>
-                <capsuleGeometry args={[0.062, 0.17, 4, 10]} />
+                <SharedGeometry kind="capsule" args={[0.062, 0.17, 4, 10]} />
               </mesh>
               <mesh position={[0, -0.3, 0]} material={m.skin} castShadow>
-                <sphereGeometry args={[0.065, 12, 10]} />
+                <SharedGeometry kind="sphere" args={[0.065, 12, 10]} />
               </mesh>
             </group>
           ))}
           {/* 头 */}
           <group ref={head} position={[0, 0.46, 0]}>
-            <mesh position={[0, 0.3, 0]} material={m.skin} castShadow>
-              <sphereGeometry args={[0.3, 32, 24]} />
-            </mesh>
-            {[-0.3, 0.3].map((x) => (
-              <mesh key={x} position={[x, 0.29, 0]} material={m.skin}>
-                <sphereGeometry args={[0.06, 10, 8]} />
+            <StaticBatch>
+              <mesh position={[0, 0.3, 0]} material={m.skin} castShadow>
+                <SharedGeometry kind="sphere" args={[0.3, 32, 24]} />
               </mesh>
-            ))}
-            <Face look={look} />
-            <Hair look={look} />
-            {look.accessory === 'headset' && (
-              <group position={[0, 0.3, 0]}>
-                <mesh rotation-z={0} material={std('#2a2a33', 0.4)}>
-                  <torusGeometry args={[0.33, 0.02, 6, 24, Math.PI]} />
+              {[-0.3, 0.3].map((x) => (
+                <mesh key={x} position={[x, 0.29, 0]} material={m.skin}>
+                  <SharedGeometry kind="sphere" args={[0.06, 10, 8]} />
                 </mesh>
-                {[-0.33, 0.33].map((x) => (
-                  <mesh key={x} position={[x, 0, 0]} rotation-z={Math.PI / 2} material={std('#2a2a33', 0.4)}>
-                    <cylinderGeometry args={[0.07, 0.07, 0.05, 14]} />
+              ))}
+              <Face look={look} />
+              <Hair look={look} />
+              {look.accessory === 'headset' && (
+                <group position={[0, 0.3, 0]}>
+                  <mesh rotation-z={0} material={std('#2a2a33', 0.4)}>
+                    <SharedGeometry kind="torus" args={[0.33, 0.02, 6, 24, Math.PI]} />
                   </mesh>
-                ))}
-                <mesh position={[0.24, -0.12, 0.16]} rotation={[0, -0.6, 0.9]} material={std('#2a2a33', 0.4)}>
-                  <capsuleGeometry args={[0.012, 0.22, 4, 6]} />
-                </mesh>
-              </group>
-            )}
+                  {[-0.33, 0.33].map((x) => (
+                    <mesh key={x} position={[x, 0, 0]} rotation-z={Math.PI / 2} material={std('#2a2a33', 0.4)}>
+                      <SharedGeometry kind="cylinder" args={[0.07, 0.07, 0.05, 14]} />
+                    </mesh>
+                  ))}
+                  <mesh position={[0.24, -0.12, 0.16]} rotation={[0, -0.6, 0.9]} material={std('#2a2a33', 0.4)}>
+                    <SharedGeometry kind="capsule" args={[0.012, 0.22, 4, 6]} />
+                  </mesh>
+                </group>
+              )}
+            </StaticBatch>
           </group>
           {/* 纸箱：被挖角时抱在胸前 */}
           <group ref={box} position={[0, 0.32, 0.38]} visible={false} scale={1.15}>
             <mesh material={std('#c79a62', 0.9)} castShadow>
-              <boxGeometry args={[0.46, 0.3, 0.32]} />
+              <SharedGeometry kind="box" args={[0.46, 0.3, 0.32]} />
             </mesh>
             <mesh position={[0, 0.151, 0]} material={std('#b38550', 0.9)}>
-              <boxGeometry args={[0.47, 0.005, 0.06]} />
+              <SharedGeometry kind="box" args={[0.47, 0.005, 0.06]} />
             </mesh>
             {/* 箱子里的盆栽与相框 */}
             <mesh position={[-0.1, 0.2, 0]} material={std('#4f9a4a', 0.7)}>
-              <icosahedronGeometry args={[0.09, 1]} />
+              <SharedGeometry kind="icosahedron" args={[0.09, 1]} />
             </mesh>
             <mesh position={[0.12, 0.2, -0.04]} rotation-x={-0.3} material={std('#7a4e32', 0.5)}>
-              <boxGeometry args={[0.14, 0.16, 0.02]} />
+              <SharedGeometry kind="box" args={[0.14, 0.16, 0.02]} />
             </mesh>
           </group>
           {/* 公文包：签约入职时提在右手 */}
           <group ref={briefcase} position={[0.27, -0.12, 0.05]} visible={false}>
             <RoundedBox args={[0.08, 0.24, 0.32]} radius={0.02} material={std('#5a3420', 0.45)} castShadow />
             <mesh position={[0, 0.15, 0]} rotation-y={Math.PI / 2} material={std('#2a1a10', 0.4)}>
-              <torusGeometry args={[0.05, 0.012, 6, 12, Math.PI]} />
+              <SharedGeometry kind="torus" args={[0.05, 0.012, 6, 12, Math.PI]} />
             </mesh>
           </group>
         </group>
@@ -275,5 +280,7 @@ export const Character = forwardRef<Rig, { look: Look; scale?: number }>(functio
     </group>
   );
 });
+
+export const Character = memo(CharacterRig, (a, b) => (a.scale ?? 1) === (b.scale ?? 1) && shallow(a.look, b.look));
 
 export const CHAR = { HIP_Y };

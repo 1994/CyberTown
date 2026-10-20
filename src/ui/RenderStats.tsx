@@ -10,6 +10,7 @@ export function RenderStats() {
     {sample ? <>
       {sample.fps} FPS · DPR {sample.dpr.toFixed(2)}<br/>
       中位 {sample.medianMs}ms · P95 {sample.p95Ms}ms<br/>
+      CPU {sample.cpuMs}ms · P95 {sample.p95CpuMs}ms<br/>
       {sample.calls} draws · {Math.round(sample.triangles / 1000)}k triangles<br/>
       {sample.geometries} geometries · {sample.textures} textures
     </> : '性能采样中…'}

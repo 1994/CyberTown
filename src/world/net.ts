@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { api, ApiError } from '../api.ts';
 import type { WorldPlayer } from '../../shared/types.ts';
 import { resetRuntime, rt, useWorld } from './runtime.ts';
+import { movementPacketDue } from './netBudget.ts';
 
 /** 远端玩家：把服务端最新坐标设为插值目标（渲染时平滑追随） */
 export function applyWorld(players: WorldPlayer[], serverTime?: number) {
@@ -38,7 +39,7 @@ let lastSentAt = 0;
 let lastSent = { x: NaN, z: NaN, moving: false };
 
 /**
- * 位置上报：移动中 5Hz，停下时立即发一次 moving:false，静止时 1Hz 心跳。
+ * 位置上报：移动中 5Hz，停下立即上报，静止时每5秒心跳；隐藏后只补停步包。
  * 同一时间只有一个请求在途；429 退避；400/409 以服务端位置平滑纠正。
  */
 export function useWorldNet(myId: string | null) {
@@ -70,17 +71,18 @@ export function useWorldNet(myId: string | null) {
       const now = performance.now();
       if (now < backoffUntil) return;
       const m = rt.me;
-      const moved = Math.hypot(m.x - lastSent.x, m.z - lastSent.z) > 0.02 || Number.isNaN(lastSent.x);
-      const due =
-        (m.moving && now - lastSentAt >= 200) || (!m.moving && lastSent.moving) || (!m.moving && moved && now - lastSentAt >= 200) || now - lastSentAt >= 1000;
+      const due = movementPacketDue(now, lastSentAt, m, lastSent, document.hidden);
       if (!due) return;
       inFlight = true;
-      const payload = { x: round(m.x), z: round(m.z), yaw: round(m.yaw), moving: m.moving };
+      const previousSent = lastSent;
+      const payload = { x: round(m.x), z: round(m.z), yaw: round(m.yaw), moving: !document.hidden && m.moving };
       lastSentAt = now;
-      lastSent = { x: m.x, z: m.z, moving: m.moving };
+      lastSent = { x: m.x, z: m.z, moving: payload.moving };
       try {
         await api.move(payload);
       } catch (e) {
+        if (!alive) return;
+        lastSent = previousSent; // Retry a failed stop, including while hidden.
         if (e instanceof ApiError) {
           if (e.status === 429) backoffUntil = performance.now() + 500;
           else if (e.status === 400 || e.status === 409) {

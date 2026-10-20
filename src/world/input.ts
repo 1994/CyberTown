@@ -19,6 +19,8 @@ export function movementLocked(): boolean {
 export function clearKeys() {
   rt.keys.clear();
   rt.joy = { x: 0, z: 0 };
+  rt.me.moving = false;
+  rt.path = null;
 }
 
 /**

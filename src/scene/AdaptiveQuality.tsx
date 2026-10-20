@@ -29,7 +29,7 @@ export function AdaptiveQuality({ paused }: { paused: boolean }) {
     if (now - sample.since < 2000 || sample.frames.length < 10) return;
     sample.frames.sort((a, b) => a - b);
     const current = useRenderQuality.getState();
-    const next = nextRenderBudget(current.tier, sample.trend, sample.frames[Math.floor(sample.frames.length / 2)]);
+    const next = nextRenderBudget(current.tier, sample.trend, sample.frames[Math.floor(sample.frames.length / 2)], sample.frames[Math.floor((sample.frames.length - 1) * 0.95)]);
     sample.trend = next.trend;
     sample.frames = [];
     sample.since = now;

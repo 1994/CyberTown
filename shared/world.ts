@@ -1,5 +1,6 @@
 // 园区地图：区域、出生点、碰撞体与寻路（前端使用；数值与 /api/world 的边界一致）。
 // 坐标单位米，x 向东（右），z 向南（朝向默认镜头）。原办公室位于中心 [-8.5,8.5]×[-6,6]。
+import { createCollisionIndex } from './collision.ts';
 
 export const WORLD_BOUNDS = { minX: -30, maxX: 30, minZ: -22, maxZ: 22 };
 export const PLAYER_RADIUS = 0.36;
@@ -263,29 +264,9 @@ export const PATHS: Box[] = [
 
 // ───────────────────────── 碰撞与寻路 ─────────────────────────
 
+const collisionAt = createCollisionIndex(WORLD_BOUNDS, BOXES, CIRCLES);
 export function blockedAt(x: number, z: number, r = PLAYER_RADIUS): boolean {
-  const b = WORLD_BOUNDS;
-  if (
-    x < b.minX + 0.6 ||
-    x > b.maxX - 0.6 ||
-    z < b.minZ + 0.6 ||
-    z > b.maxZ - 0.6
-  )
-    return true;
-  for (const o of BOXES) {
-    const cx = Math.max(o.minX, Math.min(x, o.maxX));
-    const cz = Math.max(o.minZ, Math.min(z, o.maxZ));
-    const dx = x - cx;
-    const dz = z - cz;
-    if (dx * dx + dz * dz < r * r) return true;
-  }
-  for (const c of CIRCLES) {
-    const dx = x - c.x;
-    const dz = z - c.z;
-    const rr = c.r + r;
-    if (dx * dx + dz * dz < rr * rr) return true;
-  }
-  return false;
+  return collisionAt(x, z, r);
 }
 
 /** 带滑墙的移动：先整体位移，受阻则分别尝试 x / z 轴 */

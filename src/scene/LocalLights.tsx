@@ -4,6 +4,7 @@ import type { ThreeElements } from '@react-three/fiber';
 import * as THREE from 'three';
 
 import { LOCAL_LIGHT_CAPACITY, stableLightSlots } from './lightBudget.ts';
+import { PERF_ENABLED, renderCounters } from '../performance.ts';
 
 const sources = new Set<THREE.PointLight>();
 
@@ -26,10 +27,12 @@ export function LocalLightPool() {
   const selected = useRef<(THREE.PointLight | undefined)[]>([]);
   const nextPick = useRef(0);
   const vectors = useMemo(() => ({ focus: new THREE.Vector3(), direction: new THREE.Vector3(), position: new THREE.Vector3() }), []);
-  useFrame(({ camera, clock }) => {
+  useFrame(({ camera }) => {
     const { focus, direction, position } = vectors;
-    if (clock.elapsedTime >= nextPick.current) {
-      nextPick.current = clock.elapsedTime + 0.15;
+    const now = performance.now();
+    if (now >= nextPick.current) {
+      nextPick.current = now + 150;
+      if (PERF_ENABLED) renderCounters.lightSelections++;
       camera.getWorldDirection(direction);
       const distance = direction.y < -0.05 ? (1 - camera.position.y) / direction.y : 18;
       focus.copy(camera.position).addScaledVector(direction, Math.max(0, distance));

@@ -1,5 +1,8 @@
 import { sound } from '../audio.ts';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import type { RefObject } from 'react';
+import { animateBelt, BELT_ZONE as ZONE } from './beltAnimation.ts';
+import { PERF_ENABLED } from '../performance.ts';
 import {
   MIN_ACTION_GAP_MS,
   TASK_META,
@@ -54,8 +57,20 @@ const ARCADE = {
 
 type Stage = 'brief' | 'starting' | 'playing' | 'settling' | 'result' | 'error';
 
-/** 光圈范围（任务生命周期的比例），落在服务端接受的 [spawnAt, spawnAt+ttl] 之内 */
-const ZONE = [0.58, 0.97] as const;
+/** Mount card contents once; frame motion updates only their compositor transform. */
+const BeltTask = memo(function BeltTask({ task, nodes }: { task: ProjectTask; nodes: RefObject<Map<number, HTMLSpanElement>> }) {
+  const ref = useCallback((node: HTMLSpanElement | null) => {
+    if (node) nodes.current.set(task.id, node);
+    else nodes.current.delete(task.id);
+  }, [nodes, task.id]);
+  const meta = ARCADE[task.kind];
+  const Icon = meta.Icon;
+  return <span ref={ref} className={`belt-item ${task.kind === 'trap' ? 'trap' : ''}`}
+    style={{ left: 0, display: 'none', transition: 'none', '--c': TASK_META[task.kind].color } as React.CSSProperties}
+    data-testid={`task-${task.kind}`} data-in-zone="0" aria-label={meta.name}>
+    <Icon size={35} strokeWidth={1.8} /><small>{meta.name}</small>
+  </span>;
+});
 
 interface Live {
   combo: number;
@@ -104,10 +119,17 @@ function ProjectPanel({ onClose }: { onClose: () => void }) {
   const [flash, setFlash] = useState(0);
   const actions = useRef<ProjectAction[]>([]);
   const panel = useRef<HTMLDivElement>(null);
+  const belt = useRef<HTMLDivElement>(null);
+  const taskNodes = useRef(new Map<number, HTMLSpanElement>());
+  const beltWidth = useRef(0);
   const done = useRef(new Set<number>());
   const missed = useRef(new Set<number>());
   const liveRef = useRef(live);
   liveRef.current = live;
+  const updateLive = useCallback((next: Live) => {
+    liveRef.current = next;
+    setLive(next);
+  }, []);
   const popSeq = useRef(1);
   const lastSecond = useRef(-1);
   const sk = snap.projectSkills;
@@ -176,7 +198,7 @@ function ProjectPanel({ onClose }: { onClose: () => void }) {
       if (audible) sound.play('miss');
       pop(label, 'bad');
     }
-    setLive(l);
+    updateLive(l);
   };
 
   const begin = useCallback((r: ProjectRunView) => {
@@ -185,7 +207,7 @@ function ProjectPanel({ onClose }: { onClose: () => void }) {
     actions.current = saved ? (JSON.parse(saved) as ProjectAction[]) : [];
     done.current = new Set(actions.current.map((a) => a.taskId));
     missed.current = new Set();
-    setLive({
+    updateLive({
       combo: 0,
       maxCombo: 0,
       score: 0,
@@ -197,9 +219,10 @@ function ProjectPanel({ onClose }: { onClose: () => void }) {
     setGrowth(0);
     setError(null);
     lastSecond.current = -1;
+    setNow(0);
     setStage('playing');
     sound.play('start');
-  }, []);
+  }, [updateLive]);
 
   const settle = useCallback(
     async (r: ProjectRunView) => {
@@ -263,13 +286,36 @@ function ProjectPanel({ onClose }: { onClose: () => void }) {
     }
   };
 
-  // 游戏循环：推进时间、判定漏掉
+  useLayoutEffect(() => {
+    const element = belt.current;
+    if (!element) return;
+    const measure = () => { beltWidth.current = element.clientWidth; };
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, [stage, run]);
+
+  // Motion and input retain frame-precise server time. React only updates the
+  // visible timer at 10Hz, plus actual catches/misses, instead of every frame.
   useEffect(() => {
     if (stage !== 'playing' || !run) return;
     let raf = 0;
+    let publishedAt = -Infinity;
+    let animationFrames = 0;
+    let clockUpdates = 0;
     const loop = () => {
       const t = serverNow() - run.startedAt;
-      setNow(t);
+      animateBelt(taskNodes.current, tasks, done.current, t, beltWidth.current);
+      animationFrames++;
+      if (t - publishedAt >= 100 || t >= run.durationMs) {
+        publishedAt = t;
+        setNow(t);
+        if (PERF_ENABLED && panel.current) {
+          panel.current.dataset.animationFrames = String(animationFrames);
+          panel.current.dataset.clockUpdates = String(++clockUpdates);
+        }
+      }
       const second = Math.ceil((run.durationMs - t) / 1000);
       if (second > 0 && second <= 3 && second !== lastSecond.current) {
         lastSecond.current = second;
@@ -340,9 +386,9 @@ function ProjectPanel({ onClose }: { onClose: () => void }) {
     l.maxCombo = Math.max(l.maxCombo, l.combo);
     const pts = pointsForCombo(l.combo);
     l.score += pts;
-    setLive(l);
+    updateLive(l);
     pop(`+${pts}${l.combo > 1 ? ` 连击×${l.combo}` : ''}`, 'good');
-  }, [run, stage, tasks]);
+  }, [run, stage, tasks, updateLive]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -363,10 +409,6 @@ function ProjectPanel({ onClose }: { onClose: () => void }) {
   });
 
   const remaining = run ? Math.max(0, run.durationMs - now) : 0;
-  const visible = tasks.filter(
-    (k) =>
-      now >= k.spawnAt && now <= k.spawnAt + k.ttl && !done.current.has(k.id),
-  );
   const preview = Math.floor(
     (live.score * (100 + (run?.skills.incomePct ?? 0))) / 100,
   );
@@ -481,7 +523,7 @@ function ProjectPanel({ onClose }: { onClose: () => void }) {
               {fmt(preview)}
             </span>
           </div>
-          <div className="belt" onPointerDown={act} data-testid="project-belt">
+          <div ref={belt} className="belt" onPointerDown={act} data-testid="project-belt">
             <div className="belt-lines" />
             <div
               className="belt-zone"
@@ -493,30 +535,7 @@ function ProjectPanel({ onClose }: { onClose: () => void }) {
             >
               <span>接住区</span>
             </div>
-            {visible.map((k) => {
-              const p = (now - k.spawnAt) / k.ttl;
-              const inZone = p >= ZONE[0] && p <= ZONE[1];
-              const meta = ARCADE[k.kind];
-              const Icon = meta.Icon;
-              return (
-                <span
-                  key={k.id}
-                  className={`belt-item ${k.kind === 'trap' ? 'trap' : ''} ${inZone ? 'in' : ''}`}
-                  style={
-                    {
-                      left: `${p * 100}%`,
-                      '--c': TASK_META[k.kind].color,
-                    } as React.CSSProperties
-                  }
-                  data-testid={`task-${k.kind}`}
-                  data-in-zone={inZone ? '1' : '0'}
-                  aria-label={meta.name}
-                >
-                  <Icon size={35} strokeWidth={1.8} />
-                  <small>{meta.name}</small>
-                </span>
-              );
-            })}
+            {tasks.map(task => <BeltTask key={task.id} task={task} nodes={taskNodes} />)}
             {pops.map((p) => (
               <span key={p.id} className={`pg-pop ${p.tone}`}>
                 {p.text}
