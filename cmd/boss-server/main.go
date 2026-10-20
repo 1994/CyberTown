@@ -69,6 +69,11 @@ func main() {
 	app := backend.NewApp(game, backend.Options{StaticDir: *static, AllowReset: os.Getenv("ALLOW_DEMO_RESET") == "1"})
 	defer app.Close()
 	server := &http.Server{Addr: net.JoinHostPort(*host, *port), Handler: app, ReadHeaderTimeout: 5 * time.Second, IdleTimeout: 60 * time.Second, MaxHeaderBytes: 16 * 1024}
+	listener, err := net.Listen("tcp", server.Addr)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer listener.Close()
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, os.Interrupt, syscall.SIGTERM)
 	go func() {
@@ -78,8 +83,10 @@ func main() {
 		defer cancel()
 		_ = server.Shutdown(ctx)
 	}()
-	fmt.Printf("🏢 今天老板给我打工 · Go 服务\nhttp://%s:%s\n数据库: %s\n测试身份 Demo（非真实SSO）\n", *host, *port, *db)
-	if err = server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+	fmt.Println("🏢 今天老板给我打工 · Go 服务已启动")
+	printAddresses(*host, fmt.Sprint(listener.Addr().(*net.TCPAddr).Port))
+	fmt.Printf("数据库: %s\n测试身份 Demo（非真实SSO）\n", *db)
+	if err = server.Serve(listener); err != nil && err != http.ErrServerClosed {
 		log.Fatal(err)
 	}
 }

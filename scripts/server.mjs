@@ -43,7 +43,12 @@ function addresses(state) {
   const host = state.host ?? new URL(state.url).hostname;
   const port = state.port ?? new URL(state.url).port;
   const binding = `监听地址：${host.includes(':') ? `[${host}]` : host}:${port}`;
-  if (host !== '0.0.0.0' && host !== '::') return `${binding}\n访问地址：${state.url}`;
+  if (host !== '0.0.0.0' && host !== '::') {
+    const lan = ['127.0.0.1', '::1', '[::1]', 'localhost'].includes(host)
+      ? '局域网访问：未开启（仅监听本机）。运行 make lan，或设置 HOST=0.0.0.0 后启动。'
+      : `局域网访问：${state.url}（需同一网络下可达）`;
+    return `${binding}\n访问地址：${state.url}\n${lan}`;
+  }
   const ips = [...new Set(Object.values(networkInterfaces()).flat()
     .filter((entry) => entry && !entry.internal && entry.family === 'IPv4')
     .map((entry) => entry.address))];
