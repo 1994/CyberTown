@@ -18,6 +18,7 @@ type Credentials struct {
 	Code        string `json:"code,omitempty"`
 	AccessToken string `json:"accessToken,omitempty"`
 	RedirectURI string `json:"redirectUri,omitempty"`
+	State       string `json:"state,omitempty"`
 	PlayerID    string `json:"playerId,omitempty"`
 }
 
@@ -38,6 +39,22 @@ type User struct {
 type Provider interface {
 	ID() string
 	Authenticate(ctx context.Context, credentials Credentials) (User, error)
+}
+
+// BrowserProvider optionally supplies the browser login flow. The core passes
+// only its configured callback URL. Implementations must generate and persist
+// one-use state/PKCE/nonce, then verify and consume them in Authenticate.
+// Neither company SDKs nor secrets belong in the frontend bundle.
+type BrowserProvider interface {
+	Provider
+	BeginLogin(ctx context.Context, callbackURL string) (BrowserLogin, error)
+}
+
+// State is also saved by the frontend in this browser tab and matched before
+// exchanging the callback code, in addition to the adapter's own validation.
+type BrowserLogin struct {
+	URL   string `json:"url"`
+	State string `json:"state"`
 }
 
 // ProviderFunc makes integration tests and small adapters easy to inject.

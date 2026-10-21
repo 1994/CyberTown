@@ -17,7 +17,7 @@
     "start": "go run ./cmd/boss-server",
     "seed": "go run ./cmd/boss-server --seed",
     "reset": "go run ./cmd/boss-server --reset",
-    "test": "go test ./... && npm run test:contract && npm run test:map && npm run test:collision && npm run test:render && npm run test:arcade && npm run test:audio",
+    "test": "npm run test:api && npm run test:web",
     "test:e2e": "npm run build && playwright test",
     "demo:record": "node --disable-warning=ExperimentalWarning scripts/record-demo.ts",
     "build:web": "tsc -b && vite build",
@@ -30,7 +30,11 @@
     "test:arcade": "node scripts/check-arcade.ts",
     "perf:cpu": "node scripts/benchmark-cpu.ts",
     "test:render": "node scripts/check-render-budget.ts",
-    "test:audio": "node scripts/check-audio.ts"
+    "test:audio": "node scripts/check-audio.ts",
+    "test:web": "npm run typecheck && npm run test:contract && npm run test:transport && npm run test:map && npm run test:collision && npm run test:render && npm run test:arcade && npm run test:audio",
+    "test:api": "go test ./...",
+    "test:transport": "node scripts/check-transport.ts",
+    "test:deployment": "node scripts/check-deployment.mjs"
   },
   "dependencies": {
     "@react-three/drei": "^10.7.9",

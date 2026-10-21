@@ -480,7 +480,7 @@ func TestStaticBoundary(t *testing.T) {
 	}
 }
 func TestRulesContract(t *testing.T) {
-	data, err := os.ReadFile("testdata/rules-contract.json")
+	data, err := os.ReadFile("../contracts/rules-contract.json")
 	if err != nil {
 		t.Fatal(err)
 	}

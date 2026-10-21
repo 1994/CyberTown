@@ -23,19 +23,20 @@ Demo 选择身份逻辑集中在 [backend/identity_demo.go](../backend/identity_
 
 ## 对接公司 SSO
 
-1. 在独立适配器包实现 `identity.Provider`，通过公司 SDK / HTTPS 端点验证凭证，返回已验证资料；游戏业务不用改。
-2. 在 [cmd/boss-server/main.go](../cmd/boss-server/main.go) 的组装处，用该实例替换 Demo/Mock provider 并注入：
+推荐在**内网私有Go module**实现适配器并通过公共 `server.Run(ctx, config, provider)` 组装，不修改公共 `cmd/boss-server/main.go`。完整模板和独立打包步骤见 [内网部署](DECOUPLED-DEVELOPMENT.md#内网私有接入)。
 
 ```go
-app := backend.NewApp(game, backend.Options{
-    StaticDir: "dist",
-    IdentityProvider: companyProvider, // 你的 identity.Provider 实例
-})
+config := server.ConfigFromEnv() // APP_ENV=production，独立正式DB_PATH
+err := server.Run(ctx, config, companyProvider)
 ```
 
-`nil` 明确表示保留 Demo，不能用作公司配置缺失/初始化失败时的降级。适配器初始化失败应停止启动。标准启动器目前只识别 `AUTH_MODE=demo|mock`，未知值直接报错，`AUTH_MODE=sso` 不会假装已经接入。
+`production`拒绝nil/demo/mock provider、演示重置和测试数据库；只创建虚构NPC，员工与分身来自实际SPI登录。标准测试启动器仍只识别 `AUTH_MODE=demo|mock`，未知值直接报错。
 
-3. 前端公司登录回调完成协议校验后，把凭证交给已有通用入口：
+基础SPI可继续使用code/accessToken。要让同一份前端自动支持网页公司登录，额外实现 `identity.BrowserProvider.BeginLogin(ctx, callbackURL)`，配置 `LOGIN_CALLBACK_URL=https://game.example.internal/?boss_auth=callback`。返回BrowserLogin{URL, State}，前端按标签页保存State后跳转，收到code/state并匹配本标签页后交由 `Authenticate` 验证；Credentials新增 `state` 字段。授权state/PKCE/nonce的生成、存储、核验与单次消费由适配器完成。公司的协议和密钥不进入前端或公共仓库。
+
+低层 `backend.NewApp` 的nil仍是兼容旧演示的显式Demo入口；正式部署使用 `server.New/Run` 的校验边界。
+
+不使用上述浏览器桥时，内网已有登录壳也可把已取得的凭证交给通用入口：
 
 ```ts
 import { useGame } from './store.ts';
@@ -43,13 +44,14 @@ import { useGame } from './store.ts';
 await useGame.getState().loginWithCredentials({
   code: verifiedCallbackCode,
   redirectUri: configuredCallbackURL,
+  state: verifiedCallbackState,
 });
 // 或使用 accessToken（取决于公司适配器支持什么）
 ```
 
-该入口负责换取本地会话、加载玩家并播放入场。也可使用底层 `api.authenticate(credentials)` 自行编排；上游 accessToken 不能直接当游戏 Bearer token。现有登录页仍负责 Demo 选人；公司登录跳转、回调路由与授权初始化须在确定公司协议后接入，当前没有预设 OIDC/SAML 流程。
+该入口负责换取本地会话、加载玩家并播放入场。也可使用底层 `api.authenticate(credentials)` 自行编排；上游 accessToken 不能直接当游戏 Bearer token。Demo模式显示测试选人，BrowserProvider模式显示通用公司登录入口；真实OIDC/SAML或其他协议仍由内网适配器实现。
 
-若使用 OIDC，签名、issuer、audience、有效期、授权码一次性消费、回调地址白名单，以及授权发起/回调时 state、nonce、PKCE 的校验由协议接入层完成；本 SPI 不替代这些流程。可信网关注入的身份可通过受控中间件 context 交给适配器，不能直接信任客户端同名 Header。会话仍沿用现有 Demo 生命周期：本地注销会删除 token 并关闭其 SSE；尚未实现 SSO 单点登出、停用用户即时撤销或会话过期策略。
+若使用 OIDC，签名、issuer、audience、有效期、授权码一次性消费、回调地址白名单，以及授权发起/回调时 state、nonce、PKCE 的校验由协议接入层完成；本 SPI 不替代这些流程。可信网关注入的身份可通过受控中间件 context 交给适配器，不能直接信任客户端同名 Header。会话仍沿用现有 Demo 生命周期：本地注销会删除 token 并关闭其 SSE；尚未实现 SSO 单点登出、停用用户即时撤销或会话过期策略。浏览器授权码流程的single-use校验由上述BrowserProvider适配器承担。
 
 ## 本地 Mock 联调
 

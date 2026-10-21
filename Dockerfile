@@ -11,6 +11,8 @@ COPY go.mod go.sum ./
 RUN go mod download
 COPY backend ./backend
 COPY cmd ./cmd
+COPY identity ./identity
+COPY server ./server
 RUN CGO_ENABLED=0 go build -trimpath -ldflags='-s -w' -o /boss-server ./cmd/boss-server
 
 FROM alpine:3.23

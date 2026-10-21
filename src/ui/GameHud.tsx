@@ -50,6 +50,7 @@ import {
 // ───────────────────── 右上：地图 + 菜单 ─────────────────────
 
 function MapPanel() {
+  const identityMode = useGame((s) => s.identityMode);
   const quality = useRenderQuality(s => s.quality);
   const cycleQuality = useRenderQuality(s => s.cycle);
   const overview = useWorld((s) => s.overview);
@@ -153,7 +154,7 @@ function MapPanel() {
             重播电影片头
           </button>
           <button onClick={() => void logout()} data-testid="btn-switch">
-            切换体验身份
+            {identityMode === 'demo' ? '切换体验身份' : '退出游戏账号'}
           </button>
         </nav>
       )}

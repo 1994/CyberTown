@@ -5,7 +5,7 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"github.com/1994/boss-works-for-me/backend"
+	"github.com/1994/boss-works-for-me/server"
 	"log"
 	"net"
 	"net/http"
@@ -46,21 +46,27 @@ func main() {
 	db := flag.String("db", env("DB_PATH", "data/boss.db"), "SQLite file")
 	host := flag.String("host", env("HOST", "0.0.0.0"), "listen address")
 	port := flag.String("port", env("PORT", "8787"), "listen port")
-	static := flag.String("static", env("STATIC_DIR", "dist"), "frontend directory")
+	static := flag.String("static", os.Getenv("STATIC_DIR"), "optional frontend directory; empty = API only")
 	reset := flag.Bool("reset", false, "reset only this demo database and exit")
 	seedOnly := flag.Bool("seed", false, "initialize demo data if absent and exit")
-	authMode := flag.String("auth", env("AUTH_MODE", "demo"), "identity provider: demo or mock; company SSO is injected via backend.Options")
+	authMode := flag.String("auth", env("AUTH_MODE", "demo"), "test identity: demo or mock; intranet uses a private server.Run entry")
 	mockFile := flag.String("mock-identities", env("MOCK_IDENTITIES_FILE", ""), "mock token-to-user JSON fixture file")
 	flag.Parse()
 	provider, err := identityProvider(*authMode, *mockFile)
 	if err != nil {
 		log.Fatal(err)
 	}
-	game, err := backend.Open(*db, nil)
+	config := server.ConfigFromEnv()
+	config.Host, config.Port, config.DatabasePath, config.StaticDir = *host, *port, *db, *static
+	if config.Environment == "production" && (*reset || *seedOnly) {
+		log.Fatal("production refuses demo reset/seed commands")
+	}
+	runtime, err := server.New(config, provider)
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer game.Close()
+	defer runtime.Close()
+	game := runtime.Game
 	if *reset {
 		if err = game.Reset(); err != nil {
 			log.Fatal(err)
@@ -72,9 +78,9 @@ func main() {
 		fmt.Println("演示数据已就绪（已有数据保留）")
 		return
 	}
-	app := backend.NewApp(game, backend.Options{StaticDir: *static, AllowReset: os.Getenv("ALLOW_DEMO_RESET") == "1", IdentityProvider: provider})
+	app := runtime.App
 	defer app.Close()
-	server := &http.Server{Addr: net.JoinHostPort(*host, *port), Handler: app, ReadHeaderTimeout: 5 * time.Second, IdleTimeout: 60 * time.Second, MaxHeaderBytes: 16 * 1024}
+	server := &http.Server{Addr: net.JoinHostPort(*host, *port), Handler: runtime.Handler, ReadHeaderTimeout: 5 * time.Second, IdleTimeout: 60 * time.Second, MaxHeaderBytes: 16 * 1024}
 	listener, err := net.Listen("tcp", server.Addr)
 	if err != nil {
 		log.Fatal(err)
@@ -98,7 +104,7 @@ func main() {
 			identityLabel += "（本地测试凭证，非真实 SSO）"
 		}
 	}
-	fmt.Printf("数据库: %s\n身份提供方: %s\n", *db, identityLabel)
+	fmt.Printf("环境: %s\n数据库: %s\n身份提供方: %s\n独立 API: %t\n", config.Environment, *db, identityLabel, *static == "")
 	if err = server.Serve(listener); err != nil && err != http.ErrServerClosed {
 		log.Fatal(err)
 	}

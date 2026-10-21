@@ -1,5 +1,7 @@
 # Go 服务端
 
+独立前后端构建、API-only启动、内网私有SPI组装、测试与正式数据隔离见 [解耦开发与部署](DECOUPLED-DEVELOPMENT.md)。
+
 由 Codex 负责实现。前端初版由本机 Claude Code 开发，本轮经用户授权由 Codex 接手续改。服务端采用 Go 标准库 `net/http`、`database/sql`、纯 Go 的 `modernc.org/sqlite` 和 SSE；没有 Node 运行时服务端。Node 仅用于前端构建和浏览器测试/录制脚本。
 
 ## 启动与构建

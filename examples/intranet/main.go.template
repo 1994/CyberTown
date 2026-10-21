@@ -1,0 +1,22 @@
+// Copy to a PRIVATE Go module inside the intranet. Never put credentials here.
+package main
+
+import (
+    "context"
+    "log"
+    "os"
+    "os/signal"
+    "syscall"
+    "github.com/1994/boss-works-for-me/server"
+    "your.company/boss-service/companyidentity" // your private SPI adapter
+)
+
+func main() {
+    config := server.ConfigFromEnv()
+    if config.Environment != "production" { log.Fatal("private entry requires APP_ENV=production") }
+    provider, err := companyidentity.NewFromEnv()
+    if err != nil { log.Fatal("company identity initialization failed") }
+    ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+    defer cancel()
+    if err := server.Run(ctx, config, provider); err != nil { log.Fatal(err) }
+}

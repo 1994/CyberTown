@@ -112,7 +112,7 @@ async function start() {
   });
   appendFileSync(logFile, `\n--- ${new Date().toISOString()} start ---\n`);
   const log = openSync(logFile, 'a');
-  const child = spawn(binary, [], { cwd: root, env, detached: true, stdio: ['ignore', log, log] });
+  const child = spawn(binary, ['--static', env.STATIC_DIR || 'dist'], { cwd: root, env, detached: true, stdio: ['ignore', log, log] });
   closeSync(log);
   let exited = false;
   child.on('exit', () => { exited = true; });

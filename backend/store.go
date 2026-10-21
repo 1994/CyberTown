@@ -6,6 +6,7 @@ import (
 	_ "embed"
 	"encoding/hex"
 	"encoding/json"
+	"fmt"
 	_ "modernc.org/sqlite"
 	"net/url"
 	"os"
@@ -25,8 +26,9 @@ type queryer interface {
 	QueryRow(string, ...any) *sql.Row
 }
 type Game struct {
-	DB  *sql.DB
-	Now func() int64
+	DB       *sql.DB
+	Now      func() int64
+	demoData bool
 }
 
 func randomID() string {
@@ -36,7 +38,17 @@ func randomID() string {
 	}
 	return hex.EncodeToString(b[:])
 }
+
+// Open preserves the local Demo API. Deployed services use OpenWithOptions.
 func Open(path string, clock func() int64) (*Game, error) {
+	return OpenWithOptions(path, clock, DatabaseOptions{DemoData: true})
+}
+
+// DatabaseOptions separates disposable fixtures from an intranet world.
+// DemoData=false seeds fictional NPCs only; employees are provisioned by the SPI.
+type DatabaseOptions struct{ DemoData bool }
+
+func OpenWithOptions(path string, clock func() int64, opts DatabaseOptions) (*Game, error) {
 	if clock == nil {
 		clock = func() int64 { return time.Now().UnixMilli() }
 	}
@@ -61,12 +73,12 @@ func Open(path string, clock func() int64) (*Game, error) {
 	// 单进程连接串行化；跨进程由 SQLite IMMEDIATE 写锁保证一致性。SSE 不持有数据库连接。
 	db.SetMaxOpenConns(1)
 	db.SetMaxIdleConns(1)
-	g := &Game{db, clock}
+	g := &Game{DB: db, Now: clock, demoData: opts.DemoData}
 	if _, err = db.Exec("PRAGMA journal_mode=WAL; PRAGMA synchronous=NORMAL;" + schema); err != nil {
 		db.Close()
 		return nil, err
 	}
-	if err = g.seed(false); err != nil {
+	if err = g.seed(false, opts.DemoData); err != nil {
 		db.Close()
 		return nil, err
 	}
@@ -84,16 +96,56 @@ func (g *Game) transaction(fn func(*sql.Tx) error) error {
 	}
 	return tx.Commit()
 }
-func (g *Game) Reset() error { return g.seed(true) }
-func (g *Game) seed(reset bool) error {
+func (g *Game) Reset() error {
+	if !g.demoData {
+		return fail(403, "FORBIDDEN", "正式数据不支持演示重置")
+	}
+	return g.seed(true, true)
+}
+func (g *Game) seed(reset, demo bool) error {
 	return g.transaction(func(tx *sql.Tx) error {
-		var count int
-		if err := tx.QueryRow("SELECT COUNT(*) FROM players").Scan(&count); err != nil {
+		var initialized int
+		if err := tx.QueryRow("SELECT COUNT(*) FROM meta WHERE key='version'").Scan(&initialized); err != nil {
 			return err
 		}
-		if count > 0 && !reset {
-			if err := ensureDemoBindings(tx); err != nil {
+		if initialized > 0 && !reset {
+			var dataset string
+			_ = tx.QueryRow("SELECT value FROM meta WHERE key='dataset'").Scan(&dataset)
+			if demo && dataset == "production" {
+				return fmt.Errorf("test environment refuses a production database; configure a separate DB_PATH")
+			}
+			if !demo {
+				var fixtures int
+				if err := tx.QueryRow("SELECT COUNT(*) FROM identity_bindings WHERE provider IN ('demo','mock')").Scan(&fixtures); err != nil {
+					return err
+				}
+				if fixtures > 0 || dataset == "test" {
+					return fmt.Errorf("production refuses a demo/mock database; configure a separate DB_PATH")
+				}
+				// Older pre-SPI databases have no provider binding or dataset tag.
+				ids, err := demoPlayerIDs()
+				if err != nil {
+					return err
+				}
+				for id := range ids {
+					if err := tx.QueryRow("SELECT COUNT(*) FROM players WHERE id=?", id).Scan(&fixtures); err != nil {
+						return err
+					}
+					if fixtures > 0 {
+						return fmt.Errorf("production refuses legacy demo players; configure a separate DB_PATH")
+					}
+				}
+			} else if err := ensureDemoBindings(tx); err != nil {
 				return err
+			}
+			if dataset == "" {
+				value := "production"
+				if demo {
+					value = "test"
+				}
+				if _, err := tx.Exec("INSERT INTO meta(key,value) VALUES('dataset',?)", value); err != nil {
+					return err
+				}
 			}
 			return ensureProgress(tx)
 		}
@@ -122,6 +174,9 @@ func (g *Game) seed(reset bool) error {
 		}
 		now := g.Now()
 		for _, p := range seed.Players {
+			if !demo {
+				continue
+			}
 			if _, err := tx.Exec("INSERT INTO players(id,name,title,color,coins,created_at) VALUES(?,?,?,?,?,?)", p.ID, p.Name, p.Title, p.Color, StartCoins, now); err != nil {
 				return err
 			}
@@ -130,6 +185,9 @@ func (g *Game) seed(reset bool) error {
 			}
 		}
 		for i, c := range seed.Colleagues {
+			if !demo && c.SelfPlayerID != nil {
+				continue
+			}
 			look, _ := json.Marshal(c.Look)
 			if _, err := tx.Exec("INSERT INTO colleagues(id,name,title,bio,look,skill_kind,skill_value,self_player_id,sort) VALUES(?,?,?,?,?,?,?,?,?)", c.ID, c.Name, c.Title, c.Bio, string(look), c.Skill.Kind, c.Skill.Value, c.SelfPlayerID, i); err != nil {
 				return err
@@ -141,7 +199,14 @@ func (g *Game) seed(reset bool) error {
 		if _, err := tx.Exec("INSERT INTO meta(key,value) VALUES('version','1')"); err != nil {
 			return err
 		}
-		if err := ensureDemoBindings(tx); err != nil {
+		dataset := "production"
+		if demo {
+			dataset = "test"
+			if err := ensureDemoBindings(tx); err != nil {
+				return err
+			}
+		}
+		if _, err := tx.Exec("INSERT INTO meta(key,value) VALUES('dataset',?)", dataset); err != nil {
 			return err
 		}
 		return ensureProgress(tx)

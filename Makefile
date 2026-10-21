@@ -1,6 +1,6 @@
 .DEFAULT_GOAL := up
 
-.PHONY: help check deps build up lan stop down restart status logs dev test test-auth perf perf-wasm
+.PHONY: test-deployment check-web check-api deps-web build-web build-api dev-web dev-api test-web test-api package-web package-api help check deps build up lan stop down restart status logs dev test test-auth perf perf-wasm
 
 help:
 	@printf '%s\n' \
@@ -16,13 +16,55 @@ help:
 	  'make test-auth 仅运行身份 SPI / Mock / 会话隔离测试，无需 Node' \
 	  'make perf     运行碰撞/寻路 CPU 基准（需要 npm ci）' \
 	  'make perf-wasm 编译可选 Rust/WASM 对照实验并跑基准' \
+	  'make dev-web / build-web / test-web  仅前端（只需 Node）' \
+	  'make dev-api / build-api / test-api  仅后端（只需 Go）' \
+	  'make test-deployment  隔离验证原有后台启动/停止控制器' \
+	  'make package-web / package-api  导出独立前端产物 / 后端源码包' \
 	  '配置：.env 或 HOST=0.0.0.0 PORT=9000 make up'
 
-check:
+check: check-web check-api
+
+check-web:
 	@command -v node >/dev/null || { echo '请先安装 Node.js 22.18+（含 npm）'; exit 1; }
 	@command -v npm >/dev/null || { echo '请先安装 npm'; exit 1; }
-	@command -v go >/dev/null || { echo '请先安装 Go 1.26+'; exit 1; }
 	@node -e 'const [major, minor] = process.versions.node.split(".").map(Number); if (major < 22 || (major === 22 && minor < 18)) { console.error("需要 Node.js 22.18+"); process.exit(1); }'
+
+check-api:
+	@command -v go >/dev/null || { echo '请先安装 Go 1.26+'; exit 1; }
+
+deps-web: check-web
+	npm ci
+
+build-web: deps-web
+	npm run build:web
+
+build-api: check-api
+	CGO_ENABLED=0 go build -trimpath -o bin/boss-server ./cmd/boss-server
+
+dev-web: deps-web
+	npm run dev:web
+
+# A separate fake-data DB; does not restart the make up service.
+dev-api: check-api
+	APP_ENV=test DB_PATH=$${DB_PATH:-data/boss-test.db} go run ./cmd/boss-server --static ''
+
+test-web: deps-web
+	npm run test:web
+
+test-api: check-api
+	go test ./...
+
+test-deployment: check
+	npm run test:deployment
+
+package-web: build-web
+	mkdir -p .run
+	tar -czf .run/boss-web.tar.gz -C dist .
+
+# Transfer this public core into the intranet; company adapters stay outside it.
+package-api: check-api
+	mkdir -p .run
+	tar -czf .run/boss-api-source.tar.gz go.mod go.sum backend cmd identity server contracts examples/intranet deploy/api docs/DECOUPLED-DEVELOPMENT.md docs/IDENTITY-SPI.md docs/BACKEND.md
 
 deps: check
 	npm ci

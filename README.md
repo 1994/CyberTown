@@ -10,6 +10,21 @@
 
 前端初版由本机 **Claude Code** 开发；用户授权后由 **Codex 接手续改本轮前端、实现Go服务端、验收并交付GitHub**。
 
+## 前后端独立开发与内网接入
+
+前端只需Node，后端只需Go。公网只连接假数据测试API；内网私有Go入口注入公司身份SPI，真实员工/密钥/数据库留在内网。相同前端产物通过 `runtime-config.json` 切换API，无需重新编译。
+
+```sh
+make dev-web   # 仅前端；API_PROXY_TARGET 指定测试API
+make dev-api   # 仅Go API；独立测试数据库
+make build-web # 静态前端产物
+make build-api # 测试API二进制
+make test-web  # 无需Go
+make test-api  # 无需Node
+```
+
+完整流程、内网私有入口模板、浏览器SSO扩展、运行时配置和独立容器见 [前后端解耦与内网部署](docs/DECOUPLED-DEVELOPMENT.md)。`make up/stop/lan` 保留原有本地一键演示。
+
 ## 立即运行
 
 需要 **Go 1.26+**、**Node.js 22.18+（含 npm）** 和 **Make**，支持 macOS / Linux。本机实际验证 Go 1.27.2、Node 25.9.0。
@@ -40,7 +55,7 @@ make status    # 再次查看本机地址和局域网地址
 
 启动后会打印 `局域网访问：http://192.168.x.x:8787` 等本机网卡地址，将适用的地址发给同一网络下的同事即可。各自选择不同测试身份，就能在同一个园区相遇、聊天和互动，API 与实时同步共用同一地址。手机也可以打开；低端设备可在地址后加 `?lowfx=1`。若显示多个地址，选择当前 Wi-Fi / 有线网卡的地址。设备间需能互访；访客 Wi-Fi 的客户端隔离会阻止联机，系统防火墙弹窗时需允许本服务接收入站连接。
 
-`make up`、`make lan`、`npm start` 和 `npm run start:binary` 都会显示访问地址，`make logs` 也能看到 Go 服务的地址列表。只绑定本机时会明确显示「局域网访问：未开启」；未检测到网卡或识别失败时会显示原因。更新 Go 二进制需先 `npm run build:server` 或执行 `make up`；`make restart` 仅运行已有构建。
+`make up`、`make lan`、`npm start` 和 `npm run start:binary` 都会显示API访问地址（默认API-only；传 `--static dist` 可托管已有前端），`make logs` 也能看到 Go 服务的地址列表。只绑定本机时会明确显示「局域网访问：未开启」；未检测到网卡或识别失败时会显示原因。更新 Go 二进制需先 `npm run build:server` 或执行 `make up`；`make restart` 仅运行已有构建。
 
 `make up`、`make restart` 和 Go 程序默认绑定 `0.0.0.0`。已有 `.env` 或环境变量中的 `HOST=127.0.0.1` 仍会限制为本机访问，请改为 `HOST=0.0.0.0`，或直接运行 `make lan` 强制开启局域网。只需本机访问时可用 `HOST=127.0.0.1 make up`。修改端口可用 `PORT=9000 make lan`；也可复制 `.env.example` 为 `.env` 后修改配置。数据库默认位于 `data/boss.db`，日志和 PID 位于 `.run/`，均不提交 Git。
 
@@ -55,9 +70,9 @@ make dev       # Go API 8787 + Vite 5173，支持 http://localhost:5173 或 http
 
 ```sh
 npm run build
-npm run start:binary
+npm run start:binary -- --static dist
 # 访问 http://127.0.0.1:8787
-# 也可运行编译产物：./bin/boss-server
+# 也可运行编译产物：./bin/boss-server --static dist
 ```
 
 使用现代桌面浏览器及 WebGL。优先为桌面1440×900设计，也提供390×844手机布局。默认「自动」画质保留霓虹泛光、人物面具与电影演出；右下角「更多菜单 → 画质」可循环切换自动、清晰、流畅，选择会保存在当前浏览器。自动模式在持续掉帧时逐级降低像素与阴影预算，稳定后缓慢恢复；片头、弹窗和后台页面不参与判断。商店、手机和小游戏打开时，背后的园区按约30帧刷新，关闭后恢复正常刷新；试衣间的人物独立渲染。低端设备仍可在URL加 `?lowfx=1` 关闭后期效果和阴影。开发排查可加 `?perf=1` 显示最近5秒的帧率、帧时间与整帧绘制统计，默认不启用采样。性能对照与验证见 [第二轮优化与WASM对照](docs/REVIEW-PERFORMANCE-V2.md)及[首轮记录](docs/REVIEW-PERFORMANCE.md)。`make perf` 可复测碰撞和寻路；`make perf-wasm` 是独立的可选Rust/WASM实验，不影响一键部署。

@@ -11,13 +11,13 @@ import type {
   WorldSnapshot,
 } from '../shared/types.ts';
 
-const TOKEN_KEY = 'boss.session';
+import { apiURL, sessionKey } from './runtime-config.ts';
 
 /** 会话 token 只存 sessionStorage（每个标签页/浏览器独立身份，刷新可继续）。游戏数据全部来自服务端。 */
 export const session = {
-  get: () => sessionStorage.getItem(TOKEN_KEY),
-  set: (t: string) => sessionStorage.setItem(TOKEN_KEY, t),
-  clear: () => sessionStorage.removeItem(TOKEN_KEY),
+  get: () => sessionStorage.getItem(sessionKey()),
+  set: (t: string) => sessionStorage.setItem(sessionKey(), t),
+  clear: () => sessionStorage.removeItem(sessionKey()),
 };
 
 export class ApiError extends Error {
@@ -45,7 +45,8 @@ async function call<T>(
   const token = session.get();
   let res: Response;
   try {
-    res = await fetch(path, {
+    res = await fetch(apiURL(path), {
+      credentials: 'omit',
       method,
       headers: {
         'content-type': 'application/json',
@@ -88,6 +89,7 @@ export interface LoginCredentials {
   code?: string;
   accessToken?: string;
   redirectUri?: string;
+  state?: string;
   playerId?: string; // 仅内置 Demo 适配器使用
 }
 
@@ -98,6 +100,8 @@ export const api = {
       notice: string;
       mode?: 'demo' | 'sso' | 'mock';
       provider?: string;
+      browserLogin?: boolean;
+      loginCallbackUrl?: string;
     }>('GET', '/api/identities'),
   login: (playerId: string) =>
     call<{ token: string; playerId: string }>('POST', '/api/auth/test-login', {
@@ -105,6 +109,7 @@ export const api = {
     }),
   authenticate: (credentials: LoginCredentials) =>
     call<{ token: string; playerId: string }>('POST', '/api/auth/login', credentials),
+  beginBrowserLogin: () => call<{ url: string; state: string }>('POST', '/api/auth/browser'),
   logout: () => call<{ ok: true }>('POST', '/api/logout'),
   state: () => call<StateSnapshot>('GET', '/api/state'),
   setAvatar: (avatarUrl: string) =>

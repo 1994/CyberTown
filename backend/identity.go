@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
+	"net/url"
 	"regexp"
 	"strings"
 	"time"
@@ -22,6 +23,22 @@ func (a *App) demoAuth() bool {
 	return ok
 }
 
+func (a *App) beginBrowserLogin(w http.ResponseWriter, r *http.Request) error {
+	p, ok := a.identityProvider.(identity.BrowserProvider)
+	if !ok || a.Options.LoginCallbackURL == "" {
+		return fail(404, "BROWSER_LOGIN_UNAVAILABLE", "未配置浏览器登录")
+	}
+	ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
+	defer cancel()
+	login, err := p.BeginLogin(ctx, a.Options.LoginCallbackURL)
+	u, parseErr := url.Parse(login.URL)
+	if err != nil || login.State == "" || ctx.Err() != nil || parseErr != nil || u.Host == "" || u.User != nil || (u.Scheme != "http" && u.Scheme != "https") {
+		return fail(503, "IDENTITY_UNAVAILABLE", "身份服务暂时不可用，请稍后重试")
+	}
+	respond(w, 200, login)
+	return nil
+}
+
 func (a *App) login(w http.ResponseWriter, r *http.Request) error {
 	body, err := readBody(w, r)
 	if err != nil {
@@ -31,6 +48,9 @@ func (a *App) login(w http.ResponseWriter, r *http.Request) error {
 	encoded, err := json.Marshal(body)
 	if err != nil || json.Unmarshal(encoded, &c) != nil {
 		return fail(400, "BAD_CREDENTIALS", "登录凭证格式无效")
+	}
+	if _, browser := a.identityProvider.(identity.BrowserProvider); browser && c.Code != "" && (a.Options.LoginCallbackURL == "" || c.RedirectURI != a.Options.LoginCallbackURL || c.State == "") {
+		return fail(400, "BAD_CALLBACK", "登录回调无效，请重新登录")
 	}
 	provider := a.identityProvider.ID()
 	if !providerIDPattern.MatchString(provider) || (!a.demoAuth() && provider == "demo") {

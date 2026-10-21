@@ -1,12 +1,14 @@
 import { useState } from 'react';
 import { useGame } from '../store.ts';
-import { ApiError } from '../api.ts';
+import { api, ApiError } from '../api.ts';
+import { rememberBrowserLogin } from '../auth/browser.ts';
 import { ArrowRight, Crown, Sparkles } from 'lucide-react';
 
 export function Login() {
   const identities = useGame((s) => s.identities);
   const identityMode = useGame((s) => s.identityMode);
   const identityNotice = useGame((s) => s.identityNotice);
+  const browserLogin = useGame((s) => s.browserLogin);
   const loginAs = useGame((s) => s.loginAs);
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -53,7 +55,7 @@ export function Login() {
               ? '本地 Mock 联调模式'
               : '请从已配置的身份认证入口进入园区'}
         </span>
-        <div className="identity-grid" role="group" aria-label="选择测试身份">
+        {identityMode === 'demo' && <div className="identity-grid" role="group" aria-label="选择测试身份">
           {identities.map((p) => (
             <button
               key={p.id}
@@ -70,7 +72,21 @@ export function Login() {
               <ArrowRight size={16} />
             </button>
           ))}
-        </div>
+        </div>}
+        {identityMode === 'sso' && browserLogin && (
+          <button className="btn primary" disabled={!!busy} onClick={() => {
+            setBusy('sso');
+            setError(null);
+            void api.beginBrowserLogin().then(({ url, state }) => {
+              const target = new URL(url);
+              if (!['https:', 'http:'].includes(target.protocol)) throw new Error('登录地址无效');
+              rememberBrowserLogin(state);
+              location.assign(target.href);
+            }).catch(() => { setError('暂时无法打开公司登录，请稍后重试'); setBusy(null); });
+          }} data-testid="company-login">
+            {busy === 'sso' ? '正在前往…' : '公司账号登录'}<ArrowRight size={16} />
+          </button>
+        )}
         {error && (
           <p className="form-error" role="alert">
             {error}

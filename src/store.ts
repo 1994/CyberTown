@@ -5,6 +5,7 @@ import { api, ApiError, session } from './api.ts';
 import type { Identity, LoginCredentials } from './api.ts';
 import { useWorld } from './world/runtime.ts';
 import { useCinema } from './scene/cinema.ts';
+import { takeBrowserCallback } from './auth/browser.ts';
 
 export type Phase = 'boot' | 'login' | 'game';
 export type Drawer =
@@ -42,6 +43,7 @@ interface GameStore {
   identities: Identity[];
   identityMode: 'demo' | 'sso' | 'mock';
   identityNotice: string;
+  browserLogin: boolean;
   snapshot: StateSnapshot | null;
   conn: 'connecting' | 'live' | 'offline';
   lastSyncAt: number;
@@ -95,6 +97,7 @@ interface GameStore {
   resumePhone: () => void;
 }
 
+let booting: Promise<void> | null = null;
 let toastSeq = 1;
 let refreshing: Promise<void> | null = null;
 let refreshAgain = false;
@@ -105,6 +108,7 @@ export const useGame = create<GameStore>((set, get) => ({
   identities: [],
   identityMode: 'demo',
   identityNotice: '',
+  browserLogin: false,
   snapshot: null,
   conn: 'connecting',
   lastSyncAt: 0,
@@ -136,30 +140,40 @@ export const useGame = create<GameStore>((set, get) => ({
   },
 
   async boot() {
-    set({ bootError: null });
-    try {
-      const { identities, mode, notice } = await api.identities();
-      set({ identities, identityMode: mode ?? 'demo', identityNotice: notice });
-      if (session.get()) {
-        try {
-          const snap = await api.state();
-          set({
-            snapshot: snap,
-            phase: 'game',
-            lastSyncAt: Date.now(),
-            clockOffset: snap.serverTime - Date.now(),
-          });
-          get().replayIntro();
+    if (booting) return booting;
+    booting = (async () => {
+      set({ bootError: null });
+      try {
+        const { identities, mode, notice, browserLogin, loginCallbackUrl } = await api.identities();
+        set({ identities, identityMode: mode ?? 'demo', identityNotice: notice, browserLogin: !!browserLogin });
+        const callback = takeBrowserCallback();
+        if (callback) {
+          if (callback.error || !browserLogin || !loginCallbackUrl || !callback.credentials) throw new Error(callback.error ?? '未配置公司登录回调');
+          await get().loginWithCredentials({ ...callback.credentials, redirectUri: loginCallbackUrl });
           return;
-        } catch (e) {
-          if (e instanceof ApiError && e.status === 401) session.clear();
-          else throw e;
         }
+        if (session.get()) {
+          try {
+            const snap = await api.state();
+            set({
+              snapshot: snap,
+              phase: 'game',
+              lastSyncAt: Date.now(),
+              clockOffset: snap.serverTime - Date.now(),
+            });
+            get().replayIntro();
+            return;
+          } catch (e) {
+            if (e instanceof ApiError && e.status === 401) session.clear();
+            else throw e;
+          }
+        }
+        set({ phase: 'login' });
+      } catch (e) {
+        set({ bootError: e instanceof Error ? e.message : String(e) });
       }
-      set({ phase: 'login' });
-    } catch (e) {
-      set({ bootError: e instanceof Error ? e.message : String(e) });
-    }
+    })();
+    try { await booting; } finally { booting = null; }
   },
 
   async loginAs(playerId) {

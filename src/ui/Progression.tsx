@@ -119,6 +119,7 @@ function Modal({
 
 export function WalletCard() {
   const snap = useGame((s) => s.snapshot)!;
+  const identityMode = useGame((s) => s.identityMode);
   const setDrawer = useGame((s) => s.setDrawer);
   const avatar = snap.colleagues.find(
     (c) => c.id === snap.me.avatarColleagueId,
@@ -135,7 +136,7 @@ export function WalletCard() {
         <span>
           <b>
             {snap.me.name}
-            <i className="demo-tag">体验身份</i>
+            {identityMode !== 'sso' && <i className="demo-tag">{identityMode === 'mock' ? 'Mock身份' : '体验身份'}</i>}
           </b>
           <small>
             <Crown size={12} />

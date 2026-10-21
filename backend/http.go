@@ -23,6 +23,7 @@ type Options struct {
 	AllowReset bool
 	// Nil selects the built-in Demo adapter. Inject company SSO or a mock here.
 	IdentityProvider identity.Provider
+	LoginCallbackURL string
 }
 type subscriber struct {
 	player, token string
@@ -160,12 +161,13 @@ func (a *App) handle(w http.ResponseWriter, r *http.Request) error {
 		return fail(503, "IDENTITY_UNAVAILABLE", "身份服务配置无效")
 	}
 	if path == "/api/identities" && method == "GET" {
+		_, browser := a.identityProvider.(identity.BrowserProvider)
 		if !a.demoAuth() {
 			mode, notice := "sso", "请通过公司身份服务登录"
 			if a.identityProvider.ID() == "mock" {
 				mode, notice = "mock", "本地 Mock 身份（非真实 SSO），请使用配置的测试凭证登录"
 			}
-			respond(w, 200, map[string]any{"identities": []Identity{}, "notice": notice, "provider": a.identityProvider.ID(), "mode": mode})
+			respond(w, 200, map[string]any{"identities": []Identity{}, "notice": notice, "provider": a.identityProvider.ID(), "mode": mode, "browserLogin": browser && a.Options.LoginCallbackURL != "", "loginCallbackUrl": a.Options.LoginCallbackURL})
 			return nil
 		}
 		ids, err := a.Game.demoIdentities()
@@ -177,6 +179,9 @@ func (a *App) handle(w http.ResponseWriter, r *http.Request) error {
 	}
 	if path == "/api/auth/login" && method == "POST" {
 		return a.login(w, r)
+	}
+	if path == "/api/auth/browser" && method == "POST" {
+		return a.beginBrowserLogin(w, r)
 	}
 	if path == "/api/auth/test-login" && method == "POST" {
 		if !a.demoAuth() {
@@ -428,7 +433,7 @@ func inside(root, path string) bool {
 }
 func (a *App) serveStatic(w http.ResponseWriter, r *http.Request) error {
 	if a.Options.StaticDir == "" {
-		return fail(404, "NOT_FOUND", "前端尚未构建，请运行 npm run build 或访问 Vite 开发地址")
+		return fail(404, "API_ONLY", "当前服务仅提供 API，请访问独立前端地址")
 	}
 	root, err := filepath.Abs(a.Options.StaticDir)
 	if err != nil {

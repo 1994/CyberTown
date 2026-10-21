@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { api, session } from './api.ts';
+import { apiURL } from './runtime-config.ts';
 import { useGame } from './store.ts';
 import type { GameEvent, WorldPlayer } from '../shared/types.ts';
 import { applyWorld } from './world/net.ts';
@@ -15,7 +16,7 @@ export function useRealtime(enabled: boolean) {
     if (!token) return;
     const { refresh, setConn, handleEvent } = useGame.getState();
     setConn('connecting');
-    const es = new EventSource(`/api/events?token=${encodeURIComponent(token)}`);
+    const es = new EventSource(apiURL(`/api/events?token=${encodeURIComponent(token)}`));
     let poll: number | null = null;
 
     es.onopen = () => {

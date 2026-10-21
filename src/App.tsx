@@ -41,7 +41,7 @@ export function App() {
           </div>
           {bootError ? (
             <div className="boot-error">
-              <p>连不上服务器：{bootError}</p>
+              <p>暂时无法进入：{bootError}</p>
               <button className="btn primary" onClick={() => void boot()}>
                 重试
               </button>
