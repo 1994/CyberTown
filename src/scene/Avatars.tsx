@@ -25,6 +25,7 @@ import { selectCrowd } from '../../shared/proximity.ts';
 import { Crowd } from './Crowd.tsx';
 import { renderCounters } from '../performance.ts';
 import { useTouchUi } from '../ui/useTouchUi.ts';
+import { updateNpcNavigation } from '../world/navigation.ts';
 export { walkNear } from '../world/navigation.ts';
 
 const PLAYER_SCALE = 1.25;
@@ -202,8 +203,10 @@ export function MePlayer({ myId }: { myId: string }) {
     let vz = 0;
     const { right, fwd } = inputVector();
     // 弹窗、聊天输入、抽屉、小游戏期间：键盘/摇杆/自动寻路全部停止
-    if (movementLocked()) rt.path = null;
+    if (movementLocked()) { rt.path = null; rt.npcNavigation = null; }
+    updateNpcNavigation(performance.now());
     if (right || fwd) {
+      rt.npcNavigation = null;
       // 相机坐标系 → 世界坐标：前 = 从相机指向目标的水平方向
       const yaw = rt.camYaw;
       const fx = -Math.sin(yaw);

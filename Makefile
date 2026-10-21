@@ -72,7 +72,7 @@ package-web: build-web
 # Transfer this public core into the intranet; company adapters stay outside it.
 package-api: check-api
 	mkdir -p .run
-	tar -czf .run/boss-api-source.tar.gz go.mod go.sum backend cmd identity server contracts examples/intranet examples/identity deploy/api docs/DECOUPLED-DEVELOPMENT.md docs/IDENTITY-SPI.md docs/BACKEND.md docs/REVIEW-PROXIMITY.md
+	tar -czf .run/boss-api-source.tar.gz go.mod go.sum backend cmd identity server contracts examples/intranet examples/identity deploy/api docs/DECOUPLED-DEVELOPMENT.md docs/IDENTITY-SPI.md docs/BACKEND.md docs/REVIEW-PROXIMITY.md docs/REVIEW-CAMPUS-EXPANSION.md
 
 deps: check
 	npm ci

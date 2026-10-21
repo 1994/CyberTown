@@ -21,6 +21,7 @@ export function clearKeys() {
   rt.joy = { x: 0, z: 0 };
   rt.me.moving = false;
   rt.path = null;
+  rt.npcNavigation = null;
 }
 
 /**
@@ -43,6 +44,7 @@ export function useWorldInput(enabled: boolean) {
         if (movementLocked()) return;
         rt.keys.add(e.code);
         rt.path = null;
+        rt.npcNavigation = null;
         rt.lastInputAt = performance.now();
         if (useWorld.getState().overview) useWorld.getState().setOverview(false);
         e.preventDefault();
@@ -57,6 +59,7 @@ export function useWorldInput(enabled: boolean) {
         e.preventDefault();
       } else if (e.code === 'Escape') {
         rt.path = null;
+        rt.npcNavigation = null;
         useWorld.getState().setOverview(false);
       } else if (e.code === 'KeyM') {
         useWorld.getState().setOverview(!useWorld.getState().overview);

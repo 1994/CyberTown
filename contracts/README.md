@@ -33,3 +33,5 @@ HTTP DTO 的前端声明在 `shared/types.ts`、`src/api.ts`；服务端实现�
 `rules-contract.json` 是36组跨语言计分样例，Go与TypeScript测试读取同一个文件。字段/规则变更应在两端兼容地一起提交，不能只改网页展示算法。未知JSON响应字段应被忽略以允许增量扩展；当前协议尚未提供并行多主版本升级。
 
 新版世界协议：`/events?world=2&token=...` 首包 `partial:false`，之后 `partial:true` 的players为upsert，removed为删除ID。每次重连或慢消费者合并会再次发送全量当前视野；不可把增量players当成完整在线名单。onlineCount为全园区人数，nearbyCount为26米内实际其他玩家数（不受64位位置订阅预算影响），GET /world为当前附近完整快照。距离方案与范围见 [验收说明](../docs/REVIEW-PROXIMITY.md)。
+
+`world-contract.json` 固定当前90×66米园区边界，Go世界接口测试与前端地图测试共同校验；扩图时须更新两端。街区建筑和长椅的绘制/碰撞来自 `shared/world.ts` 的共享空间数据。虚构NPC的散步由前端按服务端校时计算，仅用于未签约的两位NPC，不增加在线人数，不影响服务端资金与归属。

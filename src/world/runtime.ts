@@ -27,6 +27,7 @@ export const rt = {
   /** 自动寻路（点击地面 / 小地图 / 点击人物） */
   path: null as [number, number][] | null,
   /** 服务端拒绝移动时的纠正目标（平滑拉回） */
+  npcNavigation: null as { id: string; path: [number, number][]; nextAt: number } | null,
   correction: null as { x: number; z: number } | null,
   remote: new Map<string, Smooth>(),
   /** 每个在线玩家的足迹（最新在前），用于小队跟随 */
@@ -45,6 +46,7 @@ export function resetRuntime(myId: string) {
   const s = SPAWNS[myId] ?? [0, 11];
   rt.me = { x: s[0], z: s[1], yaw: Math.PI, moving: false };
   rt.path = null;
+  rt.npcNavigation = null;
   rt.correction = null;
   rt.remote.clear();
   rt.trails.clear();

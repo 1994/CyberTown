@@ -2,7 +2,7 @@
 // 坐标单位米，x 向东（右），z 向南（朝向默认镜头）。原办公室位于中心 [-8.5,8.5]×[-6,6]。
 import { createCollisionIndex } from './collision.ts';
 
-export const WORLD_BOUNDS = { minX: -30, maxX: 30, minZ: -22, maxZ: 22 };
+export const WORLD_BOUNDS = { minX: -45, maxX: 45, minZ: -33, maxZ: 33 };
 export const PLAYER_RADIUS = 0.36;
 export const WALK_SPEED = 4.2; // m/s（服务端有速度校验，前端不超过 4.6）
 export const INTERACT_RANGE = 2.6; // 与同事互动距离
@@ -23,6 +23,36 @@ export interface Zone {
   z: number;
   color: string;
 }
+
+/** Outer streets share authored footprints with the renderer and navigation. */
+export const STREET_BUILDINGS = [
+  { x: -39, z: -8, w: 8, d: 10, h: 5, color: '#ff4fb8', sign: '摸鱼夜市' },
+  { x: 39, z: -8, w: 8, d: 10, h: 5, color: '#3ef0ff', sign: '霓虹相馆' },
+  { x: -11, z: -28, w: 10, d: 6, h: 4, color: '#b18bff', sign: '准点下班' },
+  { x: 11, z: -28, w: 10, d: 6, h: 4, color: '#ffd166', sign: '天台放空' },
+];
+export const STREET_BENCHES: [number, number][] = [[-12, 28], [12, 28], [-39, 12], [39, 12]];
+/** Thin street furniture still blocks feet; shared lamp positions keep art aligned. */
+export const STREET_LAMP_POLES: Circle[] = (() => {
+  const poles: Circle[] = [];
+  const add = (x: number, z: number) => {
+    if (!STREET_BUILDINGS.some(b => Math.abs(x - b.x) < b.w / 2 + 0.6 && Math.abs(z - b.z) < b.d / 2 + 0.6)) poles.push({ x, z, r: 0.07 });
+  };
+  for (const z of [-18, -9, 9, 18]) for (const sign of [-1, 1]) add(sign * 35.6, z);
+  for (let x = -27; x <= 27; x += 9) for (const sign of [-1, 1]) add(x, sign * 26.6);
+  return poles;
+})();
+export const STREET_POLES: Circle[] = [
+  ...STREET_LAMP_POLES,
+  ...[-19, -16, 3, 6, 15, 18].flatMap(z => [-35.4, -30.6].map(x => ({ x, z, r: 0.05 }))),
+  ...[-35.5, -30.5].map(x => ({ x, z: 0, r: 0.08 })),
+  ...[-2.6, 2.6].map(x => ({ x, z: 21.5, r: 0.08 })),
+  ...[-3.4, 3.4].map(x => ({ x, z: -32.65, r: 0.12 })),
+  ...[-41, 41].flatMap(x => [-29.5, 29.5].map(z => ({ x, z, r: 0.15 }))),
+  ...[-20, -17, 2, 5, 16, 19].flatMap(z => [30.1, 35.9].map(x => ({ x, z, r: 0.06 }))),
+  ...Array.from({ length: 15 }, (_, i) => -28 + i * 4).filter(x => Math.abs(x) > 3).map(x => ({ x, z: 26.5, r: 0.07 })),
+];
+
 
 export const ZONES: Zone[] = [
   { id: 'plaza', name: '共享广场', icon: '⛲', x: 0, z: 12, color: '#ffd166' },
@@ -66,6 +96,10 @@ export const ZONES: Zone[] = [
     z: -13,
     color: '#9be26a',
   },
+  { id: 'nightmarket', name: '摸鱼夜市', icon: '🍜', x: -33, z: 0, color: '#ff4fb8' },
+  { id: 'rooftop', name: '天台步道', icon: '🌙', x: 0, z: -24, color: '#b18bff' },
+  { id: 'photo', name: '霓虹合影街', icon: '📸', x: 33, z: 0, color: '#3ef0ff' },
+  { id: 'promenade', name: '下班漫步道', icon: '🌆', x: 0, z: 24, color: '#ffd166' },
 ];
 
 /** 项目区里的「项目终端」：走过去按 E 也能接紧急项目 */
@@ -132,6 +166,9 @@ export const OFFICE_DOORS = {
 };
 
 export const BOXES: Box[] = [
+  ...STREET_BUILDINGS.map(b => centered(b.x, b.z, b.w, b.d)),
+  ...[1.1, 3.3].map(z => centered(38.4, z, 0.4, 0.3)), // 合影装置脚垫
+  ...STREET_BENCHES.map(([x, z]) => centered(x, z, 2, 0.6)),
   // ── 办公室 ──
   box(-8.6, OFFICE_DOORS.back.minX, -6.12, -5.88),
   box(OFFICE_DOORS.back.maxX, 3.9, -6.12, -5.88),
@@ -170,6 +207,7 @@ export const BOXES: Box[] = [
 ];
 
 export const CIRCLES: Circle[] = [
+  ...STREET_POLES,
   // 办公室
   { x: -5.1, z: 2.55, r: 1.8 }, // 会议桌+椅
   { x: -5.6, z: -3.35, r: 0.5 },
@@ -260,6 +298,15 @@ export const PATHS: Box[] = [
   box(-5.4, -3, -11.6, -6), // 办公室后门 → 人才街
   box(8.5, 16.6, -1.2, 1.2), // 办公室右侧 → 项目区
   box(-1.5, 1.5, 6, 9.8), // 办公室前门 → 广场
+  box(-35, -31, -24, 24), // 外环西街
+  box(31, 35, -24, 24), // 外环东街
+  box(-35, 35, -26, -22), // 外环北街（转角相接）
+  box(-35, 35, 22, 26), // 外环南街
+  box(-33, -29, 9.8, 12.6),
+  box(29, 33, 9.8, 12.6),
+  box(-18.4, -15.6, -24, -14.6),
+  box(16.6, 19.4, -24, -18),
+  box(-1.5, 1.5, 18.8, 24), // 广场 → 漫步道
 ];
 
 // ───────────────────────── 碰撞与寻路 ─────────────────────────

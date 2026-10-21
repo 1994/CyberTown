@@ -12,6 +12,9 @@ import (
 	"unicode/utf8"
 )
 
+// Campus extent is mirrored by shared/world.ts and checked by the map contract test.
+const worldMinX, worldMaxX, worldMinZ, worldMaxZ = -45, 45, -33, 33
+
 // World positions and expression bubbles are ephemeral. Wallet rewards and
 // pair cooldowns are transactional SQLite records, and survive restarts.
 type WorldPlayer struct {
@@ -86,7 +89,7 @@ func (a *App) moveWorld(id string, x, z, yaw float64, moving bool) (WorldPlayer,
 	a.mu.Lock()
 	defer a.mu.Unlock()
 	p := a.ensureWorldLocked(id)
-	if !finite(x) || !finite(z) || !finite(yaw) || x < -30 || x > 30 || z < -22 || z > 22 {
+	if !finite(x) || !finite(z) || !finite(yaw) || x < worldMinX || x > worldMaxX || z < worldMinZ || z > worldMaxZ {
 		return p, fail(400, "BAD_POSITION", "超出地图范围")
 	}
 	now := a.Game.Now()
@@ -199,7 +202,7 @@ func (a *App) handleWorld(w http.ResponseWriter, r *http.Request, id string) err
 		a.ensureWorldLocked(id)
 		players, onlineCount, nearbyCount := a.worldViewLocked(id, nil)
 		a.mu.Unlock()
-		respond(w, 200, map[string]any{"serverTime": a.Game.Now(), "bounds": map[string]int{"minX": -30, "maxX": 30, "minZ": -22, "maxZ": 22}, "players": players, "onlineCount": onlineCount, "nearbyCount": nearbyCount, "radius": worldRadius})
+		respond(w, 200, map[string]any{"serverTime": a.Game.Now(), "bounds": map[string]int{"minX": worldMinX, "maxX": worldMaxX, "minZ": worldMinZ, "maxZ": worldMaxZ}, "players": players, "onlineCount": onlineCount, "nearbyCount": nearbyCount, "radius": worldRadius})
 		return nil
 	}
 	if r.Method != "POST" {

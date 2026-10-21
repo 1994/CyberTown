@@ -4,7 +4,9 @@ import (
 	"bufio"
 	"encoding/json"
 	"net/http"
+	"os"
 	"path/filepath"
+	"reflect"
 	"strings"
 	"sync"
 	"testing"
@@ -119,8 +121,8 @@ func TestWorldRejectsInvalidAndFastInputs(t *testing.T) {
 	e.call(t, "/api/world", token, nil)
 	e.clock.Add(200)
 	for _, move := range []map[string]any{
-		{"x": 31, "z": 11, "yaw": 0, "moving": true},
-		{"x": 0, "z": -23, "yaw": 0, "moving": true},
+		{"x": 46, "z": 11, "yaw": 0, "moving": true},
+		{"x": 0, "z": -34, "yaw": 0, "moving": true},
 		{"x": nil, "z": 11, "yaw": 0, "moving": true},
 		{"x": 0, "z": 11, "yaw": 0},
 	} {
@@ -214,4 +216,38 @@ func TestHighfiveConcurrentAndRestartPersistence(t *testing.T) {
 		t.Fatal(snap.Me.Coins)
 	}
 	checkAudit(t, g)
+}
+
+// The separately packaged API and web must agree on the expanded campus.
+func TestCampusBoundsContractAndOuterStreetMovement(t *testing.T) {
+	data, err := os.ReadFile("../contracts/world-contract.json")
+	if err != nil {
+		t.Fatal(err)
+	}
+	var contract struct {
+		Bounds map[string]int `json:"bounds"`
+	}
+	if err = json.Unmarshal(data, &contract); err != nil {
+		t.Fatal(err)
+	}
+	e := setup(t)
+	token := e.login(t, "wang")
+	status, body := e.call(t, "/api/world", token, nil)
+	assertCode(t, status, body, 200, "")
+	var bounds map[string]int
+	if err = json.Unmarshal(body["bounds"], &bounds); err != nil {
+		t.Fatal(err)
+	}
+	if !reflect.DeepEqual(bounds, contract.Bounds) {
+		t.Fatalf("API bounds drift: %v != %v", bounds, contract.Bounds)
+	}
+	// Ordinary legal-speed movement reaches beyond the original 30m edge.
+	for x := 5.0; x <= 40; x += 5 {
+		e.clock.Add(1000)
+		status, body = e.call(t, "/api/world/move", token, map[string]any{"x": x, "z": 11, "yaw": 1.57, "moving": true})
+		assertCode(t, status, body, 200, "")
+	}
+	e.clock.Add(1000)
+	status, body = e.call(t, "/api/world/move", token, map[string]any{"x": 46, "z": 11, "yaw": 0, "moving": true})
+	assertCode(t, status, body, 400, "BAD_POSITION")
 }

@@ -101,7 +101,7 @@ Content-Type: application/json
 
 ## 多人园区接口
 
-全部需要 Bearer 游戏会话。`GET /api/world` 返回 `serverTime`、地图边界、当前附近 `players` 与全园区 `onlineCount`、物理附近 `nearbyCount`，包含自己用于位置恢复。其他人物只包含持有SSE连接的在线身份，26米进入、30米离开，最多64位其他玩家，其中优先保留明确定位的联系人。位置为进程内临时状态，重启回广场，金币和队伍保留。相同身份的多个标签页共享同一世界人物。
+全部需要 Bearer 游戏会话。`GET /api/world` 返回 `serverTime`、地图边界（x±45、z±33）、当前附近 `players` 与全园区 `onlineCount`、物理附近 `nearbyCount`，包含自己用于位置恢复。其他人物只包含持有SSE连接的在线身份，26米进入、30米离开，最多64位其他玩家，其中优先保留明确定位的联系人。位置为进程内临时状态，重启回广场，金币和队伍保留。相同身份的多个标签页共享同一世界人物。
 
 - `POST /api/world/focus`：`{targetId}`，对在线联系人进行显式定位并保留60秒，返回 `{player,serverTime}`，供视野外联系人导航。
 - `POST /api/world/move`：`{x,z,yaw,moving}`，前端移动中5Hz、静止每5秒心跳，起步/停步及时发送；隐藏后补停步包。SSE维护在线状态。服务端限制坐标边界、有限数值、80ms最小间隔与基础步行速度，拒绝明显瞬移。当前家具碰撞由客户端处理，不宣称服务端完整物理校验。

@@ -1,0 +1,39 @@
+{
+  "runtime": "v25.9.0",
+  "platform": "darwin/arm64",
+  "wasm": {
+    "tested": true,
+    "bytes": 929,
+    "equivalentPoints": 100000
+  },
+  "collision": [
+    {
+      "name": "JS linear",
+      "queries": 100000,
+      "medianMs": 15.853,
+      "p95Ms": 15.953,
+      "checksum": 297760
+    },
+    {
+      "name": "JS spatial index",
+      "queries": 100000,
+      "medianMs": 3.422,
+      "p95Ms": 3.649,
+      "checksum": 297760
+    },
+    {
+      "name": "Rust WASM linear",
+      "queries": 100000,
+      "medianMs": 15.274,
+      "p95Ms": 15.56,
+      "checksum": 297760
+    }
+  ],
+  "pathfinding": {
+    "coldMs": 1.824,
+    "medianMs": 0.32,
+    "p95Ms": 1.925,
+    "samples": 100
+  },
+  "note": "CPU microbenchmark; not browser FPS. WASM tests the same original linear algorithm, JS index tests an algorithmic improvement."
+}

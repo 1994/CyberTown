@@ -8,9 +8,13 @@ import { clearKeys, isTypingTarget } from '../world/input.ts';
 import { rt, useWorld } from '../world/runtime.ts';
 import { INTRO_SECONDS, useCinema } from './cinema.ts';
 import { elevatorDoor } from './Room.tsx';
+import { WORLD_BOUNDS } from '../../shared/world.ts';
 
 const FOLLOW_DIST = 17;
-const OVERVIEW_DIST = 66;
+// Overview fits the whole 90×66 district; scale stays in step with WORLD_BOUNDS.
+const SPAN = Math.max(WORLD_BOUNDS.maxX - WORLD_BOUNDS.minX, (WORLD_BOUNDS.maxZ - WORLD_BOUNDS.minZ) * 60 / 44);
+const OVERVIEW_DIST = Math.round(SPAN * 1.5);
+const IDLE_SCALE = SPAN / 60;
 const HOME_DIRECTION = new THREE.Vector3(0.46, 0.62, 0.64).normalize();
 const INTRO_DOOR = 'cinematic-intro';
 const smooth = (t: number) => t * t * (3 - 2 * t);
@@ -28,7 +32,7 @@ interface Intro {
 /** Claude's city → desks → neon elevator film, adapted to the free-roam campus. */
 export function FollowCamera({ active }: { active: boolean }) {
   const controls = useRef<OrbitImpl>(null);
-  const { camera, size } = useThree();
+  const { camera, size, scene } = useThree();
   const introNonce = useGame((s) => s.introNonce);
   const introPlaying = useGame((s) => s.introPlaying);
   const setIntroPlaying = useGame((s) => s.setIntroPlaying);
@@ -37,9 +41,23 @@ export function FollowCamera({ active }: { active: boolean }) {
   const intro = useRef<Intro | null>(null);
   const focus = useRef<{ offset: THREE.Vector3 } | null>(null);
   const portrait = size.width / size.height < 0.9;
+  const overviewDist = OVERVIEW_DIST;
+  // Widen the lens on portrait screens instead of moving beyond the city fog.
+  const overviewFov = THREE.MathUtils.radToDeg(2 * Math.atan(Math.tan(THREE.MathUtils.degToRad(38 / 2)) * Math.max(1, 1.2 / (size.width / size.height))));
   const followDist = portrait ? FOLLOW_DIST * 1.3 : FOLLOW_DIST;
   const tmp = useRef(new THREE.Vector3());
   const desiredPos = useRef(new THREE.Vector3());
+
+  useEffect(() => {
+    if (!(scene.fog instanceof THREE.Fog)) return;
+    const fog = scene.fog;
+    const before = [fog.near, fog.far];
+    if (active && overview) {
+      fog.near = OVERVIEW_DIST + 30;
+      fog.far = OVERVIEW_DIST + 190;
+    }
+    return () => { [fog.near, fog.far] = before; };
+  }, [active, overview, scene]);
 
   useEffect(() => {
     if (!active || !introNonce || !useGame.getState().introPlaying) return;
@@ -59,15 +77,15 @@ export function FollowCamera({ active }: { active: boolean }) {
       home,
       homeTarget: target,
       position: new THREE.CatmullRomCurve3([
-        new THREE.Vector3(-46, 30, 58),
-        new THREE.Vector3(-20, 12, 26),
+        new THREE.Vector3(-62, 38, 76),
+        new THREE.Vector3(-22, 13, 28),
         new THREE.Vector3(-2, 4.6, 10),
         new THREE.Vector3(6.5, 3.6, 4.5),
         new THREE.Vector3(rt.me.x + 12, 16, rt.me.z + 18),
         home,
       ], false, 'centripetal'),
       target: new THREE.CatmullRomCurve3([
-        new THREE.Vector3(-30, -4, -60),
+        new THREE.Vector3(-34, -4, -72),
         new THREE.Vector3(-4, 0, -6),
         new THREE.Vector3(-1, 1, -1.5),
         new THREE.Vector3(5.5, 2.4, -4.6),
@@ -106,8 +124,8 @@ export function FollowCamera({ active }: { active: boolean }) {
   }, [introNonce, active, camera, followDist, setIntroPlaying]);
 
   useEffect(() => {
-    if (active) zoomGoal.current = overview ? OVERVIEW_DIST : followDist;
-  }, [overview, active, followDist]);
+    if (active) zoomGoal.current = overview ? overviewDist : followDist;
+  }, [overview, active, followDist, overviewDist]);
 
   useEffect(() => {
     if (active) return;
@@ -116,7 +134,7 @@ export function FollowCamera({ active }: { active: boolean }) {
     const c = controls.current;
     if (!c) return;
     c.target.set(0, 0, 2);
-    camera.position.set(34, 34, 46);
+    camera.position.set(34 * IDLE_SCALE, 34 * IDLE_SCALE, 46 * IDLE_SCALE);
     c.update();
   }, [active, camera]);
 
@@ -147,6 +165,14 @@ export function FollowCamera({ active }: { active: boolean }) {
     if (!c) return;
     const dt = Math.min(dtRaw, 0.05);
     const now = performance.now();
+    if (camera instanceof THREE.PerspectiveCamera) {
+      const goal = active && useWorld.getState().overview ? overviewFov : 38;
+      const fov = THREE.MathUtils.damp(camera.fov, goal, 4, dt);
+      if (Math.abs(camera.fov - goal) > 0.01) {
+        camera.fov = Math.abs(fov - goal) < 0.01 ? goal : fov;
+        camera.updateProjectionMatrix();
+      }
+    }
     if (!active) {
       c.autoRotate = true;
       c.autoRotateSpeed = 0.35;
@@ -202,7 +228,7 @@ export function FollowCamera({ active }: { active: boolean }) {
     }
 
     const ov = useWorld.getState().overview;
-    const want = tmp.current.set(ov ? 0 : rt.me.x, 0.8, ov ? 1 : rt.me.z);
+    const want = tmp.current.set(ov ? SPAN * 0.09 : rt.me.x, 0.8, ov ? SPAN * 0.13 : rt.me.z);
     if (focus.current && !ov) {
       desiredPos.current.copy(want).add(focus.current.offset);
       camera.position.lerp(desiredPos.current, 1 - Math.exp(-3 * dt));
@@ -234,7 +260,7 @@ export function FollowCamera({ active }: { active: boolean }) {
     enableDamping
     dampingFactor={0.1}
     minDistance={6}
-    maxDistance={active ? 70 : 90}
+    maxDistance={active ? overviewDist + 6 : overviewDist + 30}
     minPolarAngle={0.3}
     maxPolarAngle={1.2}
     zoomSpeed={0.8}

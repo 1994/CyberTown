@@ -4,6 +4,12 @@ import * as THREE from 'three';
 import { rng } from '../../shared/rules.ts';
 import { buildingWindows, cityGround, neonText } from './textures.ts';
 import { glow } from './materials.ts';
+import { WORLD_BOUNDS } from '../../shared/world.ts';
+
+const B = WORLD_BOUNDS;
+/** Clear gap between the platform edge and the nearest tower face. */
+const CITY_GAP = 8;
+const PLATFORM_R = Math.hypot(Math.max(-B.minX, B.maxX), Math.max(-B.minZ, B.maxZ));
 
 const GROUND_Y = -34;
 
@@ -87,17 +93,24 @@ function useBuildings() {
     const list: Building[] = [];
     for (let i = 0; i < 190; i++) {
       const ang = r() * Math.PI * 2;
-      // 园区平台约 60×44 米：楼群从平台外 50 米起环绕，近处楼顶低于平台，远处形成天际线
-      const dist = 52 + r() * 140;
-      const x = Math.cos(ang) * dist;
-      const z = Math.sin(ang) * dist;
-      const near = dist < 80;
+      // 楼群从 WORLD_BOUNDS 外环绕，近处楼顶低于平台，远处形成天际线
+      const dist = PLATFORM_R - 4 + r() * 140;
+      let x = Math.cos(ang) * dist;
+      let z = Math.sin(ang) * dist;
+      const near = dist < PLATFORM_R + 24;
       const h = near ? 12 + r() * 30 : 20 + r() * 62 + (r() > 0.85 ? 25 : 0);
+      const w = 5 + r() * 9;
+      const d = 5 + r() * 9;
+      // Push any footprint overlapping the platform (plus gap) radially outward.
+      const ex = (Math.max(-B.minX, B.maxX) + CITY_GAP + w / 2) / Math.max(Math.abs(x), 1e-3);
+      const ez = (Math.max(-B.minZ, B.maxZ) + CITY_GAP + d / 2) / Math.max(Math.abs(z), 1e-3);
+      const push = Math.min(ex, ez);
+      if (push > 1) { x *= push; z *= push; }
       list.push({
         x,
         z,
-        w: 5 + r() * 9,
-        d: 5 + r() * 9,
+        w,
+        d,
         h,
         tex: Math.floor(r() * 6),
         roof: r() > 0.6,
@@ -262,7 +275,7 @@ function CityNeon() {
   const coffee = neonText([{ text: '续命咖啡', color: '#ff4fb8', size: 150 }]);
   return (
     <group>
-      <mesh position={[-34, 6, -40]} rotation-y={0.5}>
+      <mesh position={[-34, 6, B.minZ - 18]} rotation-y={0.5}>
         <planeGeometry args={[16, 4]} />
         <meshBasicMaterial
           map={kpi}
@@ -272,7 +285,7 @@ function CityNeon() {
           depthWrite={false}
         />
       </mesh>
-      <mesh position={[-46, -2, 12]} rotation-y={Math.PI / 2}>
+      <mesh position={[B.minX - 16, -2, 12]} rotation-y={Math.PI / 2}>
         <planeGeometry args={[16, 4]} />
         <meshBasicMaterial
           map={coffee}

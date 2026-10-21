@@ -14,6 +14,7 @@ import {
   POD_DESK_DX,
   POD_ORDER,
   PROJECT_TERMINAL,
+  STREET_BENCHES,
   TREES,
   WORLD_BOUNDS,
 } from '../../shared/world.ts';
@@ -29,6 +30,7 @@ import {
 } from './textures.ts';
 import { Chair, FloorLamp, Plant } from './Furniture.tsx';
 import { useGame } from '../store.ts';
+import { StreetDistrict } from './StreetDistrict.tsx';
 
 const B = WORLD_BOUNDS;
 const W = B.maxX - B.minX;
@@ -44,12 +46,14 @@ function PathTile({
   minZ,
   maxZ,
   y,
+  color,
 }: {
   minX: number;
   maxX: number;
   minZ: number;
   maxZ: number;
   y: number;
+  color: string;
 }) {
   const w = maxX - minX;
   const d = maxZ - minZ;
@@ -66,7 +70,7 @@ function PathTile({
       receiveShadow
     >
       <planeGeometry args={[w, d]} />
-      <meshStandardMaterial color="#889dbb" roughness={0.8} map={map} />
+      <meshStandardMaterial color={color} roughness={0.8} map={map} />
     </mesh>
   );
 }
@@ -76,7 +80,13 @@ function Ground({
 }: {
   onGround: (e: ThreeEvent<MouseEvent>) => void;
 }) {
-  const lawn = lawnTexture();
+  // The shared lawn texture is tuned for the original 60×44 core; keep its texel scale.
+  const lawn = useMemo(() => {
+    const t = lawnTexture().clone();
+    t.needsUpdate = true;
+    t.repeat.set((14 * W) / 60, (10 * D) / 44);
+    return t;
+  }, []);
   return (
     <group>
       {/* 空中园区平台 */}
@@ -97,7 +107,7 @@ function Ground({
         <meshStandardMaterial map={lawn} roughness={0.95} />
       </mesh>
       {PATHS.map((p, i) => (
-        <PathTile key={i} {...p} y={-0.045 + i * 0.003} />
+        <PathTile key={i} {...p} y={-0.045 + i * 0.003} color={i >= 8 ? '#5f6d92' : '#889dbb'} />
       ))}
       {/* 广场圆形铺装 */}
       <mesh rotation-x={-Math.PI / 2} position={[0, -0.015, 13]} receiveShadow>
@@ -135,7 +145,8 @@ function Wayfinding() {
   return <group>
     {PATHS.flatMap((path, index) => {
       // The front connector already lies inside the circular plaza.
-      if (index === 7) return [];
+      // Outer ring streets (8+) get their own curbs in StreetDistrict.
+      if (index >= 7) return [];
       const w = path.maxX - path.minX;
       const d = path.maxZ - path.minZ;
       const horizontal = w > d;
@@ -1032,10 +1043,14 @@ export const Campus = memo(function Campus({
         {TREES.map(([x, z], i) => (
           <Tree key={i} position={[x, 0, z]} seed={i} />
         ))}
+        {STREET_BENCHES.map(([x, z]) => (
+          <Bench key={`${x},${z}`} position={[x, 0, z]} rotation={z > 0 && Math.abs(x) < 20 ? Math.PI : 0} />
+        ))}
         {LAMPS.map(([x, z], i) => (
           <StreetLamp key={i} position={[x, 0, z]} light={i % 4 === 0} />
         ))}
       </StaticBatch>
+      <StreetDistrict />
       <TalentStreet />
       <ProjectZone />
     </group>

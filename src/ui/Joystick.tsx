@@ -62,6 +62,7 @@ export function Joystick() {
     // 摇杆向上 = 镜头前方；中心 12% 为死区
     rt.joy = len > c.r * 0.12 ? { x: dx / c.r, z: -dy / c.r } : STILL;
     rt.path = null;
+    rt.npcNavigation = null;
     rt.lastInputAt = performance.now();
   };
 

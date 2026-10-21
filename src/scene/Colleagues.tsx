@@ -5,14 +5,15 @@ import { WorldLabel } from './WorldLabel.tsx';
 import * as THREE from 'three';
 import type { ColleagueView } from '../../shared/types.ts';
 import { SKILL_META } from '../../shared/rules.ts';
+import { npcWalkAt } from '../../shared/npcWalk.ts';
 import { BOOTHS, findPath, podSeat } from '../../shared/world.ts';
 import { useGame } from '../store.ts';
-import { playerPos, rt, trailPoint, useWorld } from '../world/runtime.ts';
+import { playerPos, rt, trailPoint, useWorld, worldNow } from '../world/runtime.ts';
 import { Character } from './Character.tsx';
 import type { Rig } from './Character.tsx';
 import { applyPose, idlePose, turnTowards } from './pose.ts';
 import { useFx } from './Effects.tsx';
-import { walkNear } from './Avatars.tsx';
+import { walkNear, goToColleague } from '../world/navigation.ts';
 import { FootRing } from './Avatars.tsx';
 import { dressedColleague, isBoss } from '../look.ts';
 import { Crown } from 'lucide-react';
@@ -22,7 +23,7 @@ import { selectColleagues } from '../../shared/proximity.ts';
 
 /**
  * 同事在园区里的位置（所有客户端按同一规则计算，因此看到的是同一个空间）：
- * - 自由身：站在人才街摊位前等人来招募；
+ * - 自由身：保留广场张总与人才街，另有两位虚构 NPC 沿街散步；
  * - 有主且主人在线：排队跟在主人身后（小队跟随）；
  * - 有主但主人离线：坐在项目区「主人的工位组」上办公。
  * 归属变化时播放空间演出：被挖走 → 原地收拾纸箱 → 抱箱走到新老板身边 → 庆祝 + 技能激活；
@@ -37,8 +38,10 @@ type Assign =
 const SCALE = 1.12;
 const TRAVEL_SPEED = 4.4;
 
-function desired(a: Assign): { x: number; z: number; yaw: number | null } {
+function desired(a: Assign, id: string): { x: number; z: number; yaw: number | null; moving?: boolean } {
   if (a.mode === 'booth') {
+    const stroll = npcWalkAt(id, worldNow());
+    if (stroll) return stroll;
     const b = BOOTHS[a.i % BOOTHS.length];
     return { x: b.x, z: b.z, yaw: b.face };
   }
@@ -92,7 +95,7 @@ function ColleagueActor({
   const assignRef = useRef(assign);
   assignRef.current = assign;
   if (!run.current) {
-    const d = desired(assign);
+    const d = desired(assign, c.id);
     run.current = {
       x: d.x,
       z: d.z,
@@ -167,7 +170,7 @@ function ColleagueActor({
     if (!R || !g) return;
     const r = run.current;
     const a = assignRef.current;
-    const d = desired(a);
+    const d = desired(a, c.id);
     const t = state.clock.elapsedTime + c.id.length;
     const pose = idlePose(t);
     const boss = isBoss(c.id);
@@ -280,6 +283,11 @@ function ColleagueActor({
         const op = playerPos(a.owner);
         if (op) faceYaw = Math.atan2(op.x - r.x, op.z - r.z);
       }
+    } else if (a.mode === 'booth' && d.moving !== undefined) {
+      r.x = d.x;
+      r.z = d.z;
+      moving = d.moving;
+      if (!moving && Math.sin(t * 0.5) > 0.92) pose.wave = 1;
     } else {
       const dist = Math.hypot(d.x - r.x, d.z - r.z);
       if (dist > 0.3) r.trans = { kind: 'travel', t0: now, fx: false };
@@ -349,7 +357,8 @@ function ColleagueActor({
       useGame.getState().setDrawer('squad');
       return;
     }
-    walkNear(r.x, r.z, 1.5);
+    if (!c.ownerId && npcWalkAt(c.id, worldNow())) void goToColleague(c);
+    else walkNear(r.x, r.z, 1.5);
   };
 
   const meta = SKILL_META[c.skill.kind];

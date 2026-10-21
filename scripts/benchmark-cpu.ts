@@ -7,7 +7,7 @@ import { linearCollision } from './collision-oracle.ts';
 
 const random = rng(72911);
 const count = 100000;
-const points = Array.from({ length: count }, () => [random() * 60 - 30, random() * 44 - 22, [0.36, 0.44, 0.48][Math.floor(random() * 3)]]);
+const points = Array.from({ length: count }, () => [WORLD_BOUNDS.minX + random() * (WORLD_BOUNDS.maxX - WORLD_BOUNDS.minX), WORLD_BOUNDS.minZ + random() * (WORLD_BOUNDS.maxZ - WORLD_BOUNDS.minZ), [0.36, 0.44, 0.48][Math.floor(random() * 3)]]);
 type Collision = (x: number, z: number, r: number) => boolean | number;
 const functions: [string, Collision][] = [['JS linear', linearCollision], ['JS spatial index', blockedAt]];
 const wasmPath = 'artifacts/tmp/collision.wasm';
@@ -42,7 +42,7 @@ const results = functions.map(([name, fn]) => {
   return { name, queries: count, medianMs: +times[5].toFixed(3), p95Ms: +times[10].toFixed(3), checksum };
 });
 assert.ok(results.every(r => r.checksum === results[0].checksum));
-const routes = [[0, 11, -17, -13], [0, 11, 18, -13], [-17, 0, 18, 0.2], [18, -13, -25, -11]];
+const routes = [[0, 11, -17, -13], [0, 11, 18, -13], [-17, 0, 18, 0.2], [18, -13, -25, -11], [-33, 0, 33, 0], [0, 24, 0, -24]];
 const routeTimes: number[] = [];
 for (let i = 0; i < 101; i++) {
   const p = routes[i % routes.length];
