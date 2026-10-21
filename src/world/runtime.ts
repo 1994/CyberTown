@@ -22,6 +22,7 @@ export interface Smooth {
 
 export const rt = {
   myId: null as string | null,
+  worldInitialized: false,
   me: { x: 0, z: 11, yaw: Math.PI, moving: false },
   /** 自动寻路（点击地面 / 小地图 / 点击人物） */
   path: null as [number, number][] | null,
@@ -39,6 +40,8 @@ export const rt = {
 
 export function resetRuntime(myId: string) {
   rt.myId = myId;
+  rt.worldInitialized = false;
+  useWorld.setState({ players: [], onlineCount: 0, nearbyCount: 0, streamReady: false, focusId: null, focusColleagueId: null, fullPlayerIds: [] });
   const s = SPAWNS[myId] ?? [0, 11];
   rt.me = { x: s[0], z: s[1], yaw: Math.PI, moving: false };
   rt.path = null;
@@ -95,6 +98,13 @@ export type Near =
 
 interface WorldStore {
   players: WorldPlayer[];
+  onlineCount: number;
+  nearbyCount: number;
+  streamReady: boolean;
+  focusId: string | null;
+  focusColleagueId: string | null;
+  fullPlayerIds: string[];
+  setFocus: (id: string | null) => void;
   bounds: WorldBounds;
   serverOffset: number;
   near: Near | null;
@@ -114,6 +124,13 @@ interface WorldStore {
 
 export const useWorld = create<WorldStore>((set) => ({
   players: [],
+  onlineCount: 0,
+  nearbyCount: 0,
+  streamReady: false,
+  focusId: null,
+  focusColleagueId: null,
+  fullPlayerIds: [],
+  setFocus: (focusId) => set({ focusId }),
   bounds: WORLD_BOUNDS,
   serverOffset: 0,
   near: null,

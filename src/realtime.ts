@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { api, session } from './api.ts';
+import { session } from './api.ts';
 import { apiURL } from './runtime-config.ts';
 import { useGame } from './store.ts';
 import type { GameEvent, WorldPlayer } from '../shared/types.ts';
@@ -16,8 +16,9 @@ export function useRealtime(enabled: boolean) {
     if (!token) return;
     const { refresh, setConn, handleEvent } = useGame.getState();
     setConn('connecting');
-    const es = new EventSource(apiURL(`/api/events?token=${encodeURIComponent(token)}`));
+    const es = new EventSource(apiURL(`/api/events?token=${encodeURIComponent(token)}&world=2`));
     let poll: number | null = null;
+    let alive = true;
 
     es.onopen = () => {
       setConn('live');
@@ -27,19 +28,17 @@ export function useRealtime(enabled: boolean) {
       }
     };
     es.onmessage = (m) => {
+      if (!alive) return;
       try {
-        const msg = JSON.parse(m.data) as { type: string; event?: GameEvent; players?: WorldPlayer[]; serverTime?: number };
+        const msg = JSON.parse(m.data) as { type: string; event?: GameEvent; players?: WorldPlayer[]; serverTime?: number; partial?: boolean; removed?: string[]; onlineCount?: number; nearbyCount?: number };
         if (msg.type === 'hello') {
           setConn('live');
           void refresh();
-          // 重连后补齐园区在线玩家
-          void api
-            .world()
-            .then((w) => applyWorld(w.players, w.serverTime))
-            .catch(() => undefined);
+          // The first world packet after every connection is a full AOI reset.
+          // Avoid racing a GET snapshot against newer stream deltas.
         } else if (msg.type === 'world' && msg.players) {
           // 园区位置/社交广播：直接更新，不拉取完整经济快照
-          applyWorld(msg.players, msg.serverTime);
+          applyWorld(msg.players, msg.serverTime, { ...msg, stream: true });
         } else if (msg.type === 'sync') {
           void refresh().then(() => msg.event && handleEvent(msg.event));
         }
@@ -52,6 +51,7 @@ export function useRealtime(enabled: boolean) {
       if (!poll) poll = window.setInterval(() => void refresh(), 4000);
     };
     return () => {
+      alive = false;
       es.close();
       if (poll) clearInterval(poll);
     };

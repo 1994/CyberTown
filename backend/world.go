@@ -3,6 +3,7 @@ package backend
 import (
 	"database/sql"
 	"encoding/json"
+	"hash/fnv"
 	"math"
 	"net/http"
 	"sort"
@@ -30,8 +31,16 @@ func (a *App) ensureWorldLocked(id string) WorldPlayer {
 	if p, ok := a.world[id]; ok {
 		return p
 	}
-	x := map[string]float64{"wang": 0, "li": 2, "mei": -2, "liu": 4}[id]
-	p := WorldPlayer{ID: id, X: x, Z: 11, UpdatedAt: a.Game.Now()}
+	x, known := map[string]float64{"wang": 0, "li": 2, "mei": -2, "liu": 4}[id]
+	z := 11.0
+	if !known {
+		h := fnv.New32a()
+		_, _ = h.Write([]byte(id))
+		n := h.Sum32()
+		x = float64(int(n%7)-3) * 2
+		z = 9.5 + float64((n/7)%3)
+	}
+	p := WorldPlayer{ID: id, X: x, Z: z, UpdatedAt: a.Game.Now()}
 	a.world[id] = p
 	return p
 }
@@ -48,8 +57,12 @@ func (a *App) onlineLocked(id string) bool {
 func (a *App) worldPlayersLocked() []WorldPlayer {
 	now := a.Game.Now()
 	players := make([]WorldPlayer, 0, len(a.world))
+	online := map[string]bool{}
+	for c := range a.clients {
+		online[c.player] = true
+	}
 	for id, p := range a.world {
-		if !a.onlineLocked(id) {
+		if !online[id] {
 			continue
 		}
 		if p.EmoteUntil <= now {
@@ -65,22 +78,6 @@ func (a *App) worldPlayersLocked() []WorldPlayer {
 	}
 	sort.Slice(players, func(i, j int) bool { return players[i].ID < players[j].ID })
 	return players
-}
-
-// Movement updates bypass the economic snapshot/version query. Never hold
-// SQLite rows open while writing SSE; slow clients have a bounded queue.
-func (a *App) broadcastWorld() {
-	a.mu.Lock()
-	defer a.mu.Unlock()
-	payload, _ := json.Marshal(map[string]any{"type": "world", "serverTime": a.Game.Now(), "players": a.worldPlayersLocked()})
-	for c := range a.clients {
-		select {
-		case c.events <- payload:
-		default:
-			close(c.events)
-			delete(a.clients, c)
-		}
-	}
 }
 
 func finite(n float64) bool { return !math.IsNaN(n) && !math.IsInf(n, 0) }
@@ -200,9 +197,9 @@ func (a *App) handleWorld(w http.ResponseWriter, r *http.Request, id string) err
 	if r.Method == "GET" && r.URL.Path == "/api/world" {
 		a.mu.Lock()
 		a.ensureWorldLocked(id)
-		players := a.worldPlayersLocked()
+		players, onlineCount, nearbyCount := a.worldViewLocked(id, nil)
 		a.mu.Unlock()
-		respond(w, 200, map[string]any{"serverTime": a.Game.Now(), "bounds": map[string]int{"minX": -30, "maxX": 30, "minZ": -22, "maxZ": 22}, "players": players})
+		respond(w, 200, map[string]any{"serverTime": a.Game.Now(), "bounds": map[string]int{"minX": -30, "maxX": 30, "minZ": -22, "maxZ": 22}, "players": players, "onlineCount": onlineCount, "nearbyCount": nearbyCount, "radius": worldRadius})
 		return nil
 	}
 	if r.Method != "POST" {
@@ -213,6 +210,18 @@ func (a *App) handleWorld(w http.ResponseWriter, r *http.Request, id string) err
 		return err
 	}
 	switch r.URL.Path {
+	case "/api/world/focus":
+		target := stringField(body, "targetId")
+		a.mu.Lock()
+		if target == "" || !a.onlineLocked(target) {
+			a.mu.Unlock()
+			return fail(409, "OFFLINE", "对方暂时离开了")
+		}
+		p := a.ensureWorldLocked(target)
+		a.worldFocus[id] = worldFocus{target, a.Game.Now() + 60000}
+		a.worldDirty = true
+		a.mu.Unlock()
+		respond(w, 200, map[string]any{"player": p, "serverTime": a.Game.Now()})
 	case "/api/world/move":
 		var x, z, yaw float64
 		var moving bool

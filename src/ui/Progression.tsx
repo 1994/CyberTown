@@ -1,3 +1,4 @@
+import { nearbyPlayers } from '../../shared/proximity.ts';
 import { sound } from '../audio.ts';
 import { useEffect, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
@@ -22,8 +23,8 @@ import {
 import { api } from '../api.ts';
 import { dressed, dressedColleague, isBoss, tryOn } from '../look.ts';
 import { myTeam, useGame } from '../store.ts';
-import { rt, useWorld } from '../world/runtime.ts';
-import { walkNear } from '../scene/Avatars.tsx';
+import { useWorld } from '../world/runtime.ts';
+import { goToPlayer } from '../world/navigation.ts';
 import { Portrait } from '../scene/Portrait.tsx';
 import { Avatar } from './Avatar.tsx';
 import { CountUp, fmt } from './common.tsx';
@@ -682,7 +683,8 @@ function FriendsPanel() {
   const players = useWorld((s) => s.players);
   const setDrawer = useGame((s) => s.setDrawer);
   const others = snap.players.filter((p) => p.id !== snap.me.id);
-  const onlineOthers = others.filter((p) => players.some((e) => e.id === p.id));
+  const onlineOthers = others.filter((p) => p.online);
+  const nearby = new Set(nearbyPlayers(players, snap.me.id).map(p => p.id));
   return (
     <div className="friends-content">
       <div className="friends-intro">
@@ -693,7 +695,7 @@ function FriendsPanel() {
       {onlineOthers.length === 0 && (
         <div className="friends-empty">
           <b>暂时没有在线搭子</b>
-          <span>叫上同事一起来园区，走近就能挥手、碰杯拿加成。</span>
+          <span>一个人也能招募 NPC 老板、玩小游戏、晋升领年终奖。同事来了再一起逛。</span>
           <button className="v3-secondary" onClick={() => setDrawer('market')}>
             <Users size={15} />
             先看看园区同事
@@ -701,7 +703,7 @@ function FriendsPanel() {
         </div>
       )}
       {others.map((p) => {
-        const entry = players.find((e) => e.id === p.id);
+        const live = p.online;
         const av = snap.colleagues.find((c) => c.id === p.avatarColleagueId)!;
         return (
           <div className="friend-row" key={p.id}>
@@ -709,25 +711,19 @@ function FriendsPanel() {
             <span>
               <b>
                 {p.name}
-                <i className={entry ? 'online' : 'offline'} />
+                <i className={live ? 'online' : 'offline'} />
               </b>
               <small>
-                {p.rankName} · {entry ? '正在园区散步' : '暂时离线'}
+                {p.rankName} · {live ? nearby.has(p.id) ? '就在附近' : '正在园区散步' : '暂时离线'}
               </small>
             </span>
             <button
               className="v3-secondary"
-              disabled={!entry}
-              onClick={() => {
-                if (!entry) return;
-                const pos = rt.remote.get(p.id) ?? entry;
-                useGame.getState().closePhone();
-                walkNear(pos.x, pos.z, 1.8);
-                setDrawer(null);
-              }}
+              disabled={!live}
+              onClick={() => { void goToPlayer(p.id).catch(() => useGame.getState().toast({ tone: 'info', title: '对方暂时离开了' })); }}
             >
               <MapPin size={14} />
-              {entry ? '去找TA' : '离线'}
+              {live ? '去找TA' : '离线'}
             </button>
           </div>
         );

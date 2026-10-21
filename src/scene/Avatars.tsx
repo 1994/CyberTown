@@ -7,7 +7,6 @@ import * as THREE from 'three';
 import type { HighfiveEvent, Look } from '../../shared/types.ts';
 import {
   WALK_SPEED,
-  findPath,
   moveWithCollision,
   clampToBounds,
 } from '../../shared/world.ts';
@@ -21,6 +20,12 @@ import { useFx } from './Effects.tsx';
 import { socialEntry } from '../world/selectors.ts';
 import type { SocialEntry } from '../world/selectors.ts';
 import { dressed } from '../look.ts';
+import { goToPlayer } from '../world/navigation.ts';
+import { selectCrowd } from '../../shared/proximity.ts';
+import { Crowd } from './Crowd.tsx';
+import { renderCounters } from '../performance.ts';
+import { useTouchUi } from '../ui/useTouchUi.ts';
+export { walkNear } from '../world/navigation.ts';
 
 const PLAYER_SCALE = 1.25;
 const EMOTE_ICON: Record<string, string> = {
@@ -306,6 +311,7 @@ function RemotePlayer({ id }: { id: string }) {
   const group = useRef<THREE.Group>(null);
   const rig = useRef<Rig>(null);
   const phase = useRef(0);
+  const fade = useRef(.75);
 
   useFrame((state, dtRaw) => {
     const dt = Math.min(dtRaw, 0.05);
@@ -331,6 +337,8 @@ function RemotePlayer({ id }: { id: string }) {
     if (moving) phase.current += dt * 10;
     pushTrail(id, r.x, r.z);
     group.current.position.set(r.x, 0, r.z);
+    fade.current = THREE.MathUtils.damp(fade.current, 1, 10, dt);
+    group.current.scale.setScalar(fade.current);
     group.current.rotation.y = r.yaw;
     if (rig.current)
       emotePose(
@@ -349,7 +357,8 @@ function RemotePlayer({ id }: { id: string }) {
     if (e.delta > 6) return;
     const r = rt.remote.get(id);
     if (!r) return;
-    walkNear(r.x, r.z, 1.6);
+    useWorld.getState().setFocus(id);
+    void goToPlayer(id).catch(() => undefined);
   };
 
   if (!look) return null;
@@ -369,23 +378,25 @@ function RemotePlayer({ id }: { id: string }) {
   );
 }
 
-/** 寻路到某点附近（点击人物、小地图、地面） */
-export function walkNear(x: number, z: number, keep = 0) {
-  const me = rt.me;
-  let tx = x;
-  let tz = z;
-  if (keep > 0) {
-    const d = Math.hypot(x - me.x, z - me.z);
-    if (d <= keep + 0.2) return;
-    tx = x - ((x - me.x) / d) * keep;
-    tz = z - ((z - me.z) / d) * keep;
-  }
-  const p = findPath(me.x, me.z, tx, tz);
-  rt.path = p && p.length ? p : null;
-}
-
 export function RemotePlayers({ myId }: { myId: string }) {
-  const ids = useWorld(useShallow((s) => s.players.filter((p) => p.id !== myId).map((p) => p.id)));
+  const compact = useTouchUi();
+  const [selection, setSelection] = useState<{ full: string[]; lite: string[] }>({ full: [], lite: [] });
+  const previous = useRef(selection);
+  useEffect(() => {
+    const update = () => {
+      const world = useWorld.getState();
+      const next = selectCrowd(world.players, rt.me, myId, previous.current, compact, world.focusId);
+      renderCounters.crowdFull = next.full.length;
+      renderCounters.crowdLite = next.lite.length;
+      if (next.full.join('|') !== previous.current.full.join('|') || next.lite.join('|') !== previous.current.lite.join('|')) {
+        previous.current = next;
+        useWorld.setState({ fullPlayerIds: next.full });
+        setSelection(next);
+      }
+    };
+    update(); const timer = setInterval(update, 200);
+    return () => { clearInterval(timer); renderCounters.crowdFull = 0; renderCounters.crowdLite = 0; };
+  }, [myId, compact]);
   const addFx = useFx((s) => s.add);
   // 碰杯：双方举杯 + 彩纸
   useEffect(() => {
@@ -410,9 +421,8 @@ export function RemotePlayers({ myId }: { myId: string }) {
   }, [myId, addFx]);
   return (
     <>
-      {ids.map((id) => (
-        <RemotePlayer key={id} id={id} />
-      ))}
+      {selection.full.map((id) => <RemotePlayer key={id} id={id} />)}
+      <Crowd ids={selection.lite} />
     </>
   );
 }

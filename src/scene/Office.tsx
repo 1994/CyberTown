@@ -136,7 +136,9 @@ function NearScanner() {
       if (d <= INTERACT_RANGE)
         consider({ kind: 'colleague', id: c.id, dist: d });
     }
+    const fullPlayers = useWorld.getState().fullPlayerIds;
     for (const [id, r] of rt.remote) {
+      if (!fullPlayers.includes(id)) continue;
       const d = Math.hypot(r.x - me.x, r.z - me.z);
       if (d <= HIGHFIVE_RANGE) consider({ kind: 'player', id, dist: d - 0.5 }); // 玩家优先一点
     }

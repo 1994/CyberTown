@@ -32,7 +32,7 @@ go run ./cmd/boss-server --reset
 
 ## HTTP 契约
 
-JSON 错误统一为 `{ "error": { "code": "...", "message": "..." } }`。普通接口使用 `Authorization: Bearer <token>`。原生 EventSource 仅在 `/api/events?token=...` 传递演示会话；应使用 HTTPS，并避免代理记录事件URL的查询参数。
+JSON 错误统一为 `{ "error": { "code": "...", "message": "..." } }`。普通接口使用 `Authorization: Bearer <token>`。原生 EventSource 在 `/api/events?token=...` 传递游戏会话；应使用 HTTPS，并避免代理记录事件URL的查询参数。
 
 | 方法 | 路径 | 请求/结果 |
 | --- | --- | --- |
@@ -101,13 +101,14 @@ Content-Type: application/json
 
 ## 多人园区接口
 
-全部需要 Bearer 测试会话。`GET /api/world` 返回 `serverTime`、地图边界和 `players`。只返回持有 SSE 连接的在线身份；位置为进程内临时状态，重启回广场，金币和队伍保留。相同身份的多个标签页共享同一世界人物。
+全部需要 Bearer 游戏会话。`GET /api/world` 返回 `serverTime`、地图边界、当前附近 `players` 与全园区 `onlineCount`、物理附近 `nearbyCount`，包含自己用于位置恢复。其他人物只包含持有SSE连接的在线身份，26米进入、30米离开，最多64位其他玩家，其中优先保留明确定位的联系人。位置为进程内临时状态，重启回广场，金币和队伍保留。相同身份的多个标签页共享同一世界人物。
 
+- `POST /api/world/focus`：`{targetId}`，对在线联系人进行显式定位并保留60秒，返回 `{player,serverTime}`，供视野外联系人导航。
 - `POST /api/world/move`：`{x,z,yaw,moving}`，前端移动中5Hz、静止每5秒心跳，起步/停步及时发送；隐藏后补停步包。SSE维护在线状态。服务端限制坐标边界、有限数值、80ms最小间隔与基础步行速度，拒绝明显瞬移。当前家具碰撞由客户端处理，不宣称服务端完整物理校验。
 - `POST /api/world/social`：`{emote?,text?}`；表情 `wave/dance/coffee` 持续3秒，短句最多40个Unicode码点、持续6秒，每人1秒冷却。
 - `POST /api/world/highfive`：`{targetId}`；双方在线、距离≤4米，双方各15金币，每对60秒冷却。冷却与奖励在同一 SQLite 事务中，防并发重复且重启保留；返回 `{reward:15,cooldownUntil}`。
 
-世界变化通过现有 SSE 通道推送 `{type:"world",serverTime,players}`，客户端直接插值更新，不触发经济全量快照。金币变化仍推送 `{type:"sync",event:{kind:"highfive",playerId,targetId,reward:15,at}}` 后刷新真实钱包。位置包包括 `id,x,z,yaw,moving,emote,emoteUntil,said,saidUntil,updatedAt`。断线重连通过 GET 与进场广播补齐。
+世界变化每200ms合并后按距离分发；新客户端用 `/api/events?world=2&token=...`，收到 `{type:"world",serverTime,players,removed,partial,onlineCount}`。首次/重连/慢客户端恢复为完整当前视野（partial=false），其余为增量upsert/removal，客户端合并后插值更新，不触发经济全量快照。旧客户端接收附近完整列表。金币变化仍推送 `{type:"sync",event:{kind:"highfive",playerId,targetId,reward:15,at}}` 后刷新真实钱包。位置包包括 `id,x,z,yaw,moving,emote,emoteUntil,said,saidUntil,updatedAt`。重连首个世界包完整重置视野，避免丢失增量造成残留人物。详见 [距离视野验收](REVIEW-PROXIMITY.md)。
 
 这是单进程小规模 Demo；真实测试玩家以外的巡游角色是NPC，不计入在线人数。
 

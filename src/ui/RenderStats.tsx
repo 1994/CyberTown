@@ -12,7 +12,8 @@ export function RenderStats() {
       中位 {sample.medianMs}ms · P95 {sample.p95Ms}ms<br/>
       CPU {sample.cpuMs}ms · P95 {sample.p95CpuMs}ms<br/>
       {sample.calls} draws · {Math.round(sample.triangles / 1000)}k triangles<br/>
-      {sample.geometries} geometries · {sample.textures} textures
+      {sample.geometries} geometries · {sample.textures} textures<br/>
+      人物 {sample.crowdFull} 完整 + {sample.crowdLite} 简化 · NPC/分身 {sample.colleagueActors}
     </> : '性能采样中…'}
   </output>;
 }

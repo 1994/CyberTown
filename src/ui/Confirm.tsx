@@ -64,6 +64,7 @@ export function ConfirmTrade({
   useEffect(() => {
     const before = document.activeElement as HTMLElement | null;
     useWorld.getState().lock('confirm');
+    useWorld.setState({ focusColleagueId: colleague.id });
     ok.current?.focus();
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') close.current();

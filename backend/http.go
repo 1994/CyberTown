@@ -28,16 +28,25 @@ type Options struct {
 type subscriber struct {
 	player, token string
 	events        chan []byte
+	worldEvents   chan []byte
+	worldDelta    bool
+	worldReady    bool
+	view          map[string]WorldPlayer
+	nearbyCount   int
+	onlineCount   int
 }
 type App struct {
-	Game             *Game
-	Options          Options
-	mu               sync.Mutex
-	clients          map[*subscriber]bool
-	closed           bool
-	world            map[string]WorldPlayer
-	socialAt         map[string]int64
-	identityProvider identity.Provider
+	Game                      *Game
+	Options                   Options
+	mu                        sync.Mutex
+	clients                   map[*subscriber]bool
+	closed                    bool
+	world                     map[string]WorldPlayer
+	socialAt                  map[string]int64
+	identityProvider          identity.Provider
+	worldFocus                map[string]worldFocus
+	worldDirty, presenceDirty bool
+	worldStop, worldDone      chan struct{}
 }
 
 func NewApp(game *Game, opts Options) *App {
@@ -45,7 +54,9 @@ func NewApp(game *Game, opts Options) *App {
 	if provider == nil {
 		provider = &demoIdentityProvider{game}
 	}
-	return &App{Game: game, Options: opts, identityProvider: provider, clients: map[*subscriber]bool{}, world: map[string]WorldPlayer{}, socialAt: map[string]int64{}}
+	app := &App{Game: game, Options: opts, identityProvider: provider, clients: map[*subscriber]bool{}, world: map[string]WorldPlayer{}, socialAt: map[string]int64{}, worldFocus: map[string]worldFocus{}, worldStop: make(chan struct{}), worldDone: make(chan struct{})}
+	go app.worldLoop()
+	return app
 }
 func (a *App) Online() map[string]bool {
 	a.mu.Lock()
@@ -66,17 +77,22 @@ func (a *App) Broadcast(event any) {
 		default:
 			close(c.events)
 			delete(a.clients, c)
+			a.worldDirty, a.presenceDirty = true, true
 		}
 	}
 }
 func (a *App) Close() {
 	a.mu.Lock()
-	defer a.mu.Unlock()
-	a.closed = true
-	for c := range a.clients {
-		close(c.events)
-		delete(a.clients, c)
+	if !a.closed {
+		a.closed = true
+		close(a.worldStop)
+		for c := range a.clients {
+			close(c.events)
+			delete(a.clients, c)
+		}
 	}
+	a.mu.Unlock()
+	<-a.worldDone
 }
 func (a *App) closeToken(token string) {
 	a.mu.Lock()
@@ -375,7 +391,7 @@ func (a *App) events(w http.ResponseWriter, r *http.Request, player, token strin
 	if !ok {
 		return fail(500, "STREAM_UNAVAILABLE", "连接不支持实时通知")
 	}
-	c := &subscriber{player, token, make(chan []byte, 32)}
+	c := &subscriber{player: player, token: token, events: make(chan []byte, 32), worldEvents: make(chan []byte, 1), worldDelta: r.URL.Query().Get("world") == "2", view: map[string]WorldPlayer{}}
 	a.mu.Lock()
 	if a.closed {
 		a.mu.Unlock()
@@ -388,8 +404,7 @@ func (a *App) events(w http.ResponseWriter, r *http.Request, player, token strin
 		a.mu.Lock()
 		delete(a.clients, c)
 		a.mu.Unlock()
-		a.Broadcast(map[string]any{"kind": "presence", "at": a.Game.Now()})
-		a.broadcastWorld()
+		a.presenceChanged()
 	}()
 	w.Header().Set("Content-Type", "text/event-stream; charset=utf-8")
 	w.Header().Set("Cache-Control", "no-cache, no-transform")
@@ -400,8 +415,7 @@ func (a *App) events(w http.ResponseWriter, r *http.Request, player, token strin
 		return nil
 	}
 	flusher.Flush()
-	a.Broadcast(map[string]any{"kind": "presence", "at": a.Game.Now()})
-	a.broadcastWorld()
+	a.presenceChanged()
 	ticker := time.NewTicker(15 * time.Second)
 	defer ticker.Stop()
 	controller := http.NewResponseController(w)
@@ -413,6 +427,12 @@ func (a *App) events(w http.ResponseWriter, r *http.Request, player, token strin
 			if !ok {
 				return nil
 			}
+			_ = controller.SetWriteDeadline(time.Now().Add(10 * time.Second))
+			if _, err := fmt.Fprintf(w, "data: %s\n\n", msg); err != nil {
+				return nil
+			}
+			flusher.Flush()
+		case msg := <-c.worldEvents:
 			_ = controller.SetWriteDeadline(time.Now().Add(10 * time.Second))
 			if _, err := fmt.Fprintf(w, "data: %s\n\n", msg); err != nil {
 				return nil

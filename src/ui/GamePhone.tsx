@@ -1,3 +1,5 @@
+import { nearbyPlayers } from '../../shared/proximity.ts';
+import { goToPlayer, goToColleague } from '../world/navigation.ts';
 import { useEffect, useRef, useState } from 'react';
 import {
   ArrowUpRight, BatteryFull, Bell, Briefcase, Check, CheckCheck, ChevronLeft, ChevronRight, Coffee, Coins,
@@ -11,7 +13,7 @@ import { myTeam, useGame } from '../store.ts';
 import type { PhoneFeature, PhonePage } from '../store.ts';
 import { useCinema } from '../scene/cinema.ts';
 import { walkNear } from '../scene/Avatars.tsx';
-import { rt, useWorld } from '../world/runtime.ts';
+import { useWorld } from '../world/runtime.ts';
 import { projectDuration } from '../../shared/rules.ts';
 import { ZONES } from '../../shared/world.ts';
 import { Avatar } from './Avatar.tsx';
@@ -132,36 +134,33 @@ function PhonePlay() {
 }
 
 function PhoneContacts() {
+  const nearbyCount = useWorld(s => s.nearbyCount);
   const snap = useGame((s)=>s.snapshot)!;
   const players = useWorld((s)=>s.players);
   const [tab,setTab] = useState<'players'|'talent'>('players');
   const [query,setQuery] = useState('');
-  const online = new Set(players.map(p=>p.id));
+  const online = new Set(snap.players.filter(p=>p.online).map(p=>p.id));
+  const nearby = new Set(nearbyPlayers(players,snap.me.id).map(p=>p.id));
   const needle = query.trim().toLowerCase();
   const matches = (name:string,title:string) => `${name} ${title}`.toLowerCase().includes(needle);
   const contacts = snap.players.filter(p=>p.id!==snap.me.id && matches(p.name,p.title));
   const talent = snap.colleagues.filter(c=>c.selfPlayerId!==snap.me.id && matches(c.name,c.title));
   const go = (id:string,player:boolean) => {
-    const point = player ? rt.remote.get(id) : rt.colleaguePos.get(id);
-    if(!point) {
-      useGame.getState().toast({tone:'info',title:'对方暂时不在园区'});
-      return;
-    }
-    useGame.getState().closePhone();
-    useWorld.getState().setOverview(false);
-    walkNear(point.x,point.z,1.6);
+    const c = snap.colleagues.find(c=>c.id===id);
+    const action = player ? goToPlayer(id) : c ? goToColleague(c) : Promise.reject();
+    void action.catch(()=>useGame.getState().toast({tone:'info',title:'对方暂时不在园区'}));
   };
   return <div className="phone-page" data-testid="phone-contacts">
     <label className="phone-search"><Search size={16}/><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="搜同事或老板" aria-label="搜索园区同事"/></label>
     <div className="phone-segments"><button className={tab==='players'?'on':''} onClick={()=>setTab('players')}>园区搭子</button><button className={tab==='talent'?'on':''} onClick={()=>setTab('talent')}>人才名册</button></div>
-    <p className="phone-list-caption">{tab==='players'?`${players.filter(p=>p.id!==snap.me.id).length} 位同事在线，去打个招呼吧。`:'熟悉的同事，也能成为你的队友。'}</p>
+    <p className="phone-list-caption">{tab==='players'?`${online.size - (online.has(snap.me.id) ? 1 : 0)} 位同事在线 · ${nearbyCount} 位在附近`:'熟悉的同事，也能成为你的队友。'}</p>
     <ul className="phone-contact-list">
       {tab==='players' ? contacts.map(p=>{
         const av=snap.colleagues.find(c=>c.id===p.avatarColleagueId)!;
         const live=online.has(p.id);
         return <li key={p.id} data-testid={`phone-contact-${p.id}`}>
           <div className="phone-avatar-status"><Avatar look={dressed(av.look,p.style)} size={43}/><i className={live?'live':''}/></div>
-          <div><b>{p.name}</b><small>{live?'正在园区': '暂时离线'} · {p.rankName}</small></div>
+          <div><b>{p.name}</b><small>{live?nearby.has(p.id)?'就在附近':'正在园区': '暂时离线'} · {p.rankName}</small></div>
           <button className="phone-go" disabled={!live} onClick={()=>go(p.id,true)} aria-label={`去找${p.name}`}>{live?'去找TA':'离线'}</button>
         </li>;
       }) : talent.map(c=>{

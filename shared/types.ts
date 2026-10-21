@@ -161,6 +161,9 @@ export interface WorldSnapshot {
   serverTime: number;
   bounds: WorldBounds;
   players: WorldPlayer[];
+  onlineCount?: number;
+  nearbyCount?: number;
+  radius?: number;
 }
 
 export interface FinishResponse {

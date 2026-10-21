@@ -372,31 +372,50 @@ func (g *Game) Snapshot(id string, online map[string]bool) (Snapshot, error) {
 		if err != nil {
 			return err
 		}
+		// Aggregate once: a crowded login must not issue two queries per employee
+		// or rescan the whole colleague directory for each wallet snapshot.
+		type teamSummary struct{ Size, Value int }
+		teams := map[string]teamSummary{}
+		clones := map[string]Colleague{}
+		for _, c := range snap.Colleagues {
+			if c.OwnerID != nil {
+				team := teams[*c.OwnerID]
+				team.Size++
+				if c.LastPrice != nil {
+					team.Value += *c.LastPrice
+				}
+				teams[*c.OwnerID] = team
+			}
+			if c.SelfPlayerID != nil {
+				clones[*c.SelfPlayerID] = c
+			}
+		}
 		snap.Players = []Player{}
-		rows, err := tx.Query("SELECT id,name,title,color,coins FROM players ORDER BY id")
+		rows, err := tx.Query(`SELECT p.id,p.name,p.title,p.color,p.coins,COALESCE(c.rank,0),
+   COALESCE(s.shirt,''),COALESCE(s.accessory,''),COALESCE(s.aura,''),
+   COALESCE(s.boss_shirt,''),COALESCE(s.boss_accessory,''),COALESCE(s.boss_aura,'')
+   FROM players p LEFT JOIN player_careers c ON c.player_id=p.id
+   LEFT JOIN player_styles s ON s.player_id=p.id ORDER BY p.id`)
 		if err != nil {
 			return err
 		}
+		names := map[string]string{}
 		for rows.Next() {
 			var p Player
-			if err = rows.Scan(&p.ID, &p.Name, &p.Title, &p.Color, &p.Coins); err != nil {
+			if err = rows.Scan(&p.ID, &p.Name, &p.Title, &p.Color, &p.Coins, &p.Rank, &p.Style.Shirt, &p.Style.Accessory, &p.Style.Aura, &p.Style.BossShirt, &p.Style.BossAccessory, &p.Style.BossAura); err != nil {
 				rows.Close()
 				return err
 			}
 			p.Online = online[p.ID]
-			for _, c := range snap.Colleagues {
-				if same(c.OwnerID, p.ID) {
-					p.TeamSize++
-					if c.LastPrice != nil {
-						p.TeamValue += *c.LastPrice
-					}
-				}
-				if same(c.SelfPlayerID, p.ID) {
-					p.AvatarColleagueID = ptr(c.ID)
-					p.AvatarURL = c.Look.AvatarURL
-				}
+			team := teams[p.ID]
+			p.TeamSize, p.TeamValue = team.Size, team.Value
+			if clone, ok := clones[p.ID]; ok {
+				p.AvatarColleagueID = ptr(clone.ID)
+				p.AvatarURL = clone.Look.AvatarURL
 			}
 			p.Assets = p.Coins + p.TeamValue
+			p.RankName = careerLevels[p.Rank].Name
+			names[p.ID] = p.Name
 			snap.Players = append(snap.Players, p)
 		}
 		err = rows.Err()
@@ -404,25 +423,10 @@ func (g *Game) Snapshot(id string, online map[string]bool) (Snapshot, error) {
 		if err != nil {
 			return err
 		}
-		for i := range snap.Players {
-			career, err := readCareer(tx, snap.Players[i].ID)
-			if err != nil {
-				return err
-			}
-			snap.Players[i].Rank = career.Rank
-			snap.Players[i].RankName = career.Name
-			snap.Players[i].Style, err = readStyle(tx, snap.Players[i].ID)
-			if err != nil {
-				return err
-			}
-		}
 		for i := range snap.Colleagues {
 			c := &snap.Colleagues[i]
-			for _, p := range snap.Players {
-				if same(c.SelfPlayerID, p.ID) {
-					c.Look.AvatarName = p.Name
-					break
-				}
+			if c.SelfPlayerID != nil {
+				c.Look.AvatarName = names[*c.SelfPlayerID]
 			}
 		}
 		sortPlayers(snap.Players)

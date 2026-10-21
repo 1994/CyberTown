@@ -1,6 +1,6 @@
 .DEFAULT_GOAL := up
 
-.PHONY: test-deployment check-web check-api deps-web build-web build-api dev-web dev-api test-web test-api package-web package-api help check deps build up lan stop down restart status logs dev test test-auth perf perf-wasm
+.PHONY: test-crowd bench-crowd test-deployment check-web check-api deps-web build-web build-api dev-web dev-api test-web test-api package-web package-api help check deps build up lan stop down restart status logs dev test test-auth perf perf-wasm
 
 help:
 	@printf '%s\n' \
@@ -18,6 +18,8 @@ help:
 	  'make perf-wasm 编译可选 Rust/WASM 对照实验并跑基准' \
 	  'make dev-web / build-web / test-web  仅前端（只需 Node）' \
 	  'make dev-api / build-api / test-api  仅后端（只需 Go）' \
+	  'make test-crowd  100假玩家HTTP/SSE集中上线与附近订阅测试（仅Go）' \
+	  'make bench-crowd  100/300人位置同步CPU基准（仅Go）' \
 	  'make test-deployment  隔离验证原有后台启动/停止控制器' \
 	  'make package-web / package-api  导出独立前端产物 / 后端源码包' \
 	  '配置：.env 或 HOST=0.0.0.0 PORT=9000 make up'
@@ -54,6 +56,12 @@ test-web: deps-web
 test-api: check-api
 	go test ./...
 
+test-crowd: check-api
+	go test ./backend -run 'TestCrowd100Burst|TestInterest|TestDense|TestWorldDelta|TestWorldFocus' -count=1 -v
+
+bench-crowd: check-api
+	go test ./backend -run '^$$' -bench BenchmarkCrowdedWorldFlush -benchtime=300ms -count=1
+
 test-deployment: check
 	npm run test:deployment
 
@@ -64,7 +72,7 @@ package-web: build-web
 # Transfer this public core into the intranet; company adapters stay outside it.
 package-api: check-api
 	mkdir -p .run
-	tar -czf .run/boss-api-source.tar.gz go.mod go.sum backend cmd identity server contracts examples/intranet deploy/api docs/DECOUPLED-DEVELOPMENT.md docs/IDENTITY-SPI.md docs/BACKEND.md
+	tar -czf .run/boss-api-source.tar.gz go.mod go.sum backend cmd identity server contracts examples/intranet examples/identity deploy/api docs/DECOUPLED-DEVELOPMENT.md docs/IDENTITY-SPI.md docs/BACKEND.md docs/REVIEW-PROXIMITY.md
 
 deps: check
 	npm ci

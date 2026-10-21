@@ -2,15 +2,30 @@ import { useEffect } from 'react';
 import { api, ApiError } from '../api.ts';
 import type { WorldPlayer } from '../../shared/types.ts';
 import { resetRuntime, rt, useWorld } from './runtime.ts';
+import { acceptsWorldUpdate, mergeWorldPlayers, nearbyPlayers } from '../../shared/proximity.ts';
+import type { WorldUpdate } from '../../shared/proximity.ts';
 import { movementPacketDue } from './netBudget.ts';
 
 /** 远端玩家：把服务端最新坐标设为插值目标（渲染时平滑追随） */
-export function applyWorld(players: WorldPlayer[], serverTime?: number) {
-  useWorld.getState().setPlayers(players, serverTime);
-  const seen = new Set<string>();
+export function applyWorld(players: WorldPlayer[], serverTime?: number, update: WorldUpdate = {}) {
+  // A late GET must not overwrite membership from newer ordered stream deltas.
+  // Contact focus is an out-of-band upsert and never advances the stream clock.
+  if (!acceptsWorldUpdate(useWorld.getState().streamReady, update)) return;
+  if (update.stream) useWorld.setState({ streamReady: true });
+  const merged = mergeWorldPlayers(useWorld.getState().players, players, update);
+  useWorld.getState().setPlayers(merged, serverTime);
+  if (update.onlineCount !== undefined) useWorld.setState({ onlineCount: update.onlineCount });
+  else if (!update.partial) useWorld.setState({ onlineCount: merged.length });
+  if (update.nearbyCount !== undefined) useWorld.setState({ nearbyCount: update.nearbyCount });
+  else if (!update.local) useWorld.setState({ nearbyCount: nearbyPlayers(merged, rt.myId ?? '').length });
+  const seen = new Set(merged.map(p => p.id));
   for (const p of players) {
     seen.add(p.id);
     if (p.id === rt.myId) {
+      if (!rt.worldInitialized) {
+        rt.me.x = p.x; rt.me.z = p.z; rt.me.yaw = p.yaw;
+        rt.worldInitialized = true;
+      }
       // 自己以本地预测为准；只有与服务端差距很大（被拒绝/重连）时才平滑纠正
       const d = Math.hypot(p.x - rt.me.x, p.z - rt.me.z);
       if (d > 4 && performance.now() - lastSentAt > 1500) rt.correction = { x: p.x, z: p.z };
@@ -56,18 +71,12 @@ export function useWorldNet(myId: string | null) {
       .world()
       .then((w) => {
         if (!alive) return;
-        const mine = w.players.find((p) => p.id === myId);
-        if (mine) {
-          rt.me.x = mine.x;
-          rt.me.z = mine.z;
-          rt.me.yaw = mine.yaw;
-        }
-        applyWorld(w.players, w.serverTime);
+        applyWorld(w.players, w.serverTime, { onlineCount: w.onlineCount, nearbyCount: w.nearbyCount });
       })
       .catch(() => undefined);
 
     const tick = async () => {
-      if (!alive || inFlight) return;
+      if (!alive || inFlight || !rt.worldInitialized) return;
       const now = performance.now();
       if (now < backoffUntil) return;
       const m = rt.me;

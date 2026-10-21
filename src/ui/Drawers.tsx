@@ -11,8 +11,7 @@ import {
   displayName,
   skillShort,
 } from './Confirm.tsx';
-import { walkNear } from '../scene/Avatars.tsx';
-import { rt } from '../world/runtime.ts';
+import { goToColleague } from '../world/navigation.ts';
 import { Coins, Crown, Gamepad2, Move, Users } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { useDialogFocus } from './useDialogFocus.ts';
@@ -107,7 +106,6 @@ function Leaderboard() {
 /** 名册：所有同事的简表；可直接招募，或「带我去」走到对方身边 */
 function Roster() {
   const snap = useGame((s) => s.snapshot)!;
-  const setDrawer = useGame((s) => s.setDrawer);
   const [confirm, setConfirm] = useState<ColleagueView | null>(null);
   return (
     <div className="drawer-body" data-testid="market">
@@ -131,10 +129,7 @@ function Roster() {
               <button
                 className="btn ghost sm"
                 onClick={() => {
-                  useGame.getState().closePhone();
-                  const p = rt.colleaguePos.get(c.id);
-                  if (p) walkNear(p.x, p.z, 1.5);
-                  setDrawer(null);
+                  void goToColleague(c).catch(() => useGame.getState().toast({ tone: 'info', title: '对方暂时离开了，请稍后再试' }));
                 }}
               >
                 带我去

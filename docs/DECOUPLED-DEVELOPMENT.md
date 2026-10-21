@@ -145,3 +145,5 @@ SSE 代理必须关闭buffering/cache并保持长连接。原生EventSource沿�
 ![独立API跨源双玩家](../artifacts/decoupling/cross-origin-two-players.jpg)
 ![由SPI能力显示公司登录](../artifacts/decoupling/spi-company-login.jpg)
 ![假SPI完整登录链路](../artifacts/decoupling/spi-login-success.jpg)
+
+附近园区新增兼容的world=2位置增量与focus联系人接口，身份SPI签名和私有入口不变；更新时同步前后端，见 [距离视野验收](REVIEW-PROXIMITY.md)。

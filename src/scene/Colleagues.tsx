@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { ThreeEvent } from '@react-three/fiber';
 import { useFrame } from '@react-three/fiber';
 import { WorldLabel } from './WorldLabel.tsx';
@@ -17,6 +17,8 @@ import { FootRing } from './Avatars.tsx';
 import { dressedColleague, isBoss } from '../look.ts';
 import { Crown } from 'lucide-react';
 import { useCinema } from './cinema.ts';
+import { renderCounters } from '../performance.ts';
+import { selectColleagues } from '../../shared/proximity.ts';
 
 /**
  * 同事在园区里的位置（所有客户端按同一规则计算，因此看到的是同一个空间）：
@@ -101,6 +103,11 @@ function ColleagueActor({
       phase: 0,
     };
   }
+
+  useEffect(() => {
+    renderCounters.colleagueActors++;
+    return () => { rt.colleaguePos.delete(c.id); renderCounters.colleagueActors--; };
+  }, [c.id]);
 
   // 归属/模式变化 → 触发演出
   useEffect(() => {
@@ -396,18 +403,32 @@ function ColleagueActor({
 
 export function Colleagues() {
   const snapshot = useGame((s) => s.snapshot);
-  const onlineIds = useWorld((s) => s.players.map((p) => p.id).sort().join(','));
-  // 自己永远算在线（即便 SSE 还没连上），保证自己的小队跟随自己
+  const onlineIds = snapshot?.players.filter(p => p.online).map(p => p.id) ?? [];
   const myId = snapshot?.me.id;
-  const online = useMemo(
-    () => new Set([...onlineIds.split(',').filter(Boolean), ...(myId ? [myId] : [])]),
-    [onlineIds, myId],
-  );
+  const online = new Set([...onlineIds, ...(myId ? [myId] : [])]);
+  const nearbyIds = useWorld(s => s.fullPlayerIds);
+  const focusId = useWorld(s => s.focusColleagueId);
+  const shot = useCinema(s => s.shot);
+  const recent = useRef(new Map<string, number>());
+  const previousTeam = useRef(new Set<string>());
+  const [, setTick] = useState(0);
+  useEffect(() => { const timer = setInterval(() => setTick(t => t + 1), 1000); return () => clearInterval(timer); }, []);
+  useEffect(() => {
+    const team = new Set(snapshot?.colleagues.filter(c => c.ownerId === myId).map(c => c.id));
+    for (const id of previousTeam.current) if (!team.has(id)) recent.current.set(id, Date.now() + 9000);
+    previousTeam.current = team;
+  }, [snapshot, myId]);
+  for (const [id, until] of recent.current) if (until <= Date.now()) recent.current.delete(id);
+  const retained = new Set([...recent.current].filter(([, until]) => until > Date.now()).map(([id]) => id));
+  // Also retain the preceding own team on the ownership-change render, before effects run.
+  for (const id of previousTeam.current) retained.add(id);
+  if (shot) retained.add(shot.colleagueId);
   const onlineKey = [...online].sort().join(',');
   if (!snapshot) return null;
   return (
     <>
-      {snapshot.colleagues.map((c, i) => {
+      {selectColleagues(snapshot.colleagues, snapshot.me.id, new Set(nearbyIds), online, focusId, retained).map((c) => {
+        const i = snapshot.colleagues.indexOf(c);
         let assign: Assign;
         if (!c.ownerId) assign = { mode: 'booth', i };
         else if (online.has(c.ownerId))

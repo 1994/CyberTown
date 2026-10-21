@@ -140,6 +140,7 @@ export const api = {
   markRead: () => call<{ ok: true }>('POST', '/api/messages/read'),
   // ── 多人园区 ──
   world: () => call<WorldSnapshot>('GET', '/api/world'),
+  focusPlayer: (targetId: string) => call<{ player: WorldPlayer; serverTime: number }>('POST', '/api/world/focus', { targetId }),
   move: (m: { x: number; z: number; yaw: number; moving: boolean }) =>
     call<{ player: WorldPlayer }>('POST', '/api/world/move', m),
   social: (s: { emote?: EmoteKind; text?: string }) =>

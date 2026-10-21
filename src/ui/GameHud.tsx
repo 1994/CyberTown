@@ -602,7 +602,8 @@ function ConnBanner() {
 }
 
 export function GameHud() {
-  const online = useWorld((s) => s.players.length);
+  const online = useWorld((s) => s.onlineCount);
+  const nearby = useWorld((s) => s.nearbyCount);
   const setDrawer = useGame((s) => s.setDrawer);
   const playing = useGame((s) => s.introPlaying);
   const shot = useCinema((s) => s.shot);
@@ -624,7 +625,7 @@ export function GameHud() {
         <WalletCard />
         <button className="online-chip" onClick={() => setDrawer('friends')}>
           <i />
-          {online > 1 ? `${online} 位同事在园区` : '园区等你来热闹'}
+          {online > 1 ? `园区 ${online} 人 · 附近 ${nearby} 人` : '一个人也能玩 · NPC 老板等你'}
         </button>
         <YearCard />
       </div>
