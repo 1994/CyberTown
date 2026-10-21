@@ -43,6 +43,8 @@
   --joy: 128px;
   --act: 92px;
   --gap: 14px;
+  --control-ink: #d5e8e5;
+  --control-accent: #59dfd2;
 }
 .touch-ui kbd {
   display: none;
@@ -58,55 +60,81 @@
   border-radius: 50%;
   display: grid;
   place-items: center;
-  background: radial-gradient(circle, #0b1428e0 0 60%, #0b142899 61%);
-  border: 2px solid #66f4ff66;
-  box-shadow: 0 0 0 5px #66f4ff10, 0 10px 28px #02061599, inset 0 0 22px #66f4ff1c;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
   pointer-events: auto;
   touch-action: none;
   user-select: none;
   -webkit-user-select: none;
   -webkit-touch-callout: none;
   -webkit-tap-highlight-color: transparent;
-  transition: border-color 0.15s, box-shadow 0.15s;
 }
 .touch-ui .joystick::before {
   content: '';
   position: absolute;
-  inset: 15px;
+  inset: 12px;
   border-radius: 50%;
-  border: 1px dashed #66f4ff3d;
+  border: 1px solid #b8e2dc35;
+  background: radial-gradient(circle, #08171ed4, #08171e5c 70%);
+  box-shadow: inset 0 1px #defaf009;
   pointer-events: none;
+  transition: border-color .15s, background .15s;
+}
+.joystick-guides {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  stroke: #b8d9d795;
+  stroke-width: 1.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  pointer-events: none;
+  transition: stroke .15s;
 }
 .touch-ui .joystick > i {
   position: relative;
-  width: 52px;
-  height: 52px;
-  border-radius: 50%;
-  background: radial-gradient(circle at 35% 30%, #fff, #9ef8ff 45%, #29b3d1);
-  box-shadow: 0 4px 0 #0d5468, 0 0 18px #66f4ff66;
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  border: 1px solid #9ed9d08c;
+  background: linear-gradient(145deg, #33474b, #14272e 80%);
+  box-shadow: 0 3px 0 #051016b3, 0 5px 12px #0005, inset 0 1px #d7f5ec26;
   will-change: transform;
   transition: transform 0.14s ease-out;
   pointer-events: none;
 }
-.touch-ui .joystick[data-active] {
-  border-color: var(--gold, #ffdb81);
-  box-shadow: 0 0 0 6px #ffdb8122, 0 0 26px #ffdb8133, inset 0 0 22px #ffdb811a;
+.touch-ui .joystick > i::before {
+  content: '';
+  position: absolute;
+  inset: 15px;
+  border: 1px solid var(--control-accent);
+  border-radius: 3px;
+  transform: rotate(45deg);
+}
+.touch-ui .joystick[data-active]::before {
+  border-color: #f5d63b70;
+  background: radial-gradient(circle, #10242cda, #08171e80 70%);
+}
+.joystick[data-active] .joystick-guides {
+  stroke: #f5d63bd9;
 }
 .touch-ui .joystick[data-active] > i {
+  border-color: var(--control-accent);
+  background: linear-gradient(145deg, #3a595a, #16323a 80%);
   transition: none;
 }
 .thumb-label {
   position: absolute;
   left: 50%;
-  bottom: 0;
-  transform: translate(-50%, 50%);
-  padding: 2px 10px;
-  border-radius: 99px;
-  background: #111b32;
-  border: 1px solid #66f4ff55;
-  color: #9ef8ff;
-  font-size: 10px;
-  font-weight: 800;
+  bottom: -3px;
+  transform: translateX(-50%);
+  padding: 0;
+  color: #c4dbd5ad;
+  text-shadow: 0 1px 4px #000;
+  font-size: 9px;
+  font-weight: 500;
   letter-spacing: 2px;
   white-space: nowrap;
   pointer-events: none;
@@ -114,22 +142,24 @@
 
 /* 右拇指：情境互动键 */
 .touch-action {
+  --action-accent: #f5d63b;
   position: absolute;
   right: calc(var(--sr) + var(--gap) + 6px);
   bottom: calc(var(--sb) + var(--gap) + 22px);
   width: var(--act);
   height: var(--act);
-  border-radius: 50%;
+  border-radius: 24px 14px 24px 14px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 1px;
   padding: 0;
-  color: #fff;
-  border: 2px solid #ec6ed5;
-  background: radial-gradient(circle at 35% 28%, #d93aab, #6c2eaa 72%);
-  box-shadow: 0 5px 0 #300d43, 0 0 0 6px #ec4ccc1c, 0 0 26px #ec4ccc55;
+  color: var(--control-ink);
+  border: 1px solid #b6d5cf66;
+  border-bottom: 2px solid var(--action-accent);
+  background: linear-gradient(150deg, #23353df2, #0a1a22f2 80%);
+  box-shadow: 0 4px 0 #040d14a6, 0 6px 16px #0004, inset 0 1px #e2f4ed14;
   font-family: inherit;
   pointer-events: auto;
   touch-action: manipulation;
@@ -137,11 +167,17 @@
   -webkit-user-select: none;
   -webkit-tap-highlight-color: transparent;
   cursor: pointer;
-  transition: transform 0.1s ease, box-shadow 0.1s ease, filter 0.15s;
+  transition: transform 0.1s ease, border-color .15s;
+}
+.touch-action > svg {
+  width: 21px;
+  height: 21px;
+  margin-bottom: 3px;
+  color: var(--action-accent);
 }
 .touch-action > b {
-  font-size: 16px;
-  font-weight: 900;
+  font-size: 14px;
+  font-weight: 700;
   line-height: 1.1;
   letter-spacing: 1px;
 }
@@ -162,46 +198,43 @@
   line-height: 1;
 }
 .touch-action:active {
-  transform: translateY(3px) scale(0.95);
-  box-shadow: 0 2px 0 #300d43, 0 0 0 8px #ec4ccc26, 0 0 30px #ec4ccc77;
+  transform: translateY(2px) scale(0.97);
+  border-color: var(--action-accent);
+  box-shadow: 0 2px 0 #040d14a6, inset 0 1px #e2f4ed14;
 }
 .touch-action::after {
   content: '';
   position: absolute;
-  inset: -9px;
-  border-radius: 50%;
-  border: 2px solid currentColor;
-  opacity: 0;
+  top: 9px;
+  right: 9px;
+  width: 3px;
+  height: 3px;
+  border-radius: 1px;
+  background: var(--action-accent);
   pointer-events: none;
-  animation: touch-ping 1.7s ease-out infinite;
 }
 .touch-action[data-tone='play'] {
-  border-color: #66f4ff;
-  background: radial-gradient(circle at 35% 28%, #2ad0ea, #17508a 72%);
-  box-shadow: 0 5px 0 #0b2546, 0 0 0 6px #66f4ff1c, 0 0 26px #66f4ff55;
+  --action-accent: #59dfd2;
 }
 .touch-action[data-tone='cheer'] {
-  color: #2a1a05;
-  border-color: #ffe7a8;
-  background: radial-gradient(circle at 35% 28%, #fff1c2, #f2b53d 72%);
-  box-shadow: 0 5px 0 #6b4510, 0 0 0 6px #ffdb811f, 0 0 26px #ffdb8166;
+  --action-accent: #eea16c;
+}
+.touch-action[data-tone='poach'] {
+  --action-accent: #ff8276;
 }
 .touch-action[data-tone='idle'] {
-  color: #9ef8ff;
-  border-color: #66f4ff55;
-  background: #111b32ee;
-  box-shadow: 0 5px 0 #050817, 0 10px 26px #02061599;
+  --action-accent: #94b1b3;
+  color: #b8cbce;
+  border-color: #93b5b542;
+  border-bottom-color: #93b5b557;
+  background: linear-gradient(150deg, #172b33b8, #0a1a22b8);
 }
 .touch-action[data-tone='idle']::after,
 .touch-action[data-blocked]::after {
-  animation: none;
+  display: none;
 }
 .touch-action[data-blocked] {
   filter: saturate(0.35) brightness(0.8);
-}
-@keyframes touch-ping {
-  0% { transform: scale(0.88); opacity: 0.6; }
-  100% { transform: scale(1.16); opacity: 0; }
 }
 
 /* 通用触屏布局（横屏 / 平板）：拇指在两角，主菜单居中，聊天与地图分别在两拇指上方 */
@@ -396,6 +429,8 @@
     animation: none;
   }
   .touch-ui .joystick > i,
+  .touch-ui .joystick::before,
+  .joystick-guides,
   .touch-action {
     transition: none;
   }

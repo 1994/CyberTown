@@ -94,6 +94,9 @@ export function Joystick() {
       onLostPointerCapture={(e) => e.pointerId === pid.current && stop()}
       onContextMenu={(e) => e.preventDefault()}
     >
+      <svg className="joystick-guides" viewBox="0 0 100 100" fill="none" aria-hidden="true">
+        <path d="m46 18 4-4 4 4m28 28 4 4-4 4M54 82l-4 4-4-4M18 54l-4-4 4-4" />
+      </svg>
       <i ref={knob} aria-hidden />
       <small className="thumb-label" aria-hidden>
         移动
