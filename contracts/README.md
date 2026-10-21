@@ -16,6 +16,7 @@ HTTP DTO 的前端声明在 `shared/types.ts`、`src/api.ts`；服务端实现�
 | POST `/logout` | Bearer；删除游戏会话并关闭其SSE |
 | POST `/profile/avatar` | Bearer；`{avatarUrl}` |
 | POST `/colleagues/{id}/sign` | Bearer；`{expectedPrice}`；服务端原子判断所有权与余额 |
+| GET `/project` | Bearer；仅自己的 `playerId,serverTime,activeRun`，供高频观察，避免拉全员目录 |
 | POST `/project/start` | Bearer；返回run、种子、服务端时钟 |
 | POST `/project/finish` | Bearer；`{runId,actions:[{taskId,t}]}`；奖励以服务端为准 |
 | POST `/career/promote` | Bearer；`{expectedRank}` |
@@ -35,3 +36,5 @@ HTTP DTO 的前端声明在 `shared/types.ts`、`src/api.ts`；服务端实现�
 新版世界协议：`/events?world=2&token=...` 首包 `partial:false`，之后 `partial:true` 的players为upsert，removed为删除ID。每次重连或慢消费者合并会再次发送全量当前视野；不可把增量players当成完整在线名单。onlineCount为全园区人数，nearbyCount为26米内实际其他玩家数（不受64位位置订阅预算影响），GET /world为当前附近完整快照。距离方案与范围见 [验收说明](../docs/REVIEW-PROXIMITY.md)。
 
 `world-contract.json` 固定当前90×66米园区边界，Go世界接口测试与前端地图测试共同校验；扩图时须更新两端。街区建筑和长椅的绘制/碰撞来自 `shared/world.ts` 的共享空间数据。虚构NPC的散步由前端按服务端校时计算，仅用于未签约的两位NPC，不增加在线人数，不影响服务端资金与归属。
+
+Coding Agent 使用普通玩家 CLI，见 [Agent CLI](../docs/AGENT-CLI.md)。`gameplay/navigation.json` 由 `node scripts/export-player-contract.ts --write` 从网页地图与传送带窗口导出；`make test-web` 检查漂移。Go 服务端与 CLI 共享 `gameplay.GenerateTasks`，不共享数据库访问。

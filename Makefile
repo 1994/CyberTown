@@ -1,7 +1,7 @@
 .DEFAULT_GOAL := up
 BENCH_CPU ?= 8
 
-.PHONY: perf-api test-crowd bench-crowd test-deployment check-web check-api deps-web build-web build-api dev-web dev-api test-web test-api package-web package-api help check deps build up lan stop down restart status logs dev test test-auth perf perf-wasm
+.PHONY: build-cli test-cli perf-api test-crowd bench-crowd test-deployment check-web check-api deps-web build-web build-api dev-web dev-api test-web test-api package-web package-api help check deps build up lan stop down restart status logs dev test test-auth perf perf-wasm
 
 help:
 	@printf '%s\n' \
@@ -19,6 +19,7 @@ help:
 	  'make perf-wasm 编译可选 Rust/WASM 对照实验并跑基准' \
 	  'make dev-web / build-web / test-web  仅前端（只需 Node）' \
 	  'make dev-api / build-api / test-api  仅后端（只需 Go）' \
+	  'make build-cli / test-cli  编译 / 验收 Agent 玩家 CLI（只需 Go）' \
 	  'make test-crowd  100假玩家HTTP/SSE集中上线与附近订阅测试（仅Go）' \
 	  'make bench-crowd  100/300/1000人位置同步CPU基准（仅Go）' \
 	  'make perf-api BENCH_CPU=32  在32核服务器复测广播与目录快照基准（仅Go）' \
@@ -44,6 +45,12 @@ build-web: deps-web
 
 build-api: check-api
 	CGO_ENABLED=0 go build -trimpath -o bin/boss-server ./cmd/boss-server
+
+build-cli: check-api
+	CGO_ENABLED=0 go build -trimpath -o bin/boss ./cmd/boss
+
+test-cli: check-api
+	go test -race ./internal/playercli ./gameplay
 
 dev-web: deps-web
 	npm run dev:web
@@ -77,13 +84,14 @@ package-web: build-web
 # Transfer this public core into the intranet; company adapters stay outside it.
 package-api: check-api
 	mkdir -p .run
-	tar -czf .run/boss-api-source.tar.gz go.mod go.sum backend cmd identity server contracts examples/intranet examples/identity deploy/api docs/DECOUPLED-DEVELOPMENT.md docs/IDENTITY-SPI.md docs/BACKEND.md docs/REVIEW-PROXIMITY.md docs/REVIEW-CAMPUS-EXPANSION.md docs/REVIEW-PERFORMANCE-V3.md artifacts/performance-v3
+	tar -czf .run/boss-api-source.tar.gz go.mod go.sum backend cmd identity server gameplay internal/playercli contracts examples/intranet examples/identity deploy/api docs/DECOUPLED-DEVELOPMENT.md docs/IDENTITY-SPI.md docs/BACKEND.md docs/REVIEW-PROXIMITY.md docs/REVIEW-CAMPUS-EXPANSION.md docs/REVIEW-PERFORMANCE-V3.md docs/AGENT-CLI.md artifacts/performance-v3 artifacts/agent-cli
 
 deps: check
 	npm ci
 
 build: deps
 	npm run build
+	$(MAKE) build-cli
 
 up: build
 	node scripts/server.mjs up

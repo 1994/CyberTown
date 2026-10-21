@@ -1,6 +1,10 @@
 package backend
 
-import "encoding/json"
+import (
+	"encoding/json"
+
+	"github.com/1994/boss-works-for-me/gameplay"
+)
 
 type Skill struct {
 	Kind  string `json:"kind"`
@@ -112,13 +116,7 @@ type Trade struct {
 	PreviousDeskSlot *int    `json:"previousDeskSlot"`
 	At               int64   `json:"at"`
 }
-type Task struct {
-	ID      int    `json:"id"`
-	Kind    string `json:"kind"`
-	Lane    int    `json:"lane"`
-	SpawnAt int64  `json:"spawnAt"`
-	TTL     int64  `json:"ttl"`
-}
+type Task = gameplay.Task
 type Action struct {
 	TaskID int     `json:"taskId"`
 	T      float64 `json:"t"`

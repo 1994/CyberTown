@@ -10,6 +10,8 @@ WORKDIR /app
 COPY go.mod go.sum ./
 RUN go mod download
 COPY backend ./backend
+COPY gameplay ./gameplay
+COPY internal ./internal
 COPY cmd ./cmd
 COPY identity ./identity
 COPY server ./server

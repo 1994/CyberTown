@@ -263,6 +263,12 @@ func (a *App) handle(w http.ResponseWriter, r *http.Request) error {
 	switch {
 	case path == "/api/events" && method == "GET":
 		return a.events(w, r, player, token)
+	case path == "/api/project" && method == "GET":
+		view, err := a.Game.ProjectView(player)
+		if err != nil {
+			return err
+		}
+		respond(w, 200, view)
 	case path == "/api/logout" && method == "POST":
 		if err = a.Game.Logout(token); err != nil {
 			return err

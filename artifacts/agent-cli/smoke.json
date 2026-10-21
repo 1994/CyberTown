@@ -1,0 +1,37 @@
+{
+  "environment": "isolated test API 127.0.0.1:8806 + temporary database",
+  "compiledCLI": true,
+  "poach": {
+    "price": 380,
+    "sellerCompensation": 342,
+    "stalePriceRejected": true
+  },
+  "world": {
+    "online": 2,
+    "walkMeters": 1,
+    "highfiveRewardEach": 15
+  },
+  "realTimeProject": {
+    "wallSeconds": 15.14,
+    "presses": 19,
+    "result": {
+      "hits": 19,
+      "misses": 0,
+      "traps": 0,
+      "shieldsUsed": 0,
+      "maxCombo": 19,
+      "rejected": 0,
+      "basePoints": 384,
+      "incomeBonus": 0,
+      "total": 384
+    },
+    "walletBefore": 657,
+    "walletAfter": 1041
+  },
+  "promotionAndShop": {
+    "rank": 1,
+    "item": "sunset-shirt",
+    "equipped": true
+  },
+  "SSE": "Both real CLI streams observed presence, world and highfive events"
+}

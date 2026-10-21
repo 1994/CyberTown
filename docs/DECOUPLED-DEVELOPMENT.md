@@ -18,6 +18,8 @@
 | --- | --- | --- |
 | `src/`, `public/`, `shared/` | 前端、API 客户端、展示规则与 DTO | Node；无需 Go |
 | `contracts/` | 双方共有的 HTTP 边界说明与计分契约样例 | 随两端一起版本化 |
+| `gameplay/` | Go 客户端/服务端共用的纯规则及已导出的地图数据 | Go；无数据库依赖 |
+| `cmd/boss/`, `internal/playercli/` | Coding Agent 的普通玩家 CLI | Go；通过 HTTP 操作，不读取数据库 |
 | `backend/` | 游戏事务、SQLite、HTTP 与 SSE | Go；无需 Node / dist |
 | `identity/` | 身份 SPI、测试 Mock | Go；无公司 SDK |
 | `server/` | 环境校验、数据库模式、CORS、HTTP 生命周期 | Go；私有入口直接复用 |

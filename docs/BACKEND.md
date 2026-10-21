@@ -44,6 +44,7 @@ JSON 错误统一为 `{ "error": { "code": "...", "message": "..." } }`。普通
 | POST | `/api/profile/avatar` | `{avatarUrl:"https://.../avatar.png"}` 更新自己的头像面具；空字符串还原占位图 |
 | GET | `/api/events` | SSE `hello` 与 `sync`，含交易详情用于动画 |
 | POST | `/api/colleagues/:id/sign` | 必填整数 `expectedPrice`，变价返回409 |
+| GET | `/api/project` | 认证后仅返回自己的 `playerId,serverTime,activeRun`，支持 CLI 高频观察，不加载全员目录 |
 | POST | `/api/project/start` | 返回服务端种子、开始时间、截止时间、技能快照 |
 | POST | `/api/project/finish` | `{runId,actions:[{taskId,t}]}`；不采信客户端分数或奖励 |
 | GET | `/api/career` | 当前职级、业绩、有效项目数、下一阶门槛与 `canPromote` |

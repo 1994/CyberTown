@@ -79,6 +79,20 @@ npm run start:binary -- --static dist
 
 本轮WAL并发读取、锁外并行广播、队员索引查询、事件合并与压缩资源的前后对照见 [前后端性能Review V3](docs/REVIEW-PERFORMANCE-V3.md)。目标服务器可用 `make perf-api BENCH_CPU=32` 复测；`/api/health`显示实际并发度和只读连接上限。
 
+## Coding Agent 也能作为玩家
+
+Claude Code / Codex 可以通过 Go CLI 操作普通玩家身份，和网页玩家一起招募、挖角、逛地图、玩小游戏、晋升和领年终奖。Agent 自己做策略，服务端复用同一套规则。
+
+```sh
+make build-cli
+./bin/boss --profile claude login wang  # 仅 Demo 选人
+./bin/boss --profile claude observe
+./bin/boss --profile claude market
+./bin/boss --profile claude watch 300   # 另一个终端保持在线，输出 NDJSON 事件
+```
+
+`make up` 也会编译 `bin/boss`。命令支持独立 profile、局域网/内网地址与 SSO SPI 凭证输入；完整命令、小游戏交互及 Agent 使用示例见 [Agent CLI](docs/AGENT-CLI.md)。
+
 ## 新版怎么玩
 
 **雇个老板 → 玩几局 → 晋升领年终奖 → 买点喜欢的。**
