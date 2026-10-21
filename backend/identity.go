@@ -171,7 +171,7 @@ func (g *Game) authProvider(token, provider string) (string, error) {
 		return "", fail(401, "NO_SESSION", "请先登录")
 	}
 	var player string
-	err := g.DB.QueryRow(`SELECT s.player_id FROM sessions s LEFT JOIN identity_sessions i ON i.token=s.token
+	err := g.readDB().QueryRow(`SELECT s.player_id FROM sessions s LEFT JOIN identity_sessions i ON i.token=s.token
 		WHERE s.token=? AND COALESCE(i.provider,'demo')=?`, token, provider).Scan(&player)
 	if err == sql.ErrNoRows {
 		return "", fail(401, "BAD_SESSION", "登录已失效，请重新登录")

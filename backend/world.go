@@ -175,21 +175,29 @@ func (g *Game) highfiveReward(first, second string) (int64, error) {
 
 func (a *App) highfiveWorld(id, target string) (int64, error) {
 	a.mu.Lock()
-	defer a.mu.Unlock()
 	if id == target || target == "" {
+		a.mu.Unlock()
 		return 0, fail(400, "BAD_TARGET", "选一位附近的同事")
 	}
 	if !a.onlineLocked(id) || !a.onlineLocked(target) {
+		a.mu.Unlock()
 		return 0, fail(409, "OFFLINE", "对方暂时离开了")
 	}
 	p, q := a.ensureWorldLocked(id), a.ensureWorldLocked(target)
 	if math.Hypot(p.X-q.X, p.Z-q.Z) > 4 {
+		a.mu.Unlock()
 		return 0, fail(409, "TOO_FAR", "走近一点再碰杯")
 	}
+	// Distance is validated at initiation. Persistent rewards must not hold the
+	// world lock while waiting for a wallet transaction or disk flush.
+	a.mu.Unlock()
 	until, err := a.Game.highfiveReward(id, target)
 	if err != nil {
 		return 0, err
 	}
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	p, q = a.ensureWorldLocked(id), a.ensureWorldLocked(target)
 	now := a.Game.Now()
 	p.Emote, q.Emote, p.EmoteUntil, q.EmoteUntil = "coffee", "coffee", now+3000, now+3000
 	a.world[id], a.world[target] = p, q

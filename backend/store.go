@@ -11,6 +11,7 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"runtime"
 	"time"
 )
 
@@ -29,6 +30,7 @@ type Game struct {
 	DB       *sql.DB
 	Now      func() int64
 	demoData bool
+	reader   *sql.DB
 }
 
 func randomID() string {
@@ -70,7 +72,8 @@ func OpenWithOptions(path string, clock func() int64, opts DatabaseOptions) (*Ga
 	if err != nil {
 		return nil, err
 	}
-	// 单进程连接串行化；跨进程由 SQLite IMMEDIATE 写锁保证一致性。SSE 不持有数据库连接。
+	// Keep writes serialized and transactional; read snapshots use a separate
+	// deferred, query-only WAL pool and never acquire an IMMEDIATE write lock.
 	db.SetMaxOpenConns(1)
 	db.SetMaxIdleConns(1)
 	g := &Game{DB: db, Now: clock, demoData: opts.DemoData}
@@ -82,9 +85,47 @@ func OpenWithOptions(path string, clock func() int64, opts DatabaseOptions) (*Ga
 		db.Close()
 		return nil, err
 	}
+	if path != ":memory:" {
+		reader, err := sql.Open("sqlite", uri+"mode=ro&_pragma=busy_timeout(5000)&_query_only=1&_txlock=deferred")
+		if err != nil {
+			db.Close()
+			return nil, err
+		}
+		readers := min(16, max(2, runtime.GOMAXPROCS(0)))
+		reader.SetMaxOpenConns(readers)
+		reader.SetMaxIdleConns(readers)
+		if err := reader.Ping(); err != nil {
+			reader.Close()
+			db.Close()
+			return nil, err
+		}
+		g.reader = reader
+	}
 	return g, nil
 }
-func (g *Game) Close() error { return g.DB.Close() }
+func (g *Game) readDB() *sql.DB {
+	if g.reader != nil {
+		return g.reader
+	}
+	return g.DB // In-memory fixtures have no WAL; keep their single connection.
+}
+func (g *Game) Close() error {
+	if g.reader != nil {
+		_ = g.reader.Close()
+	}
+	return g.DB.Close()
+}
+func (g *Game) readTransaction(fn func(*sql.Tx) error) error {
+	tx, err := g.readDB().Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+	if err := fn(tx); err != nil {
+		return err
+	}
+	return tx.Commit()
+}
 func (g *Game) transaction(fn func(*sql.Tx) error) error {
 	tx, err := g.DB.Begin()
 	if err != nil {
@@ -240,7 +281,7 @@ func version(q queryer) (int64, error) {
 	err := q.QueryRow("SELECT CAST(value AS INTEGER) FROM meta WHERE key='version'").Scan(&v)
 	return v, err
 }
-func (g *Game) Version() int64 { v, _ := version(g.DB); return v }
+func (g *Game) Version() int64 { v, _ := version(g.readDB()); return v }
 func ptr[T any](value T) *T    { return &value }
 
 type scanner interface{ Scan(...any) error }
@@ -262,7 +303,13 @@ func scanCol(row scanner) (Colleague, error) {
 	return c, nil
 }
 func colleagues(q queryer) ([]Colleague, error) {
-	rows, err := q.Query("SELECT " + colleagueColumns + " FROM colleagues ORDER BY sort")
+	return queryColleagues(q, "SELECT "+colleagueColumns+" FROM colleagues ORDER BY sort")
+}
+func ownedColleagues(q queryer, player string) ([]Colleague, error) {
+	return queryColleagues(q, "SELECT "+colleagueColumns+" FROM colleagues WHERE owner_id=? ORDER BY desk_slot", player)
+}
+func queryColleagues(q queryer, statement string, args ...any) ([]Colleague, error) {
+	rows, err := q.Query(statement, args...)
 	if err != nil {
 		return nil, err
 	}
@@ -323,7 +370,7 @@ func (g *Game) Auth(token string) (string, error) {
 		return "", fail(401, "NO_SESSION", "请先登录")
 	}
 	var id string
-	err := g.DB.QueryRow("SELECT player_id FROM sessions WHERE token=?", token).Scan(&id)
+	err := g.readDB().QueryRow("SELECT player_id FROM sessions WHERE token=?", token).Scan(&id)
 	if err == sql.ErrNoRows {
 		return "", fail(401, "BAD_SESSION", "登录已失效，请重新登录")
 	}
@@ -336,6 +383,11 @@ func (g *Game) Logout(token string) error {
 func (g *Game) MarkRead(player string) error {
 	_, err := g.DB.Exec("UPDATE messages SET read_at=? WHERE player_id=? AND read_at IS NULL", g.Now(), player)
 	return err
+}
+func (g *Game) Balance(player string) (int, error) {
+	var coins int
+	err := g.readDB().QueryRow("SELECT coins FROM players WHERE id=?", player).Scan(&coins)
+	return coins, noRow(err, "NO_PLAYER", "玩家不存在")
 }
 func (g *Game) Identities() ([]Identity, error) {
 	rows, err := g.DB.Query("SELECT p.id,p.name,p.title,p.color,c.id,COALESCE(c.look,'{}') FROM players p LEFT JOIN colleagues c ON c.self_player_id=p.id ORDER BY p.created_at,p.rowid")
@@ -361,7 +413,7 @@ func (g *Game) Identities() ([]Identity, error) {
 }
 func (g *Game) Snapshot(id string, online map[string]bool) (Snapshot, error) {
 	var snap Snapshot
-	err := g.transaction(func(tx *sql.Tx) error {
+	err := g.readTransaction(func(tx *sql.Tx) error {
 		snap.ServerTime = g.Now()
 		var err error
 		snap.Version, err = version(tx)

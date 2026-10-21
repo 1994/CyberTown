@@ -1,0 +1,22 @@
+goos: darwin
+goarch: arm64
+pkg: github.com/1994/boss-works-for-me/backend
+cpu: Apple M4
+BenchmarkCrowdedWorldFlush/n100/densefalse-8         	     261	   1269689 ns/op	 4377934 B/op	    1427 allocs/op
+BenchmarkCrowdedWorldFlush/n100/densefalse-8         	     278	   1271098 ns/op	 4378739 B/op	    1427 allocs/op
+BenchmarkCrowdedWorldFlush/n100/densetrue-8          	     235	   1510529 ns/op	 4999014 B/op	    1383 allocs/op
+BenchmarkCrowdedWorldFlush/n100/densetrue-8          	     236	   1498629 ns/op	 4997653 B/op	    1383 allocs/op
+BenchmarkCrowdedWorldFlush/n300/densefalse-8         	     103	   3471693 ns/op	14474267 B/op	    4144 allocs/op
+BenchmarkCrowdedWorldFlush/n300/densefalse-8         	     100	   3512925 ns/op	14473839 B/op	    4142 allocs/op
+BenchmarkCrowdedWorldFlush/n300/densetrue-8          	     103	   3487288 ns/op	14889818 B/op	    4022 allocs/op
+BenchmarkCrowdedWorldFlush/n300/densetrue-8          	     103	   3431006 ns/op	14888120 B/op	    4021 allocs/op
+BenchmarkCrowdedWorldFlush/n1000/densefalse-8        	      25	  14252108 ns/op	49695570 B/op	   13330 allocs/op
+BenchmarkCrowdedWorldFlush/n1000/densefalse-8        	      22	  14278610 ns/op	49690891 B/op	   13331 allocs/op
+BenchmarkCrowdedWorldFlush/n1000/densetrue-8         	      27	  12509065 ns/op	49553978 B/op	   13154 allocs/op
+BenchmarkCrowdedWorldFlush/n1000/densetrue-8         	      24	  12567420 ns/op	49594702 B/op	   13177 allocs/op
+BenchmarkSnapshotDirectory/100-8                     	    2264	    160512 ns/op	  358066 B/op	    3773 allocs/op
+BenchmarkSnapshotDirectory/100-8                     	    2144	    159840 ns/op	  357896 B/op	    3772 allocs/op
+BenchmarkSnapshotDirectory/1000-8                    	     284	   1257084 ns/op	 3768451 B/op	   32628 allocs/op
+BenchmarkSnapshotDirectory/1000-8                    	     277	   1272087 ns/op	 3769057 B/op	   32630 allocs/op
+PASS
+ok  	github.com/1994/boss-works-for-me/backend	9.093s

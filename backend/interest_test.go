@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"math"
+	"math/rand"
+	"sort"
 	"testing"
 	"time"
 )
@@ -64,6 +66,76 @@ func TestDenseInterestBoundAndStableOrdering(t *testing.T) {
 		}
 	}
 }
+
+func TestBoundedInterestMatchesFullSort(t *testing.T) {
+	r := rand.New(rand.NewSource(92))
+	for trial := 0; trial < 100; trial++ {
+		me := WorldPlayer{ID: "self", X: float64(r.Intn(60) - 30), Z: float64(r.Intn(40) - 20)}
+		people := []WorldPlayer{me}
+		previous := map[string]WorldPlayer{}
+		for i := 0; i < 500; i++ {
+			p := WorldPlayer{ID: fmt.Sprintf("p%03d", i), X: float64(r.Intn(90) - 45), Z: float64(r.Intn(66) - 33)}
+			people = append(people, p)
+			if r.Intn(3) == 0 {
+				previous[p.ID] = p
+			}
+		}
+		focus := ""
+		if trial%2 == 0 {
+			focus = "p499"
+		}
+		got, nearby := selectInterest(buildWorldIndex(people), me, previous, focus)
+		want := []WorldPlayer{}
+		count := 0
+		for _, p := range people[1:] {
+			d := math.Hypot(p.X-me.X, p.Z-me.Z)
+			if d <= worldRadius {
+				count++
+			}
+			radius := worldRadius
+			if _, ok := previous[p.ID]; ok {
+				radius = worldLeaveRadius
+			}
+			if d <= radius && p.ID != focus {
+				want = append(want, p)
+			}
+		}
+		score := func(p WorldPlayer) float64 {
+			d := math.Hypot(p.X-me.X, p.Z-me.Z)
+			if _, ok := previous[p.ID]; ok {
+				d -= .8
+			}
+			return d
+		}
+		sort.Slice(want, func(i, j int) bool {
+			a, b := score(want[i]), score(want[j])
+			if a == b {
+				return want[i].ID < want[j].ID
+			}
+			return a < b
+		})
+		limit := worldLimit
+		if focus != "" {
+			limit--
+		}
+		if len(want) > limit {
+			want = want[:limit]
+		}
+		if focus != "" {
+			want = append(want, people[500])
+		}
+		want = append(want, me)
+		sort.Slice(want, func(i, j int) bool { return want[i].ID < want[j].ID })
+		if count != nearby || len(want) != len(got) {
+			t.Fatal("census/bound mismatch", trial)
+		}
+		for i := range want {
+			if want[i] != got[i] {
+				t.Fatalf("selection changed trial %d index %d: %s != %s", trial, i, want[i].ID, got[i].ID)
+			}
+		}
+	}
+}
 func interestSubscriber(id string) *subscriber {
 	return &subscriber{player: id, events: make(chan []byte, 32), worldEvents: make(chan []byte, 1), worldDelta: true, view: map[string]WorldPlayer{}}
 }
@@ -98,7 +170,7 @@ func TestWorldDeltaDepartureSlowConsumerAndLegacy(t *testing.T) {
 	e.app.clients[b] = true
 	e.app.world["wang"] = WorldPlayer{ID: "wang"}
 	e.app.world["li"] = WorldPlayer{ID: "li", X: 2}
-	e.app.flushWorldLocked(1)
+	flushWorldTestLocked(e.app, 1)
 	packet := readPacket(t, a)
 	readPacket(t, b)
 	if packet.Partial || len(packet.Players) != 2 || packet.Online != 2 {
@@ -107,7 +179,7 @@ func TestWorldDeltaDepartureSlowConsumerAndLegacy(t *testing.T) {
 	p := e.app.world["li"]
 	p.X = 3
 	e.app.world["li"] = p
-	e.app.flushWorldLocked(2)
+	flushWorldTestLocked(e.app, 2)
 	packet = readPacket(t, a)
 	readPacket(t, b)
 	if !packet.Partial || len(packet.Players) != 1 || packet.Players[0].ID != "li" {
@@ -115,7 +187,7 @@ func TestWorldDeltaDepartureSlowConsumerAndLegacy(t *testing.T) {
 	}
 	p.X = 31
 	e.app.world["li"] = p
-	e.app.flushWorldLocked(3)
+	flushWorldTestLocked(e.app, 3)
 	packet = readPacket(t, a)
 	readPacket(t, b)
 	if len(packet.Removed) != 1 || packet.Removed[0] != "li" || packet.Online != 2 {
@@ -124,10 +196,10 @@ func TestWorldDeltaDepartureSlowConsumerAndLegacy(t *testing.T) {
 	// Backpressure replaces the unread delta with a full reset, so no enter/removal is lost.
 	p.X = 2
 	e.app.world["li"] = p
-	e.app.flushWorldLocked(4)
+	flushWorldTestLocked(e.app, 4)
 	p.X = 3
 	e.app.world["li"] = p
-	e.app.flushWorldLocked(5)
+	flushWorldTestLocked(e.app, 5)
 	packet = readPacket(t, a)
 	readPacket(t, b)
 	if packet.Partial || len(packet.Players) != 2 {
@@ -136,7 +208,7 @@ func TestWorldDeltaDepartureSlowConsumerAndLegacy(t *testing.T) {
 	a.worldDelta = false
 	p.X = 4
 	e.app.world["li"] = p
-	e.app.flushWorldLocked(6)
+	flushWorldTestLocked(e.app, 6)
 	packet = readPacket(t, a)
 	if packet.Partial || len(packet.Players) != 2 {
 		t.Fatal("legacy client did not get full view")
@@ -168,7 +240,7 @@ func TestWorldFocusFarNavigationAndOffline(t *testing.T) {
 }
 
 func BenchmarkCrowdedWorldFlush(b *testing.B) {
-	for _, n := range []int{100, 300} {
+	for _, n := range []int{100, 300, 1000} {
 		for _, dense := range []bool{false, true} {
 			b.Run(fmt.Sprintf("n%d/dense%t", n, dense), func(b *testing.B) {
 				g, err := Open(":memory:", nil)
@@ -197,7 +269,7 @@ func BenchmarkCrowdedWorldFlush(b *testing.B) {
 						p.UpdatedAt = time.Now().UnixMilli()
 						a.world[id] = p
 					}
-					a.flushWorldLocked(i + 1)
+					flushWorldTestLocked(a, i+1)
 					for c := range a.clients {
 						select {
 						case <-c.worldEvents:
@@ -209,3 +281,7 @@ func BenchmarkCrowdedWorldFlush(b *testing.B) {
 		}
 	}
 }
+
+// Existing fixture mutations hold mu. Production flushing snapshots under that
+// lock and computes outside it; the dedicated flush mutex serializes producers.
+func flushWorldTestLocked(a *App, tick int) { a.mu.Unlock(); a.flushWorld(tick); a.mu.Lock() }

@@ -1,0 +1,6 @@
+?   	github.com/1994/boss-works-for-me/artifacts/performance-v3/qa	[no test files]
+ok  	github.com/1994/boss-works-for-me/backend	1.904s
+ok  	github.com/1994/boss-works-for-me/cmd/boss-server	0.566s
+?   	github.com/1994/boss-works-for-me/identity	[no test files]
+ok  	github.com/1994/boss-works-for-me/identity/mock	0.523s
+ok  	github.com/1994/boss-works-for-me/server	0.662s

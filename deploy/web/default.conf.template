@@ -6,6 +6,13 @@ server {
     root /usr/share/nginx/html;
     index index.html;
     access_log /var/log/nginx/access.log boss_safe;
+    gzip on;
+    gzip_static on;
+    gzip_vary on;
+    gzip_min_length 1024;
+    gzip_comp_level 4;
+    # SSE is deliberately absent: event packets must flush immediately.
+    gzip_types application/javascript text/css application/json image/svg+xml;
     add_header Referrer-Policy same-origin always;
     add_header X-Content-Type-Options nosniff always;
     location = /runtime-config.json {

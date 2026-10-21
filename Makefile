@@ -1,6 +1,7 @@
 .DEFAULT_GOAL := up
+BENCH_CPU ?= 8
 
-.PHONY: test-crowd bench-crowd test-deployment check-web check-api deps-web build-web build-api dev-web dev-api test-web test-api package-web package-api help check deps build up lan stop down restart status logs dev test test-auth perf perf-wasm
+.PHONY: perf-api test-crowd bench-crowd test-deployment check-web check-api deps-web build-web build-api dev-web dev-api test-web test-api package-web package-api help check deps build up lan stop down restart status logs dev test test-auth perf perf-wasm
 
 help:
 	@printf '%s\n' \
@@ -19,7 +20,8 @@ help:
 	  'make dev-web / build-web / test-web  仅前端（只需 Node）' \
 	  'make dev-api / build-api / test-api  仅后端（只需 Go）' \
 	  'make test-crowd  100假玩家HTTP/SSE集中上线与附近订阅测试（仅Go）' \
-	  'make bench-crowd  100/300人位置同步CPU基准（仅Go）' \
+	  'make bench-crowd  100/300/1000人位置同步CPU基准（仅Go）' \
+	  'make perf-api BENCH_CPU=32  在32核服务器复测广播与目录快照基准（仅Go）' \
 	  'make test-deployment  隔离验证原有后台启动/停止控制器' \
 	  'make package-web / package-api  导出独立前端产物 / 后端源码包' \
 	  '配置：.env 或 HOST=0.0.0.0 PORT=9000 make up'
@@ -62,6 +64,9 @@ test-crowd: check-api
 bench-crowd: check-api
 	go test ./backend -run '^$$' -bench BenchmarkCrowdedWorldFlush -benchtime=300ms -count=1
 
+perf-api: check-api
+	go test ./backend -run '^$$' -bench 'Benchmark(CrowdedWorldFlush|SnapshotDirectory)' -benchmem -benchtime=300ms -count=3 -cpu=$(BENCH_CPU)
+
 test-deployment: check
 	npm run test:deployment
 
@@ -72,7 +77,7 @@ package-web: build-web
 # Transfer this public core into the intranet; company adapters stay outside it.
 package-api: check-api
 	mkdir -p .run
-	tar -czf .run/boss-api-source.tar.gz go.mod go.sum backend cmd identity server contracts examples/intranet examples/identity deploy/api docs/DECOUPLED-DEVELOPMENT.md docs/IDENTITY-SPI.md docs/BACKEND.md docs/REVIEW-PROXIMITY.md docs/REVIEW-CAMPUS-EXPANSION.md
+	tar -czf .run/boss-api-source.tar.gz go.mod go.sum backend cmd identity server contracts examples/intranet examples/identity deploy/api docs/DECOUPLED-DEVELOPMENT.md docs/IDENTITY-SPI.md docs/BACKEND.md docs/REVIEW-PROXIMITY.md docs/REVIEW-CAMPUS-EXPANSION.md docs/REVIEW-PERFORMANCE-V3.md artifacts/performance-v3
 
 deps: check
 	npm ci

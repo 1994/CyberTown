@@ -1,6 +1,7 @@
 package backend
 
 import (
+	"compress/gzip"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -11,6 +12,8 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"runtime"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -39,6 +42,7 @@ type App struct {
 	Game                      *Game
 	Options                   Options
 	mu                        sync.Mutex
+	worldFlushMu              sync.Mutex
 	clients                   map[*subscriber]bool
 	closed                    bool
 	world                     map[string]WorldPlayer
@@ -110,6 +114,28 @@ func respond(w http.ResponseWriter, status int, data any) {
 	w.WriteHeader(status)
 	_ = json.NewEncoder(w).Encode(data)
 }
+
+var snapshotCompressors = sync.Pool{New: func() any {
+	z, _ := gzip.NewWriterLevel(io.Discard, gzip.BestSpeed)
+	return z
+}}
+
+// Only full economy snapshots are compressed here. World SSE stays unbuffered.
+func respondSnapshot(w http.ResponseWriter, r *http.Request, snap Snapshot) {
+	w.Header().Add("Vary", "Accept-Encoding")
+	if !acceptsGzip(r.Header.Get("Accept-Encoding")) {
+		respond(w, http.StatusOK, snap)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	w.Header().Set("Cache-Control", "no-store")
+	w.Header().Set("Content-Encoding", "gzip")
+	w.WriteHeader(http.StatusOK)
+	z := snapshotCompressors.Get().(*gzip.Writer)
+	z.Reset(w)
+	defer func() { _ = z.Close(); z.Reset(io.Discard); snapshotCompressors.Put(z) }()
+	_ = json.NewEncoder(z).Encode(snap)
+}
 func apiError(w http.ResponseWriter, err error) {
 	var e *GameError
 	if errors.As(err, &e) {
@@ -170,7 +196,7 @@ func (a *App) handle(w http.ResponseWriter, r *http.Request) error {
 		return a.serveStatic(w, r)
 	}
 	if path == "/api/health" && method == "GET" {
-		respond(w, 200, map[string]any{"ok": true, "time": a.Game.Now(), "version": a.Game.Version(), "runtime": "go"})
+		respond(w, 200, map[string]any{"ok": true, "time": a.Game.Now(), "version": a.Game.Version(), "runtime": "go", "parallelism": runtime.GOMAXPROCS(0), "dbReaders": a.Game.readDB().Stats().MaxOpenConnections})
 		return nil
 	}
 	if !providerIDPattern.MatchString(a.identityProvider.ID()) || (!a.demoAuth() && a.identityProvider.ID() == "demo") {
@@ -249,7 +275,7 @@ func (a *App) handle(w http.ResponseWriter, r *http.Request) error {
 		if err != nil {
 			return err
 		}
-		respond(w, 200, snap)
+		respondSnapshot(w, r, snap)
 	case path == "/api/profile/avatar" && method == "POST":
 		body, err := readBody(w, r)
 		if err != nil {
@@ -332,11 +358,11 @@ func (a *App) handle(w http.ResponseWriter, r *http.Request) error {
 			return err
 		}
 		a.Broadcast(trade)
-		snap, err := a.Game.Snapshot(player, a.Online())
+		coins, err := a.Game.Balance(player)
 		if err != nil {
 			return err
 		}
-		respond(w, 200, map[string]any{"trade": trade, "coins": snap.Me.Coins})
+		respond(w, 200, map[string]any{"trade": trade, "coins": coins})
 	case path == "/api/project/start" && method == "POST":
 		run, err := a.Game.StartProject(player)
 		if err != nil {
@@ -478,6 +504,20 @@ func (a *App) serveStatic(w http.ResponseWriter, r *http.Request) error {
 	if err != nil || !inside(root, real) {
 		return fail(404, "NOT_FOUND", "未找到")
 	}
+	// Precompressed build assets save bandwidth without request-time compression
+	// CPU. Mutable config/HTML and SSE keep their existing caching/stream behavior.
+	compressedAsset := false
+	if ext := filepath.Ext(file); ext == ".js" || ext == ".css" {
+		w.Header().Add("Vary", "Accept-Encoding")
+		if acceptsGzip(r.Header.Get("Accept-Encoding")) && r.Header.Get("Range") == "" {
+			if compressed, err := filepath.EvalSymlinks(real + ".gz"); err == nil && inside(root, compressed) {
+				if info, err := os.Stat(compressed); err == nil && info.Mode().IsRegular() {
+					real = compressed
+					compressedAsset = true
+				}
+			}
+		}
+	}
 	f, err := os.Open(real)
 	if err != nil {
 		return fail(404, "NOT_FOUND", "未找到")
@@ -486,6 +526,10 @@ func (a *App) serveStatic(w http.ResponseWriter, r *http.Request) error {
 	stat, err = f.Stat()
 	if err != nil || !stat.Mode().IsRegular() {
 		return fail(404, "NOT_FOUND", "未找到")
+	}
+	if compressedAsset {
+		w.Header().Set("Content-Encoding", "gzip")
+		w.Header().Set("Content-Length", strconv.FormatInt(stat.Size(), 10))
 	}
 	if t := mime.TypeByExtension(filepath.Ext(file)); t != "" {
 		w.Header().Set("Content-Type", t)
@@ -496,4 +540,32 @@ func (a *App) serveStatic(w http.ResponseWriter, r *http.Request) error {
 	}
 	http.ServeContent(w, r, stat.Name(), stat.ModTime(), f)
 	return nil
+}
+
+func acceptsGzip(header string) bool {
+	wildcard := false
+	for _, value := range strings.Split(header, ",") {
+		parts := strings.Split(value, ";")
+		coding := strings.ToLower(strings.TrimSpace(parts[0]))
+		if coding != "gzip" && coding != "*" {
+			continue
+		}
+		quality := 1.0
+		for _, param := range parts[1:] {
+			key, value, ok := strings.Cut(strings.TrimSpace(param), "=")
+			if ok && key == "q" {
+				q, err := strconv.ParseFloat(value, 64)
+				if err != nil || !finite(q) || q < 0 || q > 1 {
+					quality = 0
+				} else {
+					quality = q
+				}
+			}
+		}
+		if coding == "gzip" {
+			return quality > 0
+		}
+		wildcard = quality > 0
+	}
+	return wildcard
 }

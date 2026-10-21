@@ -1,0 +1,24 @@
+{
+  "health": {
+    "dbReaders": 10,
+    "ok": true,
+    "parallelism": 10,
+    "runtime": "go",
+    "time": 1792572843277,
+    "version": 2
+  },
+  "asset": {
+    "rawBytes": 1594147,
+    "gzipBytes": 456683,
+    "identicalAfterDecode": true
+  },
+  "state": {
+    "contentEncoding": "gzip",
+    "cacheControl": "no-store",
+    "decodeAndWalletValid": true
+  },
+  "events": {
+    "uncompressed": true,
+    "helloReadable": true
+  }
+}

@@ -1,0 +1,74 @@
+{
+  "machine": "Apple M4, 10 logical CPUs, 16 GiB RAM",
+  "benchmarkGOMAXPROCS": 8,
+  "sampleCount": 2,
+  "results": [
+    {
+      "benchmark": "BenchmarkCrowdedWorldFlush/n100/densefalse",
+      "afterMs": 1.2704,
+      "afterBytes": 4378336,
+      "afterAllocs": 1427,
+      "beforeMs": 3.9344,
+      "speedup": 3.1,
+      "allocationDropPct": 20.8
+    },
+    {
+      "benchmark": "BenchmarkCrowdedWorldFlush/n100/densetrue",
+      "afterMs": 1.5046,
+      "afterBytes": 4998334,
+      "afterAllocs": 1383,
+      "beforeMs": 3.7316,
+      "speedup": 2.48,
+      "allocationDropPct": 35.0
+    },
+    {
+      "benchmark": "BenchmarkCrowdedWorldFlush/n300/densefalse",
+      "afterMs": 3.4923,
+      "afterBytes": 14474053,
+      "afterAllocs": 4143,
+      "beforeMs": 20.8613,
+      "speedup": 5.97,
+      "allocationDropPct": 44.0
+    },
+    {
+      "benchmark": "BenchmarkCrowdedWorldFlush/n300/densetrue",
+      "afterMs": 3.4591,
+      "afterBytes": 14888969,
+      "afterAllocs": 4022,
+      "beforeMs": 11.604,
+      "speedup": 3.35,
+      "allocationDropPct": 54.8
+    },
+    {
+      "benchmark": "BenchmarkCrowdedWorldFlush/n1000/densefalse",
+      "afterMs": 14.2654,
+      "afterBytes": 49693230,
+      "afterAllocs": 13330
+    },
+    {
+      "benchmark": "BenchmarkCrowdedWorldFlush/n1000/densetrue",
+      "afterMs": 12.5382,
+      "afterBytes": 49574340,
+      "afterAllocs": 13166
+    },
+    {
+      "benchmark": "BenchmarkSnapshotDirectory/100",
+      "afterMs": 0.1602,
+      "afterBytes": 357981,
+      "afterAllocs": 3772,
+      "beforeMs": 0.7059,
+      "speedup": 4.41,
+      "allocationDropPct": 34.7
+    },
+    {
+      "benchmark": "BenchmarkSnapshotDirectory/1000",
+      "afterMs": 1.2646,
+      "afterBytes": 3768754,
+      "afterAllocs": 32629,
+      "beforeMs": 5.2917,
+      "speedup": 4.18,
+      "allocationDropPct": 34.7
+    }
+  ],
+  "note": "Snapshot RunParallel reports throughput cost/op, not per-request latency or server capacity."
+}

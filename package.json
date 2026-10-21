@@ -31,11 +31,12 @@
     "perf:cpu": "node scripts/benchmark-cpu.ts",
     "test:render": "node scripts/check-render-budget.ts",
     "test:audio": "node scripts/check-audio.ts",
-    "test:web": "npm run typecheck && npm run test:contract && npm run test:transport && npm run test:proximity && npm run test:map && npm run test:collision && npm run test:render && npm run test:arcade && npm run test:audio",
+    "test:web": "npm run typecheck && npm run test:contract && npm run test:transport && npm run test:proximity && npm run test:map && npm run test:collision && npm run test:render && npm run test:arcade && npm run test:audio && npm run test:sync",
     "test:api": "go test ./...",
     "test:transport": "node scripts/check-transport.ts",
     "test:deployment": "node scripts/check-deployment.mjs",
-    "test:proximity": "node scripts/check-proximity.ts"
+    "test:proximity": "node scripts/check-proximity.ts",
+    "test:sync": "node scripts/check-sync-queue.ts"
   },
   "dependencies": {
     "@react-three/drei": "^10.7.9",

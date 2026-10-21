@@ -79,11 +79,11 @@ func readYear(q queryer, player string) (Year, error) {
 		if err = q.QueryRow("SELECT rank FROM player_careers WHERE player_id=?", player).Scan(&rank); err != nil {
 			return y, err
 		}
-		all, e := colleagues(q)
+		team, e := ownedColleagues(q, player)
 		if e != nil {
 			return y, e
 		}
-		y.TeamPct = min(30, TeamSkills(ownTeam(all, player)).IncomePct+careerLevels[rank].IncomePct)
+		y.TeamPct = min(30, TeamSkills(team).IncomePct+careerLevels[rank].IncomePct)
 	} else {
 		y.TeamPct = team / y.Completed
 		y.PlayPct = play / y.Completed

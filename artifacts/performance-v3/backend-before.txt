@@ -1,0 +1,18 @@
+goos: darwin
+goarch: arm64
+pkg: github.com/1994/boss-works-for-me/backend
+cpu: Apple M4
+BenchmarkCrowdedWorldFlush/n100/densefalse-8         	      85	   3955876 ns/op	 5533149 B/op	    6088 allocs/op
+BenchmarkCrowdedWorldFlush/n100/densefalse-8         	      87	   3913016 ns/op	 5528434 B/op	    6086 allocs/op
+BenchmarkCrowdedWorldFlush/n100/densetrue-8          	     100	   4087272 ns/op	 7690665 B/op	    6167 allocs/op
+BenchmarkCrowdedWorldFlush/n100/densetrue-8          	      96	   3375854 ns/op	 7679480 B/op	    6161 allocs/op
+BenchmarkCrowdedWorldFlush/n300/densefalse-8         	      18	  20859356 ns/op	25812893 B/op	   18900 allocs/op
+BenchmarkCrowdedWorldFlush/n300/densefalse-8         	      18	  20863215 ns/op	25839410 B/op	   18916 allocs/op
+BenchmarkCrowdedWorldFlush/n300/densetrue-8          	      30	  11591103 ns/op	32928777 B/op	   19330 allocs/op
+BenchmarkCrowdedWorldFlush/n300/densetrue-8          	      30	  11616953 ns/op	32947330 B/op	   19340 allocs/op
+BenchmarkSnapshotDirectory/100-8                     	     507	    705759 ns/op	  548166 B/op	    5794 allocs/op
+BenchmarkSnapshotDirectory/100-8                     	     513	    705984 ns/op	  547941 B/op	    5793 allocs/op
+BenchmarkSnapshotDirectory/1000-8                    	      64	   5274407 ns/op	 5769155 B/op	   51784 allocs/op
+BenchmarkSnapshotDirectory/1000-8                    	      66	   5309058 ns/op	 5769308 B/op	   51784 allocs/op
+PASS
+ok  	github.com/1994/boss-works-for-me/backend	5.426s

@@ -3,7 +3,9 @@ package backend
 import (
 	"encoding/json"
 	"math"
+	"runtime"
 	"sort"
+	"sync"
 	"time"
 )
 
@@ -35,70 +37,108 @@ func buildWorldIndex(players []WorldPlayer) worldIndex {
 	return index
 }
 
-// Hysteresis retains previously subscribed people until 30m, entering at 26m.
-// A selected contact is explicitly pinned, including while walking towards them.
+// A max heap keeps only the best 64 candidates, rather than allocating and
+// sorting the whole crowd for each viewer. Distance and retention are scored once.
+type interestCandidate struct {
+	player WorldPlayer
+	score  float64
+}
+
+func candidateLess(a, b interestCandidate) bool {
+	if a.score == b.score {
+		return a.player.ID < b.player.ID
+	}
+	return a.score < b.score
+}
+func keepCandidate(top []interestCandidate, p interestCandidate, limit int) []interestCandidate {
+	if len(top) < limit {
+		top = append(top, p)
+		for i := len(top) - 1; i > 0; {
+			parent := (i - 1) / 2
+			if !candidateLess(top[parent], top[i]) {
+				break
+			}
+			top[parent], top[i] = top[i], top[parent]
+			i = parent
+		}
+		return top
+	}
+	if !candidateLess(p, top[0]) {
+		return top
+	}
+	top[0] = p
+	for i := 0; ; {
+		child := i*2 + 1
+		if child >= len(top) {
+			break
+		}
+		if child+1 < len(top) && candidateLess(top[child], top[child+1]) {
+			child++
+		}
+		if !candidateLess(top[i], top[child]) {
+			break
+		}
+		top[i], top[child] = top[child], top[i]
+		i = child
+	}
+	return top
+}
+
+// Hysteresis retains previous subscriptions until 30m, entering at 26m.
+// The exact focus and retention ordering is unchanged by bounded selection.
 func selectInterest(index worldIndex, center WorldPlayer, previous map[string]WorldPlayer, focus string) ([]WorldPlayer, int) {
-	nearby := 0
-	candidates := []WorldPlayer{}
-	min, max := cellOf(center.X-worldLeaveRadius, center.Z-worldLeaveRadius), cellOf(center.X+worldLeaveRadius, center.Z+worldLeaveRadius)
-	var pinned *WorldPlayer
 	if p, ok := index.ByID[center.ID]; ok {
 		center = p
 	}
-	if p, ok := index.ByID[focus]; ok && p.ID != center.ID {
-		pinned = &p
+	pinned, hasPin := index.ByID[focus]
+	hasPin = hasPin && pinned.ID != center.ID
+	limit := worldLimit
+	if hasPin {
+		limit--
 	}
+	top := make([]interestCandidate, 0, limit)
+	nearby := 0
+	min, max := cellOf(center.X-worldLeaveRadius, center.Z-worldLeaveRadius), cellOf(center.X+worldLeaveRadius, center.Z+worldLeaveRadius)
 	for x := min.X; x <= max.X; x++ {
 		for z := min.Z; z <= max.Z; z++ {
 			for _, p := range index.Cells[worldCell{x, z}] {
 				if p.ID == center.ID {
 					continue
 				}
-				distance := math.Hypot(p.X-center.X, p.Z-center.Z)
-				if distance <= worldRadius {
+				dx, dz := p.X-center.X, p.Z-center.Z
+				d2 := dx*dx + dz*dz
+				if d2 <= worldRadius*worldRadius {
 					nearby++
 				}
 				if p.ID == focus {
 					continue
 				}
+				_, retained := previous[p.ID]
 				radius := worldRadius
-				if _, ok := previous[p.ID]; ok {
+				if retained {
 					radius = worldLeaveRadius
 				}
-				if math.Hypot(p.X-center.X, p.Z-center.Z) <= radius {
-					candidates = append(candidates, p)
+				if d2 > radius*radius {
+					continue
 				}
+				score := math.Sqrt(d2)
+				if retained {
+					score -= .8
+				}
+				top = keepCandidate(top, interestCandidate{p, score}, limit)
 			}
 		}
 	}
-	sort.Slice(candidates, func(i, j int) bool {
-		a, b := candidates[i], candidates[j]
-		da, db := math.Hypot(a.X-center.X, a.Z-center.Z), math.Hypot(b.X-center.X, b.Z-center.Z)
-		// A small retention bias avoids reshuffling equally distant people in a crowd.
-		if _, ok := previous[a.ID]; ok {
-			da -= .8
-		}
-		if _, ok := previous[b.ID]; ok {
-			db -= .8
-		}
-		if da == db {
-			return a.ID < b.ID
-		}
-		return da < db
-	})
-	limit := worldLimit
-	if pinned != nil {
-		limit--
+	players := make([]WorldPlayer, 0, len(top)+2)
+	for _, p := range top {
+		players = append(players, p.player)
 	}
-	if len(candidates) > limit {
-		candidates = candidates[:limit]
+	if hasPin {
+		players = append(players, pinned)
 	}
-	if pinned != nil {
-		candidates = append(candidates, *pinned)
-	}
-	candidates = append(candidates, center)
-	sort.Slice(candidates, func(i, j int) bool { return candidates[i].ID < candidates[j].ID })
-	return candidates, nearby
+	players = append(players, center)
+	sort.Slice(players, func(i, j int) bool { return players[i].ID < players[j].ID })
+	return players, nearby
 }
 
 func interestPlayers(index worldIndex, center WorldPlayer, previous map[string]WorldPlayer, focus string) []WorldPlayer {
@@ -142,11 +182,12 @@ func (a *App) worldLoop() {
 			}
 			presence := a.presenceDirty
 			a.presenceDirty = false
-			if len(a.clients) > 0 && (a.worldDirty || tick%5 == 0) {
-				a.flushWorldLocked(tick)
-			}
+			flush := len(a.clients) > 0 && (a.worldDirty || tick%5 == 0)
 			a.worldDirty = false
 			a.mu.Unlock()
+			if flush {
+				a.flushWorld(tick)
+			}
 			if presence {
 				a.Broadcast(map[string]any{"kind": "presence", "at": a.Game.Now()})
 			}
@@ -154,103 +195,164 @@ func (a *App) worldLoop() {
 	}
 }
 
-// Separate latest-only position mailboxes keep a slow viewport from filling its
-// economic event queue. One subscriber receives at most five world packets/sec.
-func (a *App) flushWorldLocked(tick int) {
+type worldJob struct {
+	client               *subscriber
+	center               WorldPlayer
+	focus                string
+	previous             map[string]WorldPlayer
+	ready, delta, queued bool
+	online, nearby       int
+}
+type worldFrame struct {
+	client  *subscriber
+	next    map[string]WorldPlayer
+	nearby  int
+	message []byte
+}
+
+// Only this pipeline produces world packets. Its own mutex preserves delta
+// ordering while CPU-heavy AOI/JSON work runs outside the movement/global lock.
+func (a *App) flushWorld(tick int) {
+	a.worldFlushMu.Lock()
+	defer a.worldFlushMu.Unlock()
+	a.mu.Lock()
+	if a.closed || len(a.clients) == 0 {
+		a.mu.Unlock()
+		return
+	}
 	all := a.worldPlayersLocked()
+	now := a.Game.Now()
 	if tick%25 == 0 {
 		online := map[string]bool{}
 		for _, p := range all {
 			online[p.ID] = true
 		}
 		for id, p := range a.world {
-			if !online[id] && a.Game.Now()-p.UpdatedAt > 120000 {
+			if !online[id] && now-p.UpdatedAt > 120000 {
 				delete(a.world, id)
 				delete(a.socialAt, id)
 				delete(a.worldFocus, id)
 			}
 		}
 		for id, focus := range a.worldFocus {
-			if focus.Until < a.Game.Now() {
+			if focus.Until < now {
 				delete(a.worldFocus, id)
 			}
 		}
 	}
-	index := buildWorldIndex(all)
-	now := a.Game.Now()
+	jobs := make([]worldJob, 0, len(a.clients))
 	for c := range a.clients {
 		focus := a.worldFocus[c.player]
 		if focus.Until < now {
 			focus.ID = ""
 		}
-		center := a.ensureWorldLocked(c.player)
-		view, nearby := selectInterest(index, center, c.view, focus.ID)
-		next := make(map[string]WorldPlayer, len(view))
-		changed := []WorldPlayer{}
-		removed := []string{}
-		reset := !c.worldReady
-		for _, p := range view {
-			old, exists := c.view[p.ID]
-			distance := math.Hypot(p.X-center.X, p.Z-center.Z)
-			cadence := 1
-			if distance > 22 {
-				cadence = 5
-			} else if distance > 12 {
-				cadence = 2
-			}
-			if exists && p.ID != center.ID && p.ID != focus.ID && tick%cadence != 0 {
-				p = old
-			}
-			next[p.ID] = p
-			if !exists || old != p {
-				changed = append(changed, p)
-			}
+		jobs = append(jobs, worldJob{c, a.ensureWorldLocked(c.player), focus.ID, c.view, c.worldReady, c.worldDelta, len(c.worldEvents) > 0, c.onlineCount, c.nearbyCount})
+	}
+	a.mu.Unlock()
+	index := buildWorldIndex(all)
+	frames := make([]worldFrame, len(jobs))
+	// Amortize scheduling with >=32 viewers per worker; bounded by available CPU.
+	workers := min(32, runtime.GOMAXPROCS(0), max(1, len(jobs)/32))
+	compute := func(start, end int) {
+		for i := start; i < end; i++ {
+			frames[i] = buildWorldFrame(index, jobs[i], tick, now, len(all))
 		}
-		for id := range c.view {
-			if _, ok := next[id]; !ok {
-				removed = append(removed, id)
-			}
+	}
+	if workers == 1 {
+		compute(0, len(jobs))
+	} else {
+		var wg sync.WaitGroup
+		for w := 0; w < workers; w++ {
+			wg.Add(1)
+			go func(w int) { defer wg.Done(); compute(w*len(jobs)/workers, (w+1)*len(jobs)/workers) }(w)
 		}
-		sort.Strings(removed)
-		if !reset && len(changed) == 0 && len(removed) == 0 && c.onlineCount == len(all) && c.nearbyCount == nearby {
+		wg.Wait()
+	}
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	if a.closed {
+		return
+	}
+	for _, f := range frames {
+		c := f.client
+		if f.message == nil || !a.clients[c] {
 			continue
 		}
-		payload := map[string]any{"type": "world", "serverTime": now, "onlineCount": len(all), "visibleCount": len(next), "nearbyCount": nearby, "radius": worldRadius, "partial": !reset && c.worldDelta, "removed": removed}
-		if !c.worldDelta || reset {
-			full := make([]WorldPlayer, 0, len(next))
-			for _, p := range view {
-				full = append(full, next[p.ID])
-			}
-			payload["players"] = full
-		} else {
-			payload["players"] = changed
-		}
-		message, _ := json.Marshal(payload)
-		c.view = next
-		c.onlineCount = len(all)
-		c.nearbyCount = nearby
+		c.view = f.next
 		c.worldReady = true
-		// When replacing an unread delta, reset to the complete current AOI. This
-		// prevents a dropped enter/remove delta from leaving ghosts on slow clients.
+		c.onlineCount = len(all)
+		c.nearbyCount = f.nearby
+		// A pending old packet is known before encoding. Replace it with the full
+		// current AOI, so dropping a delta cannot strand entered/removed people.
 		select {
-		case c.worldEvents <- message:
+		case c.worldEvents <- f.message:
 		default:
 			select {
 			case <-c.worldEvents:
 			default:
 			}
-			payload["partial"] = false
-			payload["removed"] = []string{}
-			full := make([]WorldPlayer, 0, len(next))
-			for _, p := range view {
-				full = append(full, next[p.ID])
-			}
-			payload["players"] = full
-			message, _ = json.Marshal(payload)
 			select {
-			case c.worldEvents <- message:
+			case c.worldEvents <- f.message:
 			default:
 			}
 		}
 	}
+}
+
+func buildWorldFrame(index worldIndex, j worldJob, tick int, now int64, online int) worldFrame {
+	view, nearby := selectInterest(index, j.center, j.previous, j.focus)
+	next := make(map[string]WorldPlayer, len(view))
+	changed := make([]WorldPlayer, 0, len(view))
+	removed := []string{}
+	for _, p := range view {
+		old, exists := j.previous[p.ID]
+		dx, dz := p.X-j.center.X, p.Z-j.center.Z
+		d2 := dx*dx + dz*dz
+		cadence := 1
+		if d2 > 22*22 {
+			cadence = 5
+		} else if d2 > 12*12 {
+			cadence = 2
+		}
+		if exists && p.ID != j.center.ID && p.ID != j.focus && tick%cadence != 0 {
+			p = old
+		}
+		next[p.ID] = p
+		if !exists || old != p {
+			changed = append(changed, p)
+		}
+	}
+	for id := range j.previous {
+		if _, ok := next[id]; !ok {
+			removed = append(removed, id)
+		}
+	}
+	if j.ready && len(changed) == 0 && len(removed) == 0 && j.online == online && j.nearby == nearby {
+		return worldFrame{}
+	}
+	sort.Strings(removed)
+	partial := j.ready && j.delta && !j.queued
+	players := changed
+	if !partial {
+		players = view
+		for i, p := range view {
+			players[i] = next[p.ID]
+		}
+		removed = []string{}
+	}
+	// A concrete wire struct avoids reflect/map-key sorting and interface boxing
+	// for every player's packet, while preserving the JSON protocol.
+	packet := struct {
+		Type       string        `json:"type"`
+		ServerTime int64         `json:"serverTime"`
+		Online     int           `json:"onlineCount"`
+		Visible    int           `json:"visibleCount"`
+		Nearby     int           `json:"nearbyCount"`
+		Radius     float64       `json:"radius"`
+		Partial    bool          `json:"partial"`
+		Removed    []string      `json:"removed"`
+		Players    []WorldPlayer `json:"players"`
+	}{Type: "world", ServerTime: now, Online: online, Visible: len(next), Nearby: nearby, Radius: worldRadius, Partial: partial, Removed: removed, Players: players}
+	message, _ := json.Marshal(packet)
+	return worldFrame{j.client, next, nearby, message}
 }

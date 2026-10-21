@@ -1,0 +1,6 @@
+?   	github.com/1994/boss-works-for-me/artifacts/performance-v3/qa	[no test files]
+ok  	github.com/1994/boss-works-for-me/backend	7.559s
+ok  	github.com/1994/boss-works-for-me/cmd/boss-server	(cached)
+?   	github.com/1994/boss-works-for-me/identity	[no test files]
+ok  	github.com/1994/boss-works-for-me/identity/mock	(cached)
+ok  	github.com/1994/boss-works-for-me/server	2.022s

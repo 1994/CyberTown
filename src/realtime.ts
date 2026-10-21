@@ -4,6 +4,7 @@ import { apiURL } from './runtime-config.ts';
 import { useGame } from './store.ts';
 import type { GameEvent, WorldPlayer } from '../shared/types.ts';
 import { applyWorld } from './world/net.ts';
+import { createSyncQueue } from './syncQueue.ts';
 
 /**
  * SSE 实时同步：服务端每次状态变化推送 {type:'sync', event}，客户端立即拉取最新快照。
@@ -15,6 +16,7 @@ export function useRealtime(enabled: boolean) {
     const token = session.get();
     if (!token) return;
     const { refresh, setConn, handleEvent } = useGame.getState();
+    const sync = createSyncQueue(refresh, handleEvent);
     setConn('connecting');
     const es = new EventSource(apiURL(`/api/events?token=${encodeURIComponent(token)}&world=2`));
     let poll: number | null = null;
@@ -33,14 +35,14 @@ export function useRealtime(enabled: boolean) {
         const msg = JSON.parse(m.data) as { type: string; event?: GameEvent; players?: WorldPlayer[]; serverTime?: number; partial?: boolean; removed?: string[]; onlineCount?: number; nearbyCount?: number };
         if (msg.type === 'hello') {
           setConn('live');
-          void refresh();
+          sync.enqueue();
           // The first world packet after every connection is a full AOI reset.
           // Avoid racing a GET snapshot against newer stream deltas.
         } else if (msg.type === 'world' && msg.players) {
           // 园区位置/社交广播：直接更新，不拉取完整经济快照
           applyWorld(msg.players, msg.serverTime, { ...msg, stream: true });
         } else if (msg.type === 'sync') {
-          void refresh().then(() => msg.event && handleEvent(msg.event));
+          sync.enqueue(msg.event);
         }
       } catch {
         /* ignore malformed */
@@ -52,6 +54,7 @@ export function useRealtime(enabled: boolean) {
     };
     return () => {
       alive = false;
+      sync.dispose();
       es.close();
       if (poll) clearInterval(poll);
     };

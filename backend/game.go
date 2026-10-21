@@ -47,11 +47,10 @@ func (g *Game) Sign(buyer, id string, expected int) (Trade, error) {
 		if price != expected {
 			return fail(409, "PRICE_CHANGED", fmt.Sprintf("手慢了！当前价已变为 %d 金币", price))
 		}
-		all, err := colleagues(tx)
+		team, err := ownedColleagues(tx, buyer)
 		if err != nil {
 			return err
 		}
-		team := ownTeam(all, buyer)
 		if len(team) >= MaxTeam {
 			return fail(409, "TEAM_FULL", "团队已满（最多 3 名生效队员）")
 		}
@@ -170,11 +169,11 @@ func (g *Game) StartProject(player string) (Run, error) {
 				return err
 			}
 		}
-		all, err := colleagues(tx)
+		team, err := ownedColleagues(tx, player)
 		if err != nil {
 			return err
 		}
-		skills := TeamSkills(ownTeam(all, player))
+		skills := TeamSkills(team)
 		career, err := readCareer(tx, player)
 		if err != nil {
 			return err

@@ -10,14 +10,9 @@ import { movementPacketDue } from './netBudget.ts';
 export function applyWorld(players: WorldPlayer[], serverTime?: number, update: WorldUpdate = {}) {
   // A late GET must not overwrite membership from newer ordered stream deltas.
   // Contact focus is an out-of-band upsert and never advances the stream clock.
-  if (!acceptsWorldUpdate(useWorld.getState().streamReady, update)) return;
-  if (update.stream) useWorld.setState({ streamReady: true });
-  const merged = mergeWorldPlayers(useWorld.getState().players, players, update);
-  useWorld.getState().setPlayers(merged, serverTime);
-  if (update.onlineCount !== undefined) useWorld.setState({ onlineCount: update.onlineCount });
-  else if (!update.partial) useWorld.setState({ onlineCount: merged.length });
-  if (update.nearbyCount !== undefined) useWorld.setState({ nearbyCount: update.nearbyCount });
-  else if (!update.local) useWorld.setState({ nearbyCount: nearbyPlayers(merged, rt.myId ?? '').length });
+  const current = useWorld.getState();
+  if (!acceptsWorldUpdate(current.streamReady, update)) return;
+  const merged = mergeWorldPlayers(current.players, players, update);
   const seen = new Set(merged.map(p => p.id));
   for (const p of players) {
     seen.add(p.id);
@@ -48,6 +43,15 @@ export function applyWorld(players: WorldPlayer[], serverTime?: number, update: 
       rt.trails.delete(id);
     }
   }
+  // Publish one coherent notification after prediction targets are ready.
+  // Previously every position packet notified all subscribers up to five times.
+  useWorld.setState({
+    players: merged,
+    streamReady: current.streamReady || !!update.stream,
+    serverOffset: serverTime ? serverTime - Date.now() : current.serverOffset,
+    onlineCount: update.onlineCount ?? (update.partial ? current.onlineCount : merged.length),
+    nearbyCount: update.nearbyCount ?? (update.local ? current.nearbyCount : nearbyPlayers(merged, rt.myId ?? '').length),
+  });
 }
 
 let lastSentAt = 0;

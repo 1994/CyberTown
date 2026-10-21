@@ -1,0 +1,11 @@
+=== RUN   TestSnapshotCompressionPreservesPrivateState
+    compression_test.go:32: 1000-player snapshot JSON: raw=735029 bytes gzip=26386 bytes
+--- PASS: TestSnapshotCompressionPreservesPrivateState (0.03s)
+=== RUN   TestPrecompressedAssetsNegotiateWithoutChangingContent
+--- PASS: TestPrecompressedAssetsNegotiateWithoutChangingContent (0.01s)
+=== RUN   TestBoundedInterestMatchesFullSort
+--- PASS: TestBoundedInterestMatchesFullSort (0.03s)
+=== RUN   TestWALReadersDoNotWaitForWalletWriter
+--- PASS: TestWALReadersDoNotWaitForWalletWriter (0.00s)
+PASS
+ok  	github.com/1994/boss-works-for-me/backend	0.821s

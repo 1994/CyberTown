@@ -1,4 +1,4 @@
-import { useMemo, useRef } from 'react';
+import { useLayoutEffect, useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import type { ThreeEvent } from '@react-three/fiber';
 import * as THREE from 'three';
@@ -8,6 +8,7 @@ import { rt } from '../world/runtime.ts';
 import { goToPlayer } from '../world/navigation.ts';
 
 const dummy = new THREE.Object3D();
+const HEIGHTS = [1.52, 1.54, .95, .42];
 
 /** Real nearby players at medium/far range. Four instanced draws, no portraits,
  * shadows, aura, DOM labels or per-person skeletons. Selecting promotes to full. */
@@ -30,34 +31,64 @@ export function Crowd({ ids }: { ids: string[] }) {
     });
   }, [ids, snapshot]);
   const color = useMemo(() => new THREE.Color(), []);
+  const previous = useRef(new Float64Array(48 * 4).fill(NaN));
+  const dirty = useRef(true);
+
+  // Colors are appearance data, not animation. Upload only when membership or
+  // the snapshot changes, instead of parsing CSS colors and uploading at 60Hz.
+  useLayoutEffect(() => {
+    const meshes = [heads.current, hair.current, bodies.current, pants.current];
+    if (meshes.some(m => !m)) return;
+    looks.forEach((look, i) => {
+      const colors = look ? [look.skin, look.hair, look.shirt, look.pants] : ['#fff', '#fff', '#fff', '#fff'];
+      meshes.forEach((mesh, part) => mesh!.setColorAt(i, color.set(colors[part])));
+    });
+    meshes.forEach(m => {
+      m!.count = ids.length;
+      m!.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+      if (m!.instanceColor) m!.instanceColor.needsUpdate = true;
+    });
+    previous.current.fill(NaN);
+    dirty.current = true;
+  }, [ids, looks, color]);
 
   useFrame(({ clock }, dtRaw) => {
     const dt = Math.min(dtRaw, .05);
     const meshes = [heads.current, hair.current, bodies.current, pants.current];
     if (meshes.some(m => !m)) return;
+    let changed = dirty.current;
+    const now = performance.now();
     ids.forEach((id, i) => {
       const r = rt.remote.get(id), look = looks[i];
+      const offset = i * 4, cache = previous.current;
       if (!r || !look) {
+        if (cache[offset] === Infinity) return;
         dummy.scale.setScalar(0); dummy.updateMatrix();
         meshes.forEach(m => m!.setMatrixAt(i, dummy.matrix));
+        cache[offset] = Infinity;
+        changed = true;
         return;
       }
       // Interpolate the same network target; no rig or trail budget in far LOD.
       r.x = THREE.MathUtils.damp(r.x, r.tx, 6, dt);
       r.z = THREE.MathUtils.damp(r.z, r.tz, 6, dt);
-      r.moving = r.tmoving && performance.now() - r.seenAt < 1200;
+      if (Math.abs(r.x - r.tx) < .0001) r.x = r.tx;
+      if (Math.abs(r.z - r.tz) < .0001) r.z = r.tz;
+      r.moving = r.tmoving && now - r.seenAt < 1200;
       const bob = r.moving ? Math.sin(clock.elapsedTime * 10 + i) * .035 : 0;
-      const heights = [1.52, 1.54, .95, .42];
+      if (!dirty.current && cache[offset] === r.x && cache[offset+1] === r.z && cache[offset+2] === r.tyaw && cache[offset+3] === bob) return;
+      cache[offset] = r.x; cache[offset+1] = r.z;
+      cache[offset+2] = r.tyaw; cache[offset+3] = bob;
+      changed = true;
       meshes.forEach((mesh, part) => {
-        dummy.position.set(r.x, heights[part] * 1.25 + bob, r.z);
+        dummy.position.set(r.x, HEIGHTS[part] * 1.25 + bob, r.z);
         dummy.rotation.set(0, r.tyaw, 0);
         dummy.scale.setScalar(1.25); dummy.updateMatrix();
         mesh!.setMatrixAt(i, dummy.matrix);
-        color.set([look.skin, look.hair, look.shirt, look.pants][part]);
-        mesh!.setColorAt(i, color);
       });
     });
-    meshes.forEach(m => { m!.count = ids.length; m!.instanceMatrix.needsUpdate = true; if (m!.instanceColor) m!.instanceColor.needsUpdate = true; });
+    if (changed) meshes.forEach(m => { m!.instanceMatrix.needsUpdate = true; });
+    dirty.current = false;
   });
   const select = (e: ThreeEvent<MouseEvent>) => {
     e.stopPropagation();
