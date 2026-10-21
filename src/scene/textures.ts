@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { rng } from '../../shared/rules.ts';
 
-// 所有贴图均为运行时 Canvas 程序化生成（无外部素材）。
+// 材质与标牌使用缓存的程序化贴图；原创广告图片单独位于 public/art。
 
 function canvas(w: number, h: number) {
   const c = document.createElement('canvas');
@@ -68,26 +68,31 @@ export function woodFloor() {
 
 export function buildingWindows(seed: number, warm = true) {
   return cached(`win-${seed}-${warm}`, () => {
-    const [c, g] = canvas(128, 256);
+    const [c, g] = canvas(256, 512);
     const r = rng(seed);
-    g.fillStyle = '#0c1120';
-    g.fillRect(0, 0, 128, 256);
-    const cols = 8;
-    const rows = 24;
-    for (let y = 0; y < rows; y++) {
-      for (let x = 0; x < cols; x++) {
-        const v = r();
-        let col = '#101a2e';
-        if (v > 0.55) col = warm ? (v > 0.85 ? '#ffd9a0' : '#ffb85c') : '#9fd6ff';
-        if (v > 0.93) col = '#ffffff';
-        if (v > 0.5 && v < 0.55) col = '#4a6fae';
-        g.fillStyle = col;
-        g.fillRect(x * 16 + 3, y * 10.6 + 2, 10, 6.5);
+    g.fillStyle = '#101c25';
+    g.fillRect(0, 0, 256, 512);
+    for (let row = 0; row < 32; row++) {
+      g.fillStyle = row % 8 === 0 ? '#080f17' : '#1c2930';
+      g.fillRect(0, row * 16, 256, row % 8 === 0 ? 5 : 2);
+      for (let col = 0; col < 12; col++) {
+        const x = 8 + col * 20, y = row * 16 + 4;
+        const lit = r() > .66 && col !== (seed % 10);
+        const color = !lit ? '#1a2c37' : warm
+          ? ['#c3b5a0', '#a68954', '#e7d4ac'][Math.floor(r() * 3)]
+          : ['#78c9ca', '#92abb7', '#b1ced0'][Math.floor(r() * 3)];
+        g.fillStyle = color;
+        g.fillRect(x, y, 13, 8);
+        g.fillStyle = '#08151f';
+        g.fillRect(x + 6, y, 1, 8);
+        g.fillStyle = 'rgba(0,0,0,.28)';
+        g.fillRect(x, y + 6, 13, 2);
       }
     }
+    g.fillStyle = '#07131d';
+    g.fillRect(64 + seed % 3 * 40, 0, 10, 512);
     const t = tex(c);
     t.wrapS = t.wrapT = THREE.RepeatWrapping;
-    t.magFilter = THREE.NearestFilter;
     return t;
   });
 }
@@ -305,5 +310,45 @@ export function paverTexture() {
     const t = tex(c);
     t.wrapS = t.wrapT = THREE.RepeatWrapping;
     return t;
+  });
+}
+
+/** Cached material detail: sealed concrete, aggregate, panel seams and drain covers. */
+export function industrialGround() {
+  return cached('industrial-ground', () => {
+    const [c, g] = canvas(512, 512);
+    const r = rng(5127);
+    g.fillStyle = '#35444a'; g.fillRect(0, 0, 512, 512);
+    for (let i = 0; i < 14000; i++) {
+      g.fillStyle = r() > .5 ? 'rgba(172,188,186,.07)' : 'rgba(0,8,16,.16)';
+      g.fillRect(r() * 512, r() * 512, 1 + r() * 2, 1 + r() * 2);
+    }
+    g.strokeStyle = '#17252b'; g.lineWidth = 3;
+    for (let x = 0; x < 512; x += 128) {
+      g.beginPath(); g.moveTo(x, 0); g.lineTo(x, 512); g.stroke();
+      g.beginPath(); g.moveTo(0, x); g.lineTo(512, x); g.stroke();
+    }
+    for (const [x,y] of [[35,42], [325,294]]) {
+      g.fillStyle = '#16232b'; g.fillRect(x,y,74,42);
+      g.strokeStyle = '#607276'; g.lineWidth = 1; g.strokeRect(x+2,y+2,70,38);
+      g.fillStyle = '#080f16';
+      for (let i=0;i<8;i++) g.fillRect(x+8+i*8,y+8,3,26);
+    }
+    const t = tex(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; return t;
+  });
+}
+
+/** Data texture: rough dry aggregate with scattered smooth wet patches. */
+export function wetRoughness() {
+  return cached('wet-roughness', () => {
+    const [c, g] = canvas(512, 512); const r = rng(803);
+    g.fillStyle = '#c4c4c4'; g.fillRect(0,0,512,512);
+    for(let i=0;i<12;i++) {
+      const x=r()*512,y=r()*512,w=45+r()*100;
+      const grad=g.createRadialGradient(x,y,0,x,y,w);
+      grad.addColorStop(0,'rgba(80,80,80,.75)'); grad.addColorStop(.5,'rgba(100,100,100,.35)'); grad.addColorStop(1,'rgba(100,100,100,0)');
+      g.fillStyle=grad; g.fillRect(x-w,y-w,w*2,w*2);
+    }
+    const t=tex(c,false); t.wrapS=t.wrapT=THREE.RepeatWrapping; return t;
   });
 }

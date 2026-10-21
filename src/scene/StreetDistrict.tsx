@@ -1,10 +1,10 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import * as THREE from 'three';
 import { PATHS, STREET_BUILDINGS, STREET_LAMP_POLES, WORLD_BOUNDS } from '../../shared/world.ts';
 import { LocalPointLight } from './LocalLights.tsx';
 import { StaticBatch } from './StaticBatch.tsx';
 import { PALETTE, glow, std } from './materials.ts';
-import { neonText } from './textures.ts';
+import { wetRoughness, neonText } from './textures.ts';
 
 // 外环霓虹街区：只做视觉。可碰撞体全部来自 shared/world.ts（STREET_BUILDINGS / STREET_BENCHES），
 // 地面贴花与头顶装饰不挡路；细杆碰撞也收录到 STREET_POLES。
@@ -31,12 +31,12 @@ function streetTile() {
   const c = document.createElement('canvas');
   c.width = c.height = 128;
   const g = c.getContext('2d')!;
-  g.fillStyle = '#161d31';
+  g.fillStyle = '#202b33';
   g.fillRect(0, 0, 128, 128);
-  g.fillStyle = '#1c2540';
+  g.fillStyle = '#29373e';
   g.fillRect(3, 3, 58, 58);
   g.fillRect(67, 67, 58, 58);
-  g.strokeStyle = 'rgba(72,238,255,0.22)';
+  g.strokeStyle = 'rgba(105,149,151,0.12)';
   g.lineWidth = 2;
   g.strokeRect(1, 1, 126, 126);
   g.fillStyle = 'rgba(255,79,202,0.5)';
@@ -57,7 +57,8 @@ function FloorStrip({ minX, maxX, minZ, maxZ }: { minX: number; maxX: number; mi
     for (let i = 0; i < uv.count; i++) uv.setXY(i, (uv.getX(i) * w) / 4, (uv.getY(i) * d) / 4);
     return g;
   }, [w, d]);
-  const material = useMemo(() => new THREE.MeshStandardMaterial({ map: streetTile(), roughness: 0.85 }), []);
+  const material = useMemo(() => new THREE.MeshStandardMaterial({ map: streetTile(), roughness: 0.5, metalness: 0.3, roughnessMap: wetRoughness() }), []);
+  useEffect(() => () => { geometry.dispose(); material.dispose(); }, [geometry, material]);
   return <mesh geometry={geometry} material={material} rotation-x={-Math.PI / 2}
     position={[(minX + maxX) / 2, -0.04, (minZ + maxZ) / 2]} receiveShadow />;
 }
@@ -121,7 +122,7 @@ function RingPosts() {
   return <group>
     {posts.map((p, i) => <group key={i} position={p}>
       <mesh position={[0, 1.7, 0]} material={pole}><cylinderGeometry args={[0.05, 0.07, 3.4, 6]} /></mesh>
-      <mesh position={[0, 2.9, 0]} material={glow(i % 2 ? PALETTE.neonPink : PALETTE.neonCyan, 1.8)}>
+      <mesh position={[0, 2.9, 0]} material={glow(i % 2 ? PALETTE.neonPink : PALETTE.neonCyan, 1.5)}>
         <boxGeometry args={[0.09, 0.9, 0.09]} />
       </mesh>
       <mesh position={[0, 3.45, 0]} material={glow(PALETTE.warmLight, 2.4)}><sphereGeometry args={[0.16, 10, 8]} /></mesh>
@@ -139,56 +140,117 @@ function NeonPanel({ text, color, width, position, rotation = 0, double = false 
   </mesh>;
 }
 
-/** 街边店：本地 +z 朝向环街，所有实体都在 STREET_BUILDINGS 的碰撞框内，只有雨棚/招牌伸到头顶。 */
+// 每栋店的灯色语言：main 只用于招牌/灯条，hot 为局部点缀，glass/inner 控制橱窗不过曝。
+const SHOP_THEMES = [
+  { main: '#ffb347', hot: '#ff3b30', glass: '#26170f', inner: '#ffcf8a' }, // 夜市：琥珀 + 红
+  { main: '#3ef0ff', hot: '#ff3b5c', glass: '#0b222c', inner: '#bff6ff' }, // 相馆：冷青 + 少量红
+  { main: '#5ab8ff', hot: '#d6ecff', glass: '#0d182b', inner: '#d6ecff' }, // 北西：冷蓝
+  { main: '#ffd400', hot: '#ff8a1f', glass: '#211c0b', inner: '#fff1b8' }, // 北东：公司黄
+];
+
+function box(key: string | number, pos: P3, size: P3, mat: THREE.Material, rx = 0) {
+  return <mesh key={key} position={pos} material={mat} rotation-x={rx}><boxGeometry args={size} /></mesh>;
+}
+
+/** 街边工业店：本地 +z 朝向环街。人体高度以下实体都在 STREET_BUILDINGS 碰撞框内（窗框只外伸 ≤.08m），
+ *  2.6m 以上的硬棚/灯箱/拉杆才出挑。 */
 function Storefront({ b, index }: { b: Street; index: number }) {
   const side = Math.abs(b.x) > RING.inX;
   const yaw = side ? (b.x < 0 ? Math.PI / 2 : -Math.PI / 2) : b.z < 0 ? 0 : Math.PI;
   const W = side ? b.d : b.w;
   const D = side ? b.w : b.d;
-  const front = D / 2;
-  const accent = glow(b.color, 1.7);
-  const windowMat = useMemo(() => new THREE.MeshBasicMaterial({
-    color: new THREE.Color(b.color).lerp(new THREE.Color('#ffffff'), 0.35).multiplyScalar(1.15), toneMapped: false,
-  }), [b.color]);
-  const upper = glow(index % 2 ? '#ffe2b0' : '#9fe8ff', 1.2);
-  const frame = std('#11162a', 0.5, 0.4);
-  const count = Math.round(W / 1.3);
-  const lanterns = Array.from({ length: count }, (_, i) => -W / 2 + 0.7 + (i * (W - 1.4)) / Math.max(1, count - 1));
+  const f = D / 2;
+  const t = SHOP_THEMES[index % SHOP_THEMES.length];
+  const shell = std('#1a1f2e', 0.8, 0.2);
+  const metal = std('#4a5263', 0.35, 0.85);
+  const roofMetal = std('#1b2130', 0.45, 0.75);
+  const dark = std('#07090f', 0.9, 0.1);
+  const frame = std('#11162a', 0.5, 0.6);
+  const glass = std(t.glass, 0.15, 0.7);
+  const main = glow(t.main, 1.8);
+  const mainSoft = glow(t.main, 0.9);
+  const hot = glow(t.hot, 1.6);
+  const inner = glow(t.inner, 0.8);
+  const innerDim = glow(t.inner, 0.35);
+  const hazY = std('#e8b400', 0.6, 0.2);
+  const hazK = std('#15171c', 0.6, 0.2);
+  const winL = -W / 2 + 0.5, winR = W / 2 - 2.1;
+  const winW = winR - winL, winX = (winL + winR) / 2;
+  const doorX = W / 2 - 1.15;
+  const signW = Math.min(W - 0.6, 7);
+  const rod = Math.atan2(1.05, -0.67);
+  const bladeX = -W / 2 + 0.45;
   return <group position={[b.x, 0, b.z]} rotation-y={yaw}>
-    <mesh position={[0, b.h / 2, 0]} material={std('#1d2440', 0.7, 0.1)}><boxGeometry args={[W, b.h, D]} /></mesh>
-    {/* 橱窗 + 窗框 */}
-    <mesh position={[0, 1.25, front + 0.01]} material={windowMat}><boxGeometry args={[W - 1.6, 1.9, 0.02]} /></mesh>
-    {[-1, -0.33, 0.33, 1].map(k => <mesh key={k} position={[(k * (W - 1.6)) / 2, 1.25, front + 0.03]} material={frame}>
-      <boxGeometry args={[0.1, 1.95, 0.05]} />
-    </mesh>)}
-    <mesh position={[0, 0.25, front + 0.03]} material={frame}><boxGeometry args={[W - 1.4, 0.5, 0.05]} /></mesh>
-    {/* 二层亮窗 */}
-    {b.h > 4.5 && [-0.3, 0, 0.3].map(k => <mesh key={'u' + k} position={[k * W, 3.75, front + 0.01]} material={upper}>
-      <boxGeometry args={[W * 0.22, 0.7, 0.02]} />
-    </mesh>)}
-    {/* 霓虹轮廓 */}
-    <mesh position={[0, b.h - 0.12, front + 0.03]} material={accent}><boxGeometry args={[W, 0.1, 0.05]} /></mesh>
-    {[-1, 1].map(s => <mesh key={s} position={[(s * W) / 2, b.h / 2, front + 0.03]} material={accent}>
-      <boxGeometry args={[0.08, b.h, 0.05]} />
-    </mesh>)}
-    {/* 雨棚 + 灯笼串（头顶高度，不挡路） */}
-    <mesh position={[0, 2.6, front + 0.6]} rotation-x={0.22} material={std(b.color, 0.65)}>
-      <boxGeometry args={[W - 0.8, 0.06, 1.3]} />
-    </mesh>
-    <mesh position={[0, 2.45, front + 1.22]} material={accent}><boxGeometry args={[W - 0.8, 0.05, 0.05]} /></mesh>
-    {lanterns.map(x => <mesh key={x} position={[x, 2.2, front + 1.18]} material={glow(index % 2 ? '#ffd166' : '#ff6b4a', 2)}>
-      <sphereGeometry args={[0.13, 8, 6]} />
-    </mesh>)}
-    {/* 屋顶：护栏光带、空调机、招牌架 */}
-    <mesh position={[0, b.h + 0.06, 0]} material={std('#141a2c', 0.8)}><boxGeometry args={[W - 0.2, 0.12, D - 0.2]} /></mesh>
-    {[[-W / 4, -D / 5], [W / 5, -D / 4]].map(([x, z]) => <mesh key={x} position={[x, b.h + 0.45, z]} material={std('#3a4660', 0.5, 0.5)}>
-      <boxGeometry args={[1.1, 0.7, 0.8]} />
-    </mesh>)}
-    {[-1, 1].map(s => <mesh key={'p' + s} position={[s * (W / 2 - 1), b.h + 0.8, front - 0.4]} material={frame}>
-      <boxGeometry args={[0.08, 1.6, 0.08]} />
-    </mesh>)}
-    <NeonPanel text={b.sign} color={b.color} width={Math.min(W - 0.6, 7)} position={[0, b.h + 1.1, front - 0.3]} />
-    <LocalPointLight position={[0, 2.3, front + 1.8]} color={b.color} intensity={10} distance={8} decay={2} />
+    {box('body', [0, b.h / 2, 0], [W, b.h, D], shell)}
+    {/* 深窗洞：黑色凹底 + 暗玻璃 + 局部内光，上方半落百叶 */}
+    {box('rec', [winX, 1.3, f + 0.01], [winW, 2.0, 0.02], dark)}
+    {box('gls', [winX, 1.2, f + 0.025], [winW - 0.1, 1.7, 0.01], glass)}
+    {box('in1', [winX, 1.95, f + 0.03], [winW - 0.3, 0.06, 0.01], inner)}
+    {box('in2', [winX - winW * 0.22, 1.0, f + 0.03], [winW * 0.3, 0.5, 0.01], innerDim)}
+    {[0, 1, 2, 3, 4].map(k => box('sl' + k, [winX, 2.12 - k * 0.11, f + 0.05], [winW, 0.08, 0.03], metal))}
+    {box('shh', [winX, 2.3, f + 0.04], [winW + 0.2, 0.2, 0.08], frame)}
+    {[0, 1, 2, 3].map(k => box('mu' + k, [winL + (k * winW) / 3, 1.3, f + 0.04], [0.12, 2.1, 0.08], frame))}
+    {box('sill', [winX, 0.28, f + 0.04], [winW + 0.12, 0.12, 0.08], metal)}
+    {box('kick', [winX, 0.12, f + 0.02], [winW, 0.24, 0.04], frame)}
+    {/* 门：双门片 + 中横档 + 门楣灯条 */}
+    {[-1, 1].map(s => box('dp' + s, [doorX + s * 0.62, 1.2, f + 0.04], [0.1, 2.4, 0.08], metal))}
+    {box('dh', [doorX, 2.35, f + 0.04], [1.34, 0.1, 0.08], metal)}
+    {[-1, 1].map(s => box('dl' + s, [doorX + s * 0.29, 1.05, f + 0.02], [0.56, 2.1, 0.03], frame))}
+    {[-1, 1].map(s => box('dg' + s, [doorX + s * 0.29, 1.45, f + 0.04], [0.36, 0.8, 0.01], glass))}
+    {box('dr', [doorX, 0.9, f + 0.045], [1.12, 0.06, 0.02], metal)}
+    {box('dls', [doorX, 2.24, f + 0.065], [1.1, 0.03, 0.02], main)}
+    {/* 护角 + 底部黄黑警示 + 上段细侧灯条（主次轮廓） */}
+    {[-1, 1].flatMap(s => [
+      box('cg' + s, [s * (W / 2 - 0.06), (0.8 + b.h) / 2, f + 0.04], [0.12, b.h - 0.8, 0.08], metal),
+      ...[0, 1, 2, 3].map(k => box(`hz${s}${k}`, [s * (W / 2 - 0.07), 0.1 + k * 0.2, f + 0.04], [0.14, 0.2, 0.08], k % 2 ? hazK : hazY)),
+      box('sl' + s, [s * (W / 2 - 0.15), (2.9 + b.h) / 2, f + 0.075], [0.03, b.h - 2.9, 0.01], mainSoft),
+    ])}
+    {box('top', [0, b.h - 0.08, f + 0.05], [W + 0.04, 0.12, 0.1], main)}
+    {/* 深色金属硬棚 + 前唇灯条 + 上拉杆（全部 ≥2.6m） */}
+    {box('cn', [0, 2.8, f + 0.55], [W - 0.6, 0.1, 1.1], roofMetal)}
+    {box('lip', [0, 2.73, f + 1.1], [W - 0.6, 0.22, 0.06], frame)}
+    {box('lls', [0, 2.63, f + 1.08], [W - 0.8, 0.03, 0.03], main)}
+    {[-1, 1].map(s => box('ht' + s, [s * (W / 2 - 0.5), 2.73, f + 1.14], [0.3, 0.16, 0.02], hot))}
+    {[-1, 1].map(s => box('rd' + s, [s * (W / 2 - 0.8), 3.17, f + 0.53], [0.04, 1.245, 0.04], metal, rod))}
+    {index === 0 && [-3, -1.5, 0, 1.5, 3].map((x, i) => <mesh key={'lt' + x} position={[x, 2.72, f + 1.2]}
+      material={glow(i % 2 ? '#ffb347' : '#ff3b30', 1.8)}><sphereGeometry args={[0.09, 8, 6]} /></mesh>)}
+    {/* 分层灯箱：硬棚上横向灯箱 + 角部竖向刀片灯箱 */}
+    {box('fx', [0.6, 3.3, f + 0.06], [W * 0.5, 0.55, 0.12], dark)}
+    {[-1, 1].map(s => box('fxs' + s, [0.6, 3.3 + s * 0.24, f + 0.125], [W * 0.5 - 0.1, 0.03, 0.01], main))}
+    {box('fxc', [0.6, 3.3, f + 0.125], [W * 0.46, 0.3, 0.01], glow(t.inner, 0.5))}
+    {box('bl', [bladeX, 3.45, f + 0.45], [0.14, 1.0, 0.7], dark)}
+    {[-1, 1].map(s => box('bls' + s, [bladeX + s * 0.075, 3.45, f + 0.45], [0.01, 0.86, 0.56], hot))}
+    {box('blc', [bladeX, 3.97, f + 0.45], [0.18, 0.04, 0.74], main)}
+    {box('bla', [bladeX, 3.88, f + 0.12], [0.06, 0.06, 0.24], metal)}
+    {/* 二层深窗：凹洞 + 厚窗台 + 下半亮、上半百叶 */}
+    {b.h > 4.5 && [-W * 0.3, 0, W * 0.3].flatMap(x => [
+      box('uw' + x, [x, 4.15, f + 0.01], [W * 0.2, 0.6, 0.02], dark),
+      box('ul' + x, [x, 4.02, f + 0.025], [W * 0.2 - 0.1, 0.24, 0.01], glow(t.inner, 0.7)),
+      box('ub' + x, [x, 4.3, f + 0.04], [W * 0.2 - 0.1, 0.05, 0.03], metal),
+      box('us' + x, [x, 3.82, f + 0.05], [W * 0.2 + 0.16, 0.08, 0.1], metal),
+      ...[-1, 1].map(s => box(`uj${x}${s}`, [x + s * W * 0.1, 4.15, f + 0.04], [0.08, 0.66, 0.08], frame)),
+    ])}
+    {/* 屋顶：女儿墙、空调（风扇叶片）、通风管、招牌钢架 */}
+    {[-1, 1].map(s => box('pz' + s, [0, b.h + 0.2, s * (D / 2 - 0.08)], [W, 0.4, 0.16], shell))}
+    {[-1, 1].map(s => box('px' + s, [s * (W / 2 - 0.08), b.h + 0.2, 0], [0.16, 0.4, D], shell))}
+    {box('cap', [0, b.h + 0.41, f - 0.08], [W, 0.03, 0.2], metal)}
+    {[[-W / 4, -D / 5], [W / 5, -D / 4]].map(([x, z]) => <group key={'ac' + x} position={[x, b.h, z]}>
+      {box('u', [0, 0.35, 0], [1.1, 0.7, 0.8], std('#39424f', 0.5, 0.6))}
+      <mesh position={[0, 0.73, 0]} material={dark}><cylinderGeometry args={[0.32, 0.32, 0.06, 16]} /></mesh>
+      {[0.4, 0.4 + Math.PI / 2].map(r => <mesh key={r} position={[0, 0.77, 0]} rotation-y={r} material={metal}>
+        <boxGeometry args={[0.56, 0.02, 0.08]} />
+      </mesh>)}
+    </group>)}
+    {[[W / 2 - 1.2, -D / 2 + 1], [W / 2 - 1.7, -D / 2 + 1.1]].map(([x, z], i) => <group key={'vt' + i} position={[x, b.h, z]}>
+      <mesh position={[0, 0.45 + i * 0.15, 0]} material={metal}><cylinderGeometry args={[0.12, 0.12, 0.9 + i * 0.3, 10]} /></mesh>
+      <mesh position={[0, 0.95 + i * 0.3, 0]} material={frame}><cylinderGeometry args={[0.2, 0.14, 0.08, 10]} /></mesh>
+    </group>)}
+    {box('duct', [-W / 4, b.h + 0.18, D / 6], [0.32, 0.3, D * 0.35], metal)}
+    {[-1, 1].map(s => box('p' + s, [s * (W / 2 - 1), b.h + 0.8, f - 0.4], [0.08, 1.6, 0.08], frame))}
+    {[0.55, 1.7].map(y => box('tb' + y, [0, b.h + y, f - 0.42], [W - 1.6, 0.06, 0.06], frame))}
+    {box('su', [0, b.h + 0.18, f - 0.28], [signW * 0.8, 0.03, 0.03], hot)}
+    <NeonPanel text={b.sign} color={t.main} width={signW} position={[0, b.h + 1.1, f - 0.3]} />
+    <LocalPointLight position={[0, 2.3, f + 1.8]} color={t.main} intensity={10} distance={8} decay={2} />
   </group>;
 }
 
@@ -217,7 +279,7 @@ function NightMarket() {
     bulbs.push({ p: [-RING.outX - 0.4 + t * (RING.outX - RING.inX + 0.8), 3.6 - Math.sin(t * Math.PI) * 0.5, z], warm: i % 2 === 0 });
   }
   return <group>
-    <Gate a={[-RING.outX - 0.5, 0]} b={[-RING.inX + 0.5, 0]} text="摸鱼夜市" color="#ff4fb8" />
+    <Gate a={[-RING.outX - 0.5, 0]} b={[-RING.inX + 0.5, 0]} text="摸鱼夜市" color={SHOP_THEMES[0].main} />
     {strings.flatMap(z => [-RING.outX - 0.4, -RING.inX + 0.4].map(x => <mesh key={`${x}${z}`} position={[x, 1.85, z]} material={std('#2c313d', 0.4, 0.6)}>
       <cylinderGeometry args={[0.05, 0.05, 3.7, 6]} />
     </mesh>))}
@@ -263,11 +325,11 @@ function PhotoStreet() {
   const span = RING.outX - RING.inX + 1.8;
   const spot: P3 = [RING.outX + 3.4, 0, 2.2];
   return <group>
-    {arches.map((z, i) => <mesh key={z} position={[MID_X, 0, z]} material={glow(i % 2 ? PALETTE.neonPink : PALETTE.neonCyan, 1.8)}>
+    {arches.map((z, i) => <mesh key={z} position={[MID_X, 0, z]} material={glow(i % 2 ? PALETTE.neonPink : PALETTE.neonCyan, 1.5)}>
       <torusGeometry args={[span / 2, 0.06, 6, 28, Math.PI]} />
     </mesh>)}
     <group position={spot} rotation-y={-Math.PI / 2}>
-      <mesh position={[0, 1.75, 0]} material={glow('#ff4fb8', 2)}><torusGeometry args={[1.55, 0.09, 8, 40]} /></mesh>
+      <mesh position={[0, 1.75, 0]} material={glow('#ff3b5c', 1.8)}><torusGeometry args={[1.55, 0.09, 8, 40]} /></mesh>
       <mesh position={[0, 1.75, -0.02]} material={glow('#3ef0ff', 1.6)}><torusGeometry args={[1.35, 0.04, 6, 40]} /></mesh>
       {[-1, 1].map(s => <mesh key={s} position={[s * 1.1, 0.06, 0]} material={std('#2c313d', 0.4, 0.6)}>
         <boxGeometry args={[0.3, 0.12, 0.4]} />

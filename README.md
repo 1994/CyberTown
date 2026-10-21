@@ -4,9 +4,9 @@
 
 浏览器里的 3D 职场社交 RPG Demo。雇个老板、自由逛园区、和同事互动、玩小游戏，晋升领年终奖，再给自己和老板兑换道具。卡通赛博夜景园区扩为90×66米，包含广场、咖啡馆、人才街、小游戏俱乐部和露台，以及外围霓虹环街。
 
-![赛博夜景园区](artifacts/cyber-campus/03-campus-hud.jpg)
+![赛博夜市](artifacts/night-city/04-after-nightmarket.jpg)
 
-> 园区、城市天际线、主界面、商店、小游戏与奖励演出已统一赛博朋克风格。前后对照、真实游玩与窄屏/低特效检查见 [整体风格验收](docs/REVIEW-CYBER-CAMPUS.md)。
+> 新一轮美术增加工业店面、金属设备、湿润路面、分区冷暖光和原创黄黑“老板递奖金”广告。实际前后对照、触屏和性能记录见 [夜之城方向美术验收](docs/REVIEW-NIGHT-CITY-ART.md)；此前的全系统风格记录见 [整体风格验收](docs/REVIEW-CYBER-CAMPUS.md)。
 
 前端初版由本机 **Claude Code** 开发；用户授权后由 **Codex 接手续改本轮前端、实现Go服务端、验收并交付GitHub**。
 

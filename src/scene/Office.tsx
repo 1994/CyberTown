@@ -5,6 +5,7 @@ import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { Environment, Lightformer } from '@react-three/drei';
 import { Bloom, EffectComposer, Vignette } from '@react-three/postprocessing';
 import * as THREE from 'three';
+import { UrbanDetails, NightRain } from './UrbanDetails.tsx';
 import { City } from './City.tsx';
 import { Room } from './Room.tsx';
 import { Campus } from './Campus.tsx';
@@ -67,8 +68,8 @@ function Sun() {
   return (
     <directionalLight
       ref={light}
-      intensity={1.8}
-      color="#e2ebff"
+      intensity={1.65}
+      color="#d3e7e5"
       castShadow={!LOW_FX}
       shadow-mapSize={[settings.shadow, settings.shadow]}
       shadow-camera-left={-22}
@@ -86,12 +87,12 @@ function Sun() {
 function Lights() {
   return (
     <>
-      <hemisphereLight args={['#b0baff', '#17223e', 1.25]} />
+      <hemisphereLight args={['#7da9b8', '#111f28', 0.82]} />
       <Sun />
       <directionalLight
         position={[-24, 12, -18]}
-        intensity={1.1}
-        color="#a56dff"
+        intensity={0.8}
+        color="#ff6f48"
       />
       {[-3.3, 0, 3.3].map((x) => (
         <LocalPointLight
@@ -188,7 +189,7 @@ export function OfficeCanvas({ myId }: { myId: string | null }) {
       gl={{ antialias: false, powerPreference: 'high-performance' }}
       onCreated={({ gl, scene }) => {
         gl.toneMapping = THREE.ACESFilmicToneMapping;
-        gl.toneMappingExposure = 1.05;
+        gl.toneMappingExposure = 1.02;
         scene.fog = new THREE.Fog('#10142e', 65, 230);
       }}
     >
@@ -216,6 +217,8 @@ export function OfficeCanvas({ myId }: { myId: string | null }) {
         </Environment>
         <City />
         <Campus onGround={onGround} />
+        <UrbanDetails />
+        {playing && !LOW_FX && <NightRain />}
         <Room />
         <Colleagues />
         {myId && <MePlayer key={myId} myId={myId} />}
@@ -229,7 +232,7 @@ export function OfficeCanvas({ myId }: { myId: string | null }) {
               mipmapBlur
               luminanceThreshold={1.4}
               luminanceSmoothing={0.3}
-              intensity={0.42}
+              intensity={0.34}
               radius={0.5}
             />
             <Vignette offset={0.3} darkness={0.22} />

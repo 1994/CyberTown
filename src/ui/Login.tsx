@@ -29,6 +29,8 @@ export function Login() {
 
   return (
     <div className="login-wrap">
+      <div className="login-shell">
+      <aside className="login-art" aria-hidden="true"><img src={`${import.meta.env.BASE_URL}art/boss-bonus-poster.webp`} alt="" decoding="async" /></aside>
       <div className="login-card panel">
         <span className="login-kicker">
           <Sparkles size={15} />
@@ -95,6 +97,7 @@ export function Login() {
         <p className="sso-line">
           {identityMode === 'demo' ? '体验账号 · 非真实SSO · 可在不同标签页与自己联机' : identityNotice}
         </p>
+      </div>
       </div>
     </div>
   );

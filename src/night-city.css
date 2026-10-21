@@ -1,0 +1,21 @@
+/* Industrial night-city accents; the phone and touch controls keep their layout. */
+:root { --gold:#f5d63b; --pink:#ff5a53; --cyan:#4ce5dc; }
+.v3-hud { --hp-gold:#f5d63b; --hp-pink:#ff5a53; --hp-cyan:#4ce5dc; --hp-panel:linear-gradient(150deg,#182b32,#0b171f 65%,#141c23); }
+.v3-hud .v3-brand em { color:#f5d63b; text-shadow:none; }
+.v3-hud .game-dock { background:#09161ef2; }
+.v3-hud .game-dock > button.dock-play { color:#101917; border-radius:12px; background:linear-gradient(115deg,#f5dd42,#d3b526); box-shadow:0 4px 0 #5f5013,0 0 0 1px #ffe87888,inset 0 1px #fff7ae; }
+.v3-hud .game-dock > button.dock-play:hover { box-shadow:0 6px 0 #5f5013,0 0 24px #d8d43c44; }
+.v3-hud .game-dock > button.dock-play:active { box-shadow:0 2px 0 #5f5013; }
+.v3-hud .dock-play > small { color:#30391d; }
+.v3-hud .dock-play > svg { color:#172623; }
+.logo span,.cinema-title h1 span { color:#f1d23f; text-shadow:0 0 26px #f1d23f20; }
+.login-shell { display:grid; grid-template-columns:minmax(280px,380px) minmax(0,1fr); width:min(880px,100%); overflow:hidden; border:1px solid #94bcaf55; border-radius:20px; background:#0c1821ed; box-shadow:0 28px 100px #000a; }
+.login-art { align-self:stretch; min-height:0; background:#e3cd26; }
+.login-art img { display:block; width:100%; height:100%; object-fit:contain; object-position:center; }
+.login-shell .login-card.panel { width:100%; max-width:none; border:0; border-radius:0; padding:28px 34px; box-shadow:none; background:linear-gradient(150deg,#182c32eb,#0a141df5); }
+.login-shell .logo.big { font-size:clamp(38px,4.6vw,64px); }
+.login-shell .login-kicker { color:#f2d448; }
+.login-shell .identity { background:#1a2b34; border-color:#678f8c45; }
+.login-shell .identity.on,.login-shell .identity:hover { border-color:#e4cd35; background:#2b342b; color:#fff3ad; }
+@media(max-width:760px) { .login-shell { display:block; max-width:450px; } .login-art { display:none; } .login-shell .login-card.panel { padding:26px 24px; } }
+@media(max-height:600px) and (min-width:761px) { .login-shell { max-width:730px; grid-template-columns:240px 1fr; } .login-shell .login-card.panel { padding:18px 26px; } .login-shell .logo.big { font-size:42px; } }

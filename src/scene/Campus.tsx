@@ -22,7 +22,8 @@ import { rng } from '../../shared/rules.ts';
 import { PALETTE, glow, std } from './materials.ts';
 import {
   chartScreen,
-  lawnTexture,
+  industrialGround,
+  wetRoughness,
   monitorScreen,
   neonText,
   paverTexture,
@@ -70,7 +71,7 @@ function PathTile({
       receiveShadow
     >
       <planeGeometry args={[w, d]} />
-      <meshStandardMaterial color={color} roughness={0.8} map={map} />
+      <meshStandardMaterial color={color} roughness={0.4} metalness={0.35} map={map} roughnessMap={wetRoughness()} />
     </mesh>
   );
 }
@@ -80,11 +81,11 @@ function Ground({
 }: {
   onGround: (e: ThreeEvent<MouseEvent>) => void;
 }) {
-  // The shared lawn texture is tuned for the original 60×44 core; keep its texel scale.
+  // Physical surface detail stays at the same meter scale across the campus.
   const lawn = useMemo(() => {
-    const t = lawnTexture().clone();
+    const t = industrialGround().clone();
     t.needsUpdate = true;
-    t.repeat.set((14 * W) / 60, (10 * D) / 44);
+    t.repeat.set(W / 8, D / 8);
     return t;
   }, []);
   return (
@@ -104,7 +105,7 @@ function Ground({
         onClick={onGround}
       >
         <planeGeometry args={[W + 1, D + 1]} />
-        <meshStandardMaterial map={lawn} roughness={0.95} />
+        <meshStandardMaterial map={lawn} roughness={0.58} metalness={0.32} roughnessMap={wetRoughness()} />
       </mesh>
       {PATHS.map((p, i) => (
         <PathTile key={i} {...p} y={-0.045 + i * 0.003} color={i >= 8 ? '#5f6d92' : '#889dbb'} />
@@ -204,10 +205,12 @@ function Railing() {
 function Tree({ position, seed }: { position: P3; seed: number }) {
   const r = rng(seed * 13 + 1);
   const h = 2.2 + r() * 1.2;
-  const tint = r() > 0.5 ? '#3f8a45' : '#4e9c3e';
+  const tint = r() > 0.5 ? '#29685c' : '#3c7d68';
   return (
     <group position={position}>
-      <mesh position={[0, h / 2, 0]} material={std('#6b4428', 0.9)} castShadow>
+      <mesh position={[0, 0.16, 0]} material={std('#1c2a32', 0.5, 0.45)}><cylinderGeometry args={[0.42, 0.36, 0.32, 8]} /></mesh>
+      <mesh position={[0, 0.3, 0]} rotation-x={-Math.PI / 2} material={std('#718887', 0.4, 0.6)}><torusGeometry args={[0.38, 0.035, 5, 8]} /></mesh>
+      <mesh position={[0, h / 2, 0]} material={std('#344640', 0.8)} castShadow>
         <cylinderGeometry args={[0.1, 0.16, h, 7]} />
       </mesh>
       <mesh position={[0, h + 0.4, 0]} material={std(tint, 0.8)} castShadow>
@@ -215,14 +218,14 @@ function Tree({ position, seed }: { position: P3; seed: number }) {
       </mesh>
       <mesh
         position={[0.45, h - 0.1, 0.2]}
-        material={std('#2f6b3a', 0.8)}
+        material={std('#23564d', 0.8)}
         castShadow
       >
         <icosahedronGeometry args={[0.65, 1]} />
       </mesh>
       <mesh
         position={[-0.4, h + 0.05, -0.3]}
-        material={std('#5aa14a', 0.8)}
+        material={std('#498778', 0.8)}
         castShadow
       >
         <icosahedronGeometry args={[0.6, 1]} />
@@ -359,12 +362,21 @@ function Plaza() {
             metalness={0.15}
           />
         </mesh>
-        <mesh position={[0, 1.0, 0]} material={std('#5a6f89', 0.5)} castShadow>
-          <cylinderGeometry args={[0.25, 0.4, 1.1, 16]} />
-        </mesh>
-        <mesh position={[0, 1.7, 0]} material={std('#e9bf65', 0.3, 0.5)}>
-          <sphereGeometry args={[0.35, 16, 12]} />
-        </mesh>
+        {/* Chrome boss offering a bonus coin: the plaza's recognizable landmark. */}
+        <group>
+          <mesh position={[0, .62, 0]} material={std('#263a42',.4,.55)}><cylinderGeometry args={[.72,.82,.3,8]} /></mesh>
+          {[-.22,.22].map(x => <mesh key={x} position={[x,1.04,0]} material={std('#9eafb0',.28,.8)}><boxGeometry args={[.24,.58,.3]} /></mesh>)}
+          <mesh position={[0,1.6,0]} material={std('#c6ae68',.3,.75)}><boxGeometry args={[.8,.68,.4]} /></mesh>
+          <mesh position={[0,2.16,0]} material={std('#b4c3bd',.2,.85)}><icosahedronGeometry args={[.39,2]} /></mesh>
+          <mesh position={[0,2.19,.32]} material={glow('#28bfc1',1.25)}><boxGeometry args={[.61,.14,.04]} /></mesh>
+          <mesh position={[0,1.65,.22]} material={std('#8a242b',.35,.4)}><boxGeometry args={[.1,.42,.03]} /></mesh>
+          <mesh position={[-.5,1.5,0]} rotation-z={.15} material={std('#a6b4ac',.28,.8)}><boxGeometry args={[.2,.62,.25]} /></mesh>
+          <mesh position={[-.57,1.14,.08]} material={std('#d6b449',.3,.65)}><boxGeometry args={[.48,.36,.18]} /></mesh>
+          <mesh position={[.56,1.75,.18]} rotation-z={-.9} material={std('#b7c2ba',.22,.8)}><boxGeometry args={[.22,.59,.26]} /></mesh>
+          <mesh position={[.71,1.94,.27]} rotation-x={Math.PI/2} material={std('#f1cf64',.2,.75)}><cylinderGeometry args={[.27,.27,.08,24]} /></mesh>
+          {[[-.19,2.53],[0,2.62],[.19,2.53]].map(([x,y]) => <mesh key={x} position={[x,y,0]} material={std('#edc959',.25,.7)}><coneGeometry args={[.095,.24,4]} /></mesh>)}
+          <mesh position={[0,2.44,0]} material={std('#edc959',.25,.7)}><boxGeometry args={[.58,.12,.28]} /></mesh>
+        </group>
         <LocalPointLight
           position={[0, 1.6, 0]}
           color="#7fe8ff"
@@ -401,7 +413,7 @@ function Plaza() {
 
 function CafeTable({ position }: { position: P3 }) {
   const r = rng(Math.round(position[0] * 10 + position[2]));
-  const umb = ['#ff8fb8', '#ffd166', '#5ec8ff', '#7dffa8'][Math.floor(r() * 4)];
+  const umb = ['#b35439', '#d3a740', '#257277', '#40534f'][Math.floor(r() * 4)];
   return (
     <group position={position}>
       <mesh
@@ -477,7 +489,7 @@ function CoffeeZone() {
     c.height = 16;
     const g = c.getContext('2d')!;
     for (let i = 0; i < 8; i++) {
-      g.fillStyle = i % 2 ? '#ffffff' : '#ff6fa8';
+      g.fillStyle = i % 2 ? '#ffffff' : '#a73c39';
       g.fillRect(i * 16, 0, 16, 16);
     }
     const t = new THREE.CanvasTexture(c);
@@ -492,7 +504,7 @@ function CoffeeZone() {
           args={[4.2, 2.6, 3.2]}
           radius={0.08}
           position={[0, 1.3, 0]}
-          material={std('#35435e', 0.7)}
+          material={std('#253740', 0.55, 0.25)}
           castShadow
           receiveShadow
         />
@@ -876,7 +888,7 @@ function Garden() {
         receiveShadow
       >
         <planeGeometry args={[18, 13]} />
-        <meshStandardMaterial color="#4f8a45" roughness={0.95} />
+        <meshStandardMaterial color="#234f49" roughness={0.95} />
       </mesh>
       {/* 水池 */}
       <group position={[18, 0, -13.2]}>
@@ -932,19 +944,19 @@ function Garden() {
           <mesh
             key={x}
             position={[x, 1.4, 0.5]}
-            material={std('#35435e', 0.7)}
+            material={std('#253740', 0.55, 0.25)}
             castShadow
           >
             <boxGeometry args={[0.14, 2.8, 0.14]} />
           </mesh>
         ))}
         {[-0.9, -0.3, 0.3, 0.9].map((z) => (
-          <mesh key={z} position={[0, 2.85, z]} material={std('#35435e', 0.7)}>
+          <mesh key={z} position={[0, 2.85, z]} material={std('#253740', 0.55, 0.25)}>
             <boxGeometry args={[7, 0.1, 0.1]} />
           </mesh>
         ))}
         {[-2.5, -0.8, 0.8, 2.5].map((x) => (
-          <mesh key={x} position={[x, 2.95, 0]} material={std('#5aa14a', 0.8)}>
+          <mesh key={x} position={[x, 2.95, 0]} material={std('#498778', 0.8)}>
             <icosahedronGeometry args={[0.55, 1]} />
           </mesh>
         ))}
