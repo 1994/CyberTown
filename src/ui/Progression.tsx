@@ -7,6 +7,7 @@ import {
   ChevronRight,
   Coins,
   Crown,
+  Gamepad2,
   Gift,
   Glasses,
   MapPin,
@@ -50,7 +51,8 @@ function Modal({
     useWorld.getState().lock('progression');
     ref.current?.focus();
     const key = (e: KeyboardEvent) => {
-      if (ref.current?.querySelector('[role="dialog"]')) return;
+      const dialogs = document.querySelectorAll('[role="dialog"][aria-modal="true"]');
+      if (dialogs.item(dialogs.length - 1) !== ref.current) return;
       if (e.key === 'Escape') {
         e.stopPropagation();
         close.current();
@@ -97,7 +99,7 @@ function Modal({
       >
         <header className="v3-modal-head">
           <div>
-            <span className="eyebrow">{label}</span>
+            {label && <span className="eyebrow">{label}</span>}
             <h2>{title}</h2>
           </div>
           <button
@@ -259,49 +261,79 @@ function CareerPanel() {
       setBusy(false);
     }
   };
-  const progress = c.next
-    ? Math.min(1, c.performance / c.next.requiredPerformance)
-    : 1;
+  const goPlay = () => {
+    setDrawer(null);
+    useWorld.getState().setProjectOpen(true);
+  };
+  const n = c.next;
+  const perfLeft = n ? Math.max(0, n.requiredPerformance - c.performance) : 0;
+  const projLeft = n ? Math.max(0, n.requiredProjects - c.completedProjects) : 0;
+  const pct = (have: number, need: number) => `${Math.min(100, need ? (have / need) * 100 : 100)}%`;
   return (
     <div className="career-content">
-      <div className="career-hero">
+      <div className="career-rank">
         <span className="career-emblem">
-          <Crown size={38} strokeWidth={1.5} />
+          <Crown size={30} strokeWidth={1.8} />
         </span>
-        <span className="eyebrow">你的每一次快乐，都在成长</span>
-        <h3>{c.name}</h3>
-        <p>让老板努力，把年终奖留给自己。</p>
-      </div>
-      <div className="career-next">
-        <div>
-          <b>{c.next ? `下一站 · ${c.next.name}` : '最高职级已达成'}</b>
-          <span>
-            {c.next
-              ? `${fmt(c.performance)} / ${fmt(c.next.requiredPerformance)} 成长值`
-              : '继续收集，继续和朋友一起玩'}
-          </span>
+        <div className="career-now">
+          <small>当前职级</small>
+          <h3>{c.name}</h3>
+          <span>收益加成 +{c.incomePct}%</span>
         </div>
-        <div className="growth-track">
-          <i style={{ width: `${progress * 100}%` }} />
-        </div>
-        {c.next && (
-          <small>
-            有效游玩 {c.completedProjects}/{c.next.requiredProjects} 场 ·
-            每次成功接住 +10 成长值
-          </small>
+        {n && (
+          <>
+            <ArrowRight className="career-arrow" size={18} />
+            <div className="career-to">
+              <small>下一级</small>
+              <b>{n.name}</b>
+              <span>收益 +{n.incomePct}%</span>
+            </div>
+          </>
         )}
       </div>
+      {n ? (
+        <div className="career-reqs">
+          <div className={perfLeft ? '' : 'met'}>
+            <header>
+              <span>成长值</span>
+              <b>
+                {fmt(Math.min(c.performance, n.requiredPerformance))}
+                <small>/ {fmt(n.requiredPerformance)}</small>
+              </b>
+            </header>
+            <div className="growth-track"><i style={{ width: pct(c.performance, n.requiredPerformance) }} /></div>
+            <small>{perfLeft ? `还差 ${fmt(perfLeft)} · 每次接住 +10` : '已达成'}</small>
+          </div>
+          <div className={projLeft ? '' : 'met'}>
+            <header>
+              <span>有效游玩</span>
+              <b>
+                {Math.min(c.completedProjects, n.requiredProjects)}
+                <small>/ {n.requiredProjects} 场</small>
+              </b>
+            </header>
+            <div className="growth-track"><i style={{ width: pct(c.completedProjects, n.requiredProjects) }} /></div>
+            <small>{projLeft ? `还差 ${projLeft} 场有命中的游戏` : '已达成'}</small>
+          </div>
+        </div>
+      ) : (
+        <p className="career-max">最高职级已达成，继续和朋友一起玩。</p>
+      )}
       <div className="year-summary">
         <div>
-          <Gift size={23} />
+          <Gift size={22} />
           <span>
-            第 {y.number} 年基础奖金<b>{fmt(y.base)} 金币</b>
+            第 {y.number} 年 · 预计年终奖
+            <b>{fmt(y.estimate)} 金币</b>
+            <small>基础 {fmt(y.base)} · 已玩 {Math.min(y.completed, y.required)}/{y.required} 场</small>
           </span>
         </div>
         <div>
-          <Users size={23} />
+          <Users size={22} />
           <span>
-            本年好友碰杯<b>{y.friendPct ? '奖金 +10%' : '找朋友碰杯可加成'}</b>
+            好友碰杯
+            <b>{y.friendPct ? `奖金 +${y.friendPct}%` : '还没碰杯'}</b>
+            <small>{y.friendPct ? '已计入本年' : '走近好友碰杯可加成'}</small>
           </span>
         </div>
       </div>
@@ -315,8 +347,14 @@ function CareerPanel() {
           {error}
         </p>
       )}
+      {!c.canPromote && !busy && (
+        <button className="v3-primary wide" onClick={goPlay} data-testid="career-play">
+          <Gamepad2 size={18} />
+          {n ? '去玩一局，攒成长值' : '去玩一局'}
+        </button>
+      )}
       <button
-        className="v3-primary wide"
+        className={c.canPromote || busy ? 'v3-primary wide' : 'v3-secondary wide career-locked'}
         disabled={!c.canPromote || busy}
         onClick={() => void promote()}
         data-testid="btn-promote"
@@ -325,14 +363,12 @@ function CareerPanel() {
         {busy
           ? '晋升中…'
           : c.canPromote
-            ? '晋升，迎接更多年终奖'
-            : c.next
-              ? '再玩几局，离晋升更近一点'
+            ? `晋升为${n?.name ?? '下一级'}`
+            : n
+              ? '条件达成后即可晋升'
               : '合伙人，今天你最大'}
       </button>
-      <p className="quiet-note">
-        3场有命中的小游戏算一个演示年，进度随时保存。
-      </p>
+      <p className="quiet-note">每 {y.required} 场有命中的小游戏算一年，进度自动保存。</p>
     </div>
   );
 }
@@ -365,7 +401,14 @@ function ShopPanel() {
         ? `boss${item.kind[0].toUpperCase()}${item.kind.slice(1)}`
         : item.kind) as keyof typeof snap.me.style)
     : 'shirt';
+  const keyFor = (kind: string) =>
+    (target === 'boss' ? `boss${kind[0].toUpperCase()}${kind.slice(1)}` : kind) as keyof typeof snap.me.style;
   const equipped = !!item && snap.me.style[key] === item.value;
+  const short = item && !item.owned ? Math.max(0, item.price - snap.me.coins) : 0;
+  const goPlay = () => {
+    useGame.getState().setDrawer(null);
+    useWorld.getState().setProjectOpen(true);
+  };
   const act = async () => {
     if (!item || busy) return;
     setBusy(true);
@@ -438,7 +481,7 @@ function ShopPanel() {
       </section>
       <section className="shop-products">
         <div className="shop-wallet">
-          <span>年终奖，换点喜欢的</span>
+          <span>我的金币</span>
           <b>
             <Coins size={18} />
             {fmt(snap.me.coins)}
@@ -452,10 +495,12 @@ function ShopPanel() {
                 : i.kind === 'accessory'
                   ? Glasses
                   : Sparkles;
+            const wearing = snap.me.style[keyFor(i.kind)] === i.value;
+            const poor = !i.owned && snap.me.coins < i.price;
             return (
               <button
                 key={i.id}
-                className={`product ${selected === i.id ? 'selected' : ''}`}
+                className={`product ${selected === i.id ? 'selected' : ''} ${i.owned ? 'owned' : ''} ${wearing ? 'wearing' : ''} ${poor ? 'poor' : ''}`}
                 onClick={() => {
                   setSelected(i.id);
                   setError('');
@@ -481,7 +526,9 @@ function ShopPanel() {
                 </span>
                 <b>{i.name}</b>
                 <small>
-                  {i.owned ? (
+                  {wearing ? (
+                    '穿戴中'
+                  ) : i.owned ? (
                     '已拥有'
                   ) : (
                     <>
@@ -520,10 +567,16 @@ function ShopPanel() {
                   ? '已穿戴'
                   : item.owned
                     ? '穿上试试'
-                    : snap.me.coins < item.price
-                      ? '金币不够，再玩一局'
+                    : short > 0
+                      ? `还差 ${fmt(short)} 金币`
                       : `兑换并穿上 · ${item.price}`}
             </button>
+            {short > 0 && !busy && (
+              <button className="text-btn shop-earn" onClick={goPlay} data-testid="shop-go-play">
+                <Gamepad2 size={15} />
+                去玩一局赚金币
+              </button>
+            )}
             {equipped && (
               <button
                 className="text-btn"
@@ -628,6 +681,7 @@ function FriendsPanel() {
   const players = useWorld((s) => s.players);
   const setDrawer = useGame((s) => s.setDrawer);
   const others = snap.players.filter((p) => p.id !== snap.me.id);
+  const onlineOthers = others.filter((p) => players.some((e) => e.id === p.id));
   return (
     <div className="friends-content">
       <div className="friends-intro">
@@ -635,6 +689,16 @@ function FriendsPanel() {
         <h3>在这里，遇见熟悉的人。</h3>
         <p>走近挥手、聊一句，或碰杯一起拿奖金加成。</p>
       </div>
+      {onlineOthers.length === 0 && (
+        <div className="friends-empty">
+          <b>暂时没有在线搭子</b>
+          <span>叫上同事一起来园区，走近就能挥手、碰杯拿加成。</span>
+          <button className="v3-secondary" onClick={() => setDrawer('market')}>
+            <Users size={15} />
+            先看看园区同事
+          </button>
+        </div>
+      )}
       {others.map((p) => {
         const entry = players.find((e) => e.id === p.id);
         const av = snap.colleagues.find((c) => c.id === p.avatarColleagueId)!;
@@ -667,9 +731,7 @@ function FriendsPanel() {
           </div>
         );
       })}
-      <p className="quiet-note">
-        演示可打开另一标签页，选择不同身份一起逛园区。
-      </p>
+
     </div>
   );
 }
@@ -683,7 +745,7 @@ export function Progression() {
     return (
       <Modal
         title={celebration.title}
-        label="TODAY IS YOUR DAY"
+        label=""
         onClose={closeCelebration}
         className="celebration-modal"
       >
@@ -723,10 +785,10 @@ export function Progression() {
   if (!drawer || !['career', 'shop', 'squad', 'friends'].includes(drawer))
     return null;
   const titles = {
-    career: ['我的成长', 'GROW AT YOUR OWN PACE'],
-    shop: ['年终好物商店', 'LITTLE THINGS, BIG HAPPINESS'],
-    squad: ['我的快乐小队', 'YOUR BOSS, YOUR RULES'],
-    friends: ['一起逛园区', 'GOOD COMPANY, GOOD DAYS'],
+    career: ['我的成长', ''],
+    shop: ['年终好物商店', ''],
+    squad: ['我的快乐小队', ''],
+    friends: ['一起逛园区', ''],
   } as const;
   const [title, label] = titles[drawer as keyof typeof titles];
   return (

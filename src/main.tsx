@@ -7,6 +7,7 @@ import './phone.css';
 import './touch.css';
 import './hud-polish.css';
 import './sound.css';
+import './ui-polish.css';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

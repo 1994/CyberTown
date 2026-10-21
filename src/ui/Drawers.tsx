@@ -1,5 +1,5 @@
 import { dressed, dressedColleague } from '../look.ts';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { ColleagueView } from '../../shared/types.ts';
 import { useGame } from '../store.ts';
 import { api } from '../api.ts';
@@ -13,6 +13,9 @@ import {
 } from './Confirm.tsx';
 import { walkNear } from '../scene/Avatars.tsx';
 import { rt } from '../world/runtime.ts';
+import { Coins, Crown, Gamepad2, Move, Users } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
+import { useDialogFocus } from './useDialogFocus.ts';
 
 // 二级层：消息、排行、名册、规则。默认不打开，不自动弹出。
 
@@ -155,35 +158,43 @@ function Roster() {
   );
 }
 
+const STEPS: { Icon: LucideIcon; title: string; text: string }[] = [
+  { Icon: Crown, title: '雇个老板', text: '走近人才街的同事招募，小队最多 3 人，技能帮你多赚。' },
+  { Icon: Gamepad2, title: '玩一局，领年终奖', text: '15 秒接礼物、躲大饼。每年 3 局有命中，就发年终奖。' },
+  { Icon: Users, title: '和同事一起逛', text: '走近在线同事挥手、碰杯，双方各 +15 金币。' },
+];
+
 function Rules() {
   return (
     <div className="drawer-body guide" data-testid="guide">
-      <ul className="rules">
-        <li>
-          🚶
-          WASD/方向键走动，点地面自动走，手机用左下摇杆。拖拽旋转镜头，滚轮缩放，M
-          看全图。
-        </li>
-        <li>
-          🧑‍💼 人才街的同事走近按 E 招募；别人队里的同事也能挖，价格每次涨约 25%。
-        </li>
-        <li>🥂 走到在线玩家身边碰杯，双方各 +15（每人每分钟一次）。</li>
-        <li>
-          🎮 「老板来接招」15 秒：礼物进入光圈时按空格/点击接住，避开大饼。
-        </li>
-        <li>
-          🎁 完成3场有命中的小游戏，发一份年终奖；去好物商店给自己或老板换装。
-        </li>
-        <li>👑 每次成功接住 +10 成长值，达标可晋升，接下来奖金更高。</li>
-        <li>💰 队员技能：收益 +%、项目时长 +秒、失误护盾。最多 3 人。</li>
-        <li>
-          🎉 你的分身被别人招募/挖走，你拿成交价 5%；被挖走的队员原老板拿 90%。
-        </li>
-      </ul>
-      <p className="fine">
-        所有金币为整数，分成向下取整，余数归系统。登录为测试身份，未接入真实
-        SSO。
-      </p>
+      <ol className="guide-steps">
+        {STEPS.map(({ Icon, title, text }, i) => (
+          <li key={title}>
+            <span className="guide-step-icon"><Icon size={22} /></span>
+            <div>
+              <b><i>{i + 1}</i>{title}</b>
+              <p>{text}</p>
+            </div>
+          </li>
+        ))}
+      </ol>
+      <details className="guide-more">
+        <summary><Move size={17} />怎么操作</summary>
+        <ul>
+          <li>电脑：WASD 或方向键走路，点地面自动走；E 互动，P 打开手机，M 看全图。</li>
+          <li>手机：左下摇杆走路，右下按钮互动；拖动画面转镜头。</li>
+          <li>小游戏：礼物进圈时按空格或点「接住」，接到大饼会断连击。</li>
+        </ul>
+      </details>
+      <details className="guide-more">
+        <summary><Coins size={17} />成长与金币</summary>
+        <ul>
+          <li>每次接住 +10 成长值，成长值和有效局数都达标就能晋升，年终奖更高。</li>
+          <li>别人队里的同事也能挖，每被挖一次身价约涨 25%。</li>
+          <li>队员被挖走，原老板拿成交价 90%；你的分身被招募或挖走，你拿 5%。</li>
+          <li>年终好物商店可以给自己或老板换装。</li>
+        </ul>
+      </details>
     </div>
   );
 }
@@ -191,20 +202,23 @@ function Rules() {
 export function Drawers() {
   const drawer = useGame((s) => s.drawer);
   const setDrawer = useGame((s) => s.setDrawer);
+  const dialog = useRef<HTMLElement>(null);
+  const open = drawer === 'messages' || drawer === 'leaderboard' || drawer === 'guide' || drawer === 'market';
+  useDialogFocus(dialog, open, 'button[aria-label="更多菜单"]');
   useEffect(() => {
-    if (!drawer) return;
-    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setDrawer(null);
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      const dialogs = document.querySelectorAll('[role="dialog"][aria-modal="true"]');
+      if (e.key === 'Escape' && dialogs.item(dialogs.length - 1) === dialog.current) {
+        e.preventDefault();
+        e.stopPropagation();
+        setDrawer(null);
+      }
+    };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [drawer, setDrawer]);
-  if (
-    !drawer ||
-    drawer === 'career' ||
-    drawer === 'shop' ||
-    drawer === 'squad' ||
-    drawer === 'friends'
-  )
-    return null;
+  }, [open, setDrawer]);
+  if (!open) return null;
   const title = {
     messages: '消息',
     leaderboard: '排行榜',
@@ -214,6 +228,8 @@ export function Drawers() {
   return (
     <div className="drawer-backdrop" onClick={() => setDrawer(null)}>
       <aside
+        ref={dialog}
+        tabIndex={-1}
         className="panel drawer"
         role="dialog"
         aria-modal="true"
@@ -226,7 +242,6 @@ export function Drawers() {
             className="icon-close"
             onClick={() => setDrawer(null)}
             aria-label="关闭"
-            autoFocus
             data-testid="drawer-close"
           >
             ✕

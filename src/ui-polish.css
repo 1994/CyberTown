@@ -1,0 +1,815 @@
+/* 统一游戏界面层：深蓝面板 · 青色导航 · 品红主按钮 · 金色奖励。最后引入，只做定向覆盖。 */
+:root {
+  --ui-cyan: #66f4ff;
+  --ui-pink: #ff4fc0;
+  --ui-gold: #ffdb81;
+  --ui-text: #edf4ff;
+  --ui-muted: #b4c2dc;
+  --ui-faint: #93a3c4;
+  --ui-card: #ffffff09;
+  --ui-card-line: inset 0 0 0 1px #ffffff14;
+}
+
+/* ───── 弹窗骨架 ───── */
+.v3-modal {
+  border: 0;
+  border-radius: 26px;
+  background: linear-gradient(165deg, #15224a, #0e1631 55%, #120f2c);
+  box-shadow: 0 0 0 1px #66f4ff33, 0 30px 90px #020615cc, inset 0 1px #9ef8ff1a;
+  max-height: calc(100dvh - 32px);
+  overscroll-behavior: contain;
+}
+.v3-modal-head {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  padding: 16px 16px 14px 24px;
+  background: #142046;
+  border-bottom: 1px solid #66f4ff1f;
+}
+.v3-modal-head h2 {
+  margin: 0;
+  font-size: 20px;
+  letter-spacing: 0.5px;
+}
+.v3-modal-head .eyebrow:empty {
+  display: none;
+}
+.v3-modal p,
+.v3-modal small,
+.v3-modal span {
+  text-shadow: none;
+}
+.eyebrow {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+.v3-icon,
+.icon-close {
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+}
+
+/* ───── 按钮状态 ───── */
+.v3-primary.wide,
+.v3-secondary.wide {
+  width: 100%;
+  min-height: 50px;
+  border-radius: 16px;
+  font-size: 15px;
+}
+.v3-secondary,
+.text-btn {
+  min-height: 44px;
+}
+.text-btn {
+  font-size: 13px;
+  color: var(--ui-cyan);
+}
+.v3-primary:active:not(:disabled),
+.btn.primary:active:not(:disabled) {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 #300d43, 0 0 16px #ec4ccc33;
+}
+.v3-primary:disabled,
+.v3-secondary:disabled,
+.btn:disabled {
+  opacity: 0.55;
+  filter: saturate(0.5);
+  cursor: not-allowed;
+}
+.v3-primary:focus-visible,
+.v3-secondary:focus-visible,
+.text-btn:focus-visible,
+.product:focus-visible,
+.segmented button:focus-visible {
+  outline: 2px solid var(--ui-cyan);
+  outline-offset: 3px;
+}
+.form-error {
+  font-size: 13px;
+}
+
+/* ───── 成长 ───── */
+.modal-career {
+  width: min(520px, 100%);
+}
+.career-content {
+  display: grid;
+  gap: 14px;
+  padding: 20px 24px 22px;
+}
+.career-rank {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  border-radius: 18px;
+  background: var(--ui-card);
+  box-shadow: inset 0 0 0 1px #66f4ff26;
+}
+.career-rank .career-emblem {
+  flex: none;
+  width: 56px;
+  height: 56px;
+  margin: 0;
+  border: 0;
+  border-radius: 16px;
+  transform: none;
+  color: #2a1a05;
+  background: linear-gradient(150deg, #fff1c2, #f2b53d);
+  box-shadow: 0 3px 0 #6b4510, 0 0 18px #ffdb8133;
+}
+.career-now,
+.career-to {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+.career-now small,
+.career-to small {
+  font-size: 12px;
+  color: var(--ui-muted);
+}
+.career-now h3 {
+  margin: 0;
+  font-size: 20px;
+  color: #fff;
+}
+.career-now span,
+.career-to span {
+  font-size: 12px;
+  color: var(--ui-gold);
+}
+.career-arrow {
+  flex: none;
+  margin-left: auto;
+  color: var(--ui-cyan);
+}
+.career-to b {
+  font-size: 16px;
+  color: var(--ui-cyan);
+}
+.career-reqs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.career-reqs > div {
+  padding: 12px 14px;
+  border-radius: 16px;
+  background: var(--ui-card);
+  box-shadow: var(--ui-card-line);
+}
+.career-reqs > div.met {
+  box-shadow: inset 0 0 0 1px #66f4ff66;
+}
+.career-reqs header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--ui-muted);
+}
+.career-reqs header b {
+  font-size: 18px;
+  color: #fff;
+  white-space: nowrap;
+}
+.career-reqs header b small {
+  margin-left: 3px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--ui-muted);
+}
+.career-reqs .growth-track {
+  height: 8px;
+  margin: 8px 0 6px;
+  background: #ffffff14;
+}
+.career-reqs .growth-track > i {
+  background: linear-gradient(90deg, var(--ui-cyan), var(--ui-pink));
+}
+.career-reqs > div > small {
+  display: block;
+  font-size: 12px;
+  color: var(--ui-muted);
+}
+.career-reqs > div.met > small {
+  color: var(--ui-cyan);
+}
+.career-max {
+  margin: 0;
+  font-size: 14px;
+  text-align: center;
+  color: var(--ui-muted);
+}
+.modal-career .year-summary {
+  margin: 0;
+  gap: 10px;
+}
+.modal-career .year-summary > div {
+  align-items: flex-start;
+  padding: 12px;
+  background: var(--ui-card);
+  box-shadow: var(--ui-card-line);
+}
+.modal-career .year-summary span {
+  gap: 3px;
+  font-size: 12px;
+  color: var(--ui-muted);
+}
+.modal-career .year-summary b {
+  font-size: 16px;
+}
+.modal-career .year-summary small {
+  font-size: 11px;
+  color: var(--ui-faint);
+}
+.modal-career .last-award {
+  margin: 0;
+  font-size: 13px;
+}
+.modal-career .quiet-note {
+  margin: 0;
+  font-size: 12px;
+  text-align: center;
+}
+.career-locked {
+  color: var(--ui-muted);
+}
+
+/* ───── 商店 ───── */
+.shop-wallet span {
+  font-size: 13px;
+}
+.shop-wallet b {
+  font-size: 20px;
+}
+.segmented button {
+  min-height: 44px;
+  font-size: 13px;
+}
+.segmented button.active {
+  color: var(--ui-cyan);
+  background: #18334b;
+}
+.fitting-label b {
+  color: #fff;
+}
+.fitting-label small {
+  font-size: 12px;
+}
+.modal-shop .product-grid {
+  gap: 10px;
+}
+.modal-shop .product {
+  position: relative;
+  gap: 7px;
+  padding: 12px 8px;
+  border: 0;
+  background: var(--ui-card);
+  box-shadow: var(--ui-card-line);
+  color: var(--ui-text);
+}
+.modal-shop .product-visual {
+  width: 64px;
+  height: 64px;
+  border-radius: 18px;
+  color: var(--item-color);
+  background: radial-gradient(circle at 32% 26%, #ffffff2e, transparent 60%), color-mix(in srgb, var(--item-color) 24%, #0d1530);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--item-color) 55%, transparent), 0 6px 16px #02061566;
+}
+.modal-shop .product-visual > i {
+  top: -5px;
+  right: -5px;
+  width: 20px;
+  height: 20px;
+  border: 0;
+  background: var(--ui-cyan);
+  color: #081225;
+}
+.modal-shop .product > b {
+  font-size: 13px;
+  line-height: 1.3;
+  color: #fff;
+  white-space: normal;
+}
+.modal-shop .product > small {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--ui-gold);
+}
+.modal-shop .product.owned > small {
+  color: var(--ui-muted);
+}
+.modal-shop .product.wearing > small {
+  color: var(--ui-cyan);
+}
+.modal-shop .product.poor > small {
+  color: #ff9cc0;
+}
+.modal-shop .product.poor .product-visual {
+  filter: saturate(0.55) brightness(0.85);
+}
+.modal-shop .product.selected {
+  background: #66f4ff12;
+  box-shadow: inset 0 0 0 2px var(--ui-cyan), 0 0 18px #66f4ff26;
+}
+.modal-shop .product-action {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  margin-top: 14px;
+  padding: 14px 0 4px;
+  border-top: 1px solid #66f4ff1f;
+  background: linear-gradient(180deg, #0f1733f0, #0f1733 24%);
+}
+.modal-shop .product-action b {
+  font-size: 16px;
+  color: #fff;
+}
+.modal-shop .product-action p {
+  margin: 4px 0 12px;
+  font-size: 13px;
+  color: var(--ui-muted);
+}
+.shop-earn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+/* ───── 小队 / 搭子 ───── */
+.squad-member b {
+  font-size: 15px;
+}
+.squad-member small {
+  font-size: 12px;
+  color: var(--ui-muted);
+}
+.squad-member em {
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 700;
+  color: var(--ui-gold);
+}
+.squad-tip,
+.friends-intro p {
+  font-size: 13px;
+  color: var(--ui-muted);
+}
+.friend-row b {
+  font-size: 15px;
+}
+.friend-row small {
+  font-size: 12px;
+}
+.friends-empty {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  margin: 12px 0;
+  padding: 22px 16px;
+  border-radius: 18px;
+  text-align: center;
+  background: var(--ui-card);
+  box-shadow: var(--ui-card-line);
+}
+.friends-empty b {
+  font-size: 15px;
+  color: #fff;
+}
+.friends-empty span {
+  font-size: 13px;
+  color: var(--ui-muted);
+}
+.friends-empty .v3-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 4px;
+  padding: 0 16px;
+}
+
+/* ───── 小游戏 ───── */
+.arcade-brief-copy .eyebrow {
+  color: var(--ui-cyan);
+}
+.arcade-rules {
+  display: grid;
+  gap: 8px;
+  margin: 10px 0 14px;
+  padding: 0;
+  list-style: none;
+}
+.arcade-rules li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 12px;
+  border-radius: 12px;
+  font-size: 14px;
+  color: var(--ui-text);
+  background: var(--ui-card);
+  box-shadow: var(--ui-card-line);
+}
+.arcade-rules .good svg {
+  color: var(--ui-gold);
+}
+.arcade-rules .bad {
+  color: #ffc2d8;
+  box-shadow: inset 0 0 0 1px #ff5b8a55;
+}
+.arcade-rules .bad svg {
+  color: #ff5b8a;
+}
+.arcade-rewards span {
+  font-size: 13px;
+}
+.arcade-skill-note,
+.arcade-brief .quiet-note {
+  font-size: 12px;
+  color: var(--ui-muted);
+}
+.arcade-brief-copy .v3-primary.wide,
+.arcade-result .v3-primary.wide {
+  width: 100%;
+  min-height: 52px;
+}
+.arcade-heading strong {
+  font-size: 24px;
+  color: var(--ui-cyan);
+  font-variant-numeric: tabular-nums;
+}
+.arcade-heading b small {
+  font-size: 12px;
+}
+.arcade-score-row > span {
+  font-size: 13px;
+}
+.arcade-score-row .pg-score {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--ui-gold);
+}
+.arcade-score-row .pg-combo.hot b {
+  color: var(--ui-pink);
+}
+.arcade-act-row > span {
+  font-size: 13px;
+  color: #ffc2d8;
+}
+/* 礼物与大饼：颜色、表面、形状三重区分（不碰 transform，位置由 animateBelt 写入） */
+.arcade-board .belt-item {
+  color: var(--c, var(--ui-gold));
+  background: radial-gradient(circle at 35% 25%, #ffffff26, transparent 60%), color-mix(in srgb, var(--c, #ffdb81) 22%, #13203d);
+  border: 2px solid color-mix(in srgb, var(--c, #ffdb81) 70%, transparent);
+  border-radius: 18px;
+}
+.arcade-board .belt-item > small {
+  color: #fff;
+  font-weight: 700;
+}
+.arcade-board .belt-item.trap {
+  color: #ff8fb1;
+  background: repeating-linear-gradient(135deg, #4a1838 0 7px, #3a1230 7px 14px);
+  border: 2px dashed #ff5b8a;
+  border-radius: 50%;
+}
+.arcade-board .belt-item.trap > small {
+  color: #ffc2d8;
+}
+.arcade-result .pg-stats span {
+  padding: 6px 10px;
+  border-radius: 99px;
+  font-size: 13px;
+  background: #ffffff0d;
+}
+.arcade-result .result-year,
+.arcade-result .fine {
+  font-size: 13px;
+}
+.arcade-error,
+.arcade-loading {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  text-align: center;
+  font-size: 15px;
+}
+.arcade-error b {
+  font-size: 18px;
+  color: #fff;
+}
+.arcade-error p {
+  margin: 0;
+  font-size: 14px;
+  color: var(--ui-muted);
+}
+
+/* ───── 确认框 / 抽屉 / 菜单 / 提示 ───── */
+.modal.confirm h3,
+.drawer h3 {
+  font-size: 19px;
+}
+.modal-actions button {
+  min-height: 48px;
+  font-size: 15px;
+}
+.roster .btn {
+  min-height: 44px;
+  flex-shrink: 0;
+  font-size: 13px;
+}
+.split-details summary {
+  min-height: 44px;
+  align-content: center;
+}
+.menu-pop button {
+  min-height: 44px;
+  font-size: 13px;
+}
+.v3-hud .toast {
+  font-size: 13px;
+  padding: 10px 14px;
+  border-radius: 14px;
+  text-shadow: none;
+}
+.v3-hud .game-dock > button:not(.dock-play) {
+  font-size: 11px;
+}
+
+/* ───── 手机竖屏 ───── */
+@media (max-width: 700px) {
+  .v3-backdrop {
+    padding: max(10px, env(safe-area-inset-top)) 10px max(10px, env(safe-area-inset-bottom));
+  }
+  .v3-modal {
+    max-height: calc(100dvh - 20px);
+  }
+  .v3-modal-head {
+    padding: 12px 12px 12px 18px;
+  }
+  .career-content {
+    padding: 16px 16px 18px;
+  }
+  .modal-shop .fitting-room {
+    min-height: 0;
+    display: grid;
+    grid-template-columns: 128px 1fr;
+    grid-template-areas: 'seg seg' 'model label';
+    align-items: center;
+    gap: 6px 12px;
+    padding: 12px 16px;
+  }
+  .modal-shop .segmented {
+    grid-area: seg;
+    justify-self: center;
+  }
+  .modal-shop .fitting-model {
+    grid-area: model;
+    height: 150px;
+    margin: 0;
+  }
+  .modal-shop .fitting-label {
+    grid-area: label;
+    text-align: left;
+  }
+  .modal-shop .shop-products {
+    padding: 14px 16px 12px;
+  }
+  .modal-shop .product-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .modal-shop .product {
+    grid-template-columns: 52px minmax(0, 1fr);
+    grid-template-areas: 'v b' 'v s';
+    justify-items: start;
+    align-items: center;
+    text-align: left;
+    gap: 2px 10px;
+    padding: 10px;
+  }
+  .modal-shop .product-visual {
+    grid-area: v;
+    width: 52px;
+    height: 52px;
+    border-radius: 15px;
+  }
+  .modal-shop .product-visual > svg {
+    width: 30px;
+    height: 30px;
+  }
+  .modal-shop .product > b {
+    grid-area: b;
+  }
+  .modal-shop .product > small {
+    grid-area: s;
+  }
+}
+@media (max-width: 380px) {
+  .career-reqs {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ───── 矮横屏：两栏，首屏就能看到进度与按钮 ───── */
+@media (max-height: 520px) and (orientation: landscape) {
+  .v3-backdrop {
+    padding: 8px calc(env(safe-area-inset-right) + 10px) 8px calc(env(safe-area-inset-left) + 10px);
+  }
+  .v3-modal {
+    max-height: calc(100dvh - 16px);
+  }
+  .v3-modal-head {
+    padding: 6px 10px 6px 18px;
+  }
+  .v3-modal-head h2 {
+    font-size: 17px;
+  }
+  .modal-career {
+    width: min(780px, 100%);
+  }
+  .career-content {
+    grid-template-columns: 1fr 1fr;
+    grid-auto-flow: row dense;
+    align-items: start;
+    gap: 10px 14px;
+    padding: 12px 18px 14px;
+  }
+  .career-rank,
+  .career-reqs,
+  .career-max {
+    grid-column: 1;
+  }
+  .career-content > :not(.career-rank):not(.career-reqs):not(.career-max) {
+    grid-column: 2;
+  }
+  .career-rank {
+    padding: 10px 12px;
+  }
+  .career-rank .career-emblem {
+    width: 44px;
+    height: 44px;
+  }
+  .modal-career .year-summary > div {
+    padding: 9px 10px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .v3-primary:active:not(:disabled),
+  .btn.primary:active:not(:disabled) {
+    transform: none;
+  }
+}
+
+/* ───── 玩法说明：三步 + 可展开细节 ───── */
+.guide-steps {
+  display: grid;
+  gap: 10px;
+  margin: 0 0 14px;
+  padding: 0;
+  list-style: none;
+}
+.guide-steps li {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  background: var(--ui-card);
+  box-shadow: var(--ui-card-line);
+}
+.guide-step-icon {
+  flex: none;
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  color: #2a1a05;
+  background: linear-gradient(150deg, #fff1c2, #f2b53d);
+}
+.guide-steps li:nth-child(2) .guide-step-icon {
+  color: #fff;
+  background: linear-gradient(130deg, #ff4fc0, #8a2cff);
+}
+.guide-steps li:nth-child(3) .guide-step-icon {
+  color: #06222a;
+  background: linear-gradient(150deg, #9ef8ff, #2ab7d6);
+}
+.guide-steps b {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 15px;
+  color: #fff;
+}
+.guide-steps b i {
+  font-style: normal;
+  font-size: 12px;
+  color: var(--ui-cyan);
+}
+.guide-steps p {
+  margin: 4px 0 0;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--ui-muted);
+}
+.guide-more {
+  margin-top: 8px;
+  border-radius: 14px;
+  background: var(--ui-card);
+  box-shadow: var(--ui-card-line);
+}
+.guide-more summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 14px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--ui-cyan);
+  cursor: pointer;
+  list-style: none;
+}
+.guide-more summary::-webkit-details-marker {
+  display: none;
+}
+.guide-more summary::after {
+  content: '+';
+  margin-left: auto;
+  font-size: 18px;
+}
+.guide-more[open] summary::after {
+  content: '−';
+}
+.guide-more summary:focus-visible {
+  outline: 2px solid var(--ui-cyan);
+  outline-offset: 2px;
+  border-radius: 14px;
+}
+.guide-more ul {
+  margin: 0;
+  padding: 0 14px 12px 30px;
+  display: grid;
+  gap: 6px;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--ui-muted);
+}
+
+/* ───── 确认框按钮 / 音效设置 ───── */
+.modal.confirm .modal-actions .btn {
+  min-height: 48px;
+  font-size: 15px;
+}
+.menu-pop .sound-settings button,
+.sound-volume,
+.sound-settings > small {
+  font-size: 12px;
+}
+
+/* 横屏结算：奖励与标题同时可见，自动聚焦按钮不会把标题滚出屏幕。 */
+@media (max-height: 520px) and (orientation: landscape) {
+  .arcade-result {
+    width: min(700px, 100%);
+    max-width: 700px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-content: center;
+    justify-items: center;
+    gap: 6px 18px;
+    padding: 16px 24px;
+  }
+  .arcade-result > .eyebrow { grid-column: 1; grid-row: 1; }
+  .arcade-result > .result-emblem {
+    grid-column: 1;
+    grid-row: 2 / span 3;
+    width: 74px;
+    height: 74px;
+    margin: 0;
+    align-self: center;
+  }
+  .arcade-result > h3 { grid-column: 2; grid-row: 1; margin: 0; font-size: 18px; line-height: 1.35; }
+  .arcade-result > .result-total { grid-column: 2; grid-row: 2; margin: 0; line-height: 1; }
+  .arcade-result .result-total b { font-size: 40px; line-height: 1.05; }
+  .arcade-result > .growth-earned { grid-column: 2; grid-row: 3; padding: 4px 12px; }
+  .arcade-result > .pg-stats { grid-column: 2; grid-row: 4; margin: 0; flex-wrap: wrap; gap: 6px; }
+  .arcade-result .pg-stats span { padding: 4px 8px; }
+  .arcade-result > .result-year,
+  .arcade-result > .annual-mini,
+  .arcade-result > .fine,
+  .arcade-result > button { grid-column: 1 / -1; margin: 0; }
+}

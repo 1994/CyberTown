@@ -446,13 +446,12 @@ function ProjectPanel({ onClose }: { onClose: () => void }) {
             <Portrait look={bossLook} wave />
           </div>
           <div className="arcade-brief-copy">
-            <span className="eyebrow">A LITTLE GAME, A HAPPY DAY</span>
+            <span className="eyebrow">{projectDuration(sk) / 1000} 秒小游戏</span>
             <h3>老板，来接招！</h3>
-            <p>
-              礼物进圈就接住，
-              <br />
-              大饼来了别伸手。
-            </p>
+            <ul className="arcade-rules">
+              <li className="good"><Gift size={16} />礼物进圈，点一下接住</li>
+              <li className="bad"><Donut size={16} />大饼别接，会断连击</li>
+            </ul>
             <div className="arcade-rewards">
               <span>
                 <Timer size={15} />
@@ -460,16 +459,15 @@ function ProjectPanel({ onClose }: { onClose: () => void }) {
               </span>
               <span>
                 <Coins size={15} />
-                金币
+                赢金币
               </span>
               <span>
                 <Crown size={15} />
-                成长值
+                涨成长值
               </span>
             </div>
             <div className="arcade-skill-note">
-              {team.length ? `${boss.name}为你助阵` : '一个人也能开心玩'} ·
-              队伍与职级收益 +{sk.incomePct}%
+              {team.length ? `${boss.name}助阵` : '单人出战'} · 收益加成 +{sk.incomePct}%
             </div>
             <button
               className="v3-primary wide"
@@ -482,13 +480,13 @@ function ProjectPanel({ onClose }: { onClose: () => void }) {
               <kbd>空格</kbd>
             </button>
             <small className="quiet-note">
-              有命中的3局小游戏，解锁一份年终奖
+              每年 {snap.year.required} 局有命中，发一次年终奖
             </small>
           </div>
         </div>
       )}
       {stage === 'starting' && (
-        <div className="panel pg-card center">老板正在热身…</div>
+        <div className="panel pg-card center arcade-loading" role="status">老板正在热身…</div>
       )}
       {(stage === 'playing' || stage === 'settling') && run && (
         <div className="panel pg-board arcade-board">
@@ -568,7 +566,7 @@ function ProjectPanel({ onClose }: { onClose: () => void }) {
           className="panel pg-card result arcade-result"
           data-testid="project-result"
         >
-          <span className="eyebrow">NICE CATCH, NICE DAY</span>
+          <span className="eyebrow">本局结算</span>
           <div className="result-emblem">
             <Gift size={40} strokeWidth={1.4} />
           </div>
@@ -600,7 +598,7 @@ function ProjectPanel({ onClose }: { onClose: () => void }) {
           ) : (
             <div className="result-year">
               {result.hits
-                ? `本年已玩 ${snap.year.completed}/3 场，离年终奖又近一步`
+                ? `本年已玩 ${snap.year.completed}/${snap.year.required} 场，离年终奖又近一步`
                 : '接住至少一件礼物，才计入年终进度'}
             </div>
           )}
@@ -620,7 +618,8 @@ function ProjectPanel({ onClose }: { onClose: () => void }) {
         </div>
       )}
       {stage === 'error' && (
-        <div className="panel pg-card" role="alert">
+        <div className="panel pg-card arcade-error" role="alert">
+          <b>这一局没连上</b>
           <p>{error}</p>
           <button className="v3-primary" onClick={onClose}>
             回到园区

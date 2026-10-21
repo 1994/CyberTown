@@ -1,0 +1,15 @@
+{
+  "fps": 60,
+  "medianMs": 16.6,
+  "p95Ms": 18.8,
+  "cpuMs": 3.2,
+  "p95CpuMs": 4,
+  "shadowUpdates": 451,
+  "lightSelections": 172,
+  "calls": 485,
+  "triangles": 230762,
+  "geometries": 714,
+  "textures": 85,
+  "dpr": 1,
+  "frames": 300
+}
