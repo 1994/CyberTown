@@ -1,0 +1,176 @@
+/* 霓虹赌摊 HUD：深蓝底 + 青/品红霓虹边 + 金色金额；舞台中上部留给桌面与高空硬币。 */
+.table-game{--ink:#060b18;--navy:#0b1630;--panel:#0c1a33e6;--cyan:#4ff3e8;--pink:#ff4fb0;--gold:#ffd45c;--gold2:#ffb02e;--text:#e6f2ff;--dim:#8ea6c4;
+ position:fixed;inset:0;z-index:100;display:flex;flex-direction:column;isolation:isolate;background:var(--ink);color:var(--text);
+ font-family:"PingFang SC","Microsoft YaHei",system-ui,sans-serif;-webkit-tap-highlight-color:transparent}
+.table-game button{font:inherit;color:inherit;border:0;background:#13254a;cursor:pointer;min-height:40px;padding:7px 14px;
+ box-shadow:inset 0 0 0 1px #2c4a7a;clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,8px 100%,0 calc(100% - 8px));
+ transition:background .15s,box-shadow .15s,transform .12s,filter .15s}
+.table-game button:not(:disabled):hover{box-shadow:inset 0 0 0 1px var(--cyan);background:#16305a}
+.table-game button:not(:disabled):active{transform:translateY(1px)}
+.table-game button:disabled{opacity:.38;cursor:default}
+.table-game button:focus-visible,.table-viewport:focus-visible{outline:2px solid var(--gold);outline-offset:-2px}
+
+/* 顶栏 */
+.table-header{position:relative;z-index:4;display:flex;align-items:center;gap:12px;padding:10px 18px;background:linear-gradient(180deg,#0a1630,#08122a)}
+.table-header:after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:2px;background:linear-gradient(90deg,transparent,var(--cyan) 20%,var(--pink) 80%,transparent);opacity:.75;box-shadow:0 0 12px #4ff3e866}
+.table-back{width:40px;padding:0!important;display:grid;place-items:center}
+.table-wordmark{display:grid;gap:1px;line-height:1.1}
+.table-wordmark small{font-size:9px;letter-spacing:.32em;color:var(--cyan)}
+.table-wordmark b{font-family:CyberTownDisplay,sans-serif;font-size:20px;letter-spacing:.12em;color:#fff;text-shadow:0 0 14px #ff4fb066}
+.table-tabs{display:flex;gap:2px;margin-left:14px;padding:3px;background:#060e22;clip-path:polygon(0 0,calc(100% - 10px) 0,100% 10px,100% 100%,10px 100%,0 calc(100% - 10px))}
+.table-tabs button{display:flex;align-items:center;gap:7px;min-height:36px;padding:6px 14px;background:transparent;box-shadow:none;color:var(--dim);font-weight:700;font-size:14px}
+.table-tabs button i{font-style:normal;font-size:13px;color:#5d7aa6}
+.table-game .table-tabs button[aria-pressed=true]{color:#06101f;background:linear-gradient(90deg,var(--cyan),#9dfaf2);box-shadow:0 0 16px #4ff3e855;opacity:1}
+.table-game .table-tabs button[aria-pressed=true] i{color:#06101f}
+.table-wallet{margin-left:auto;display:flex;align-items:center;gap:8px;padding:3px 3px 3px 10px;background:#060e22;box-shadow:inset 0 0 0 1px #ffd45c40;
+ clip-path:polygon(0 0,calc(100% - 10px) 0,100% 10px,100% 100%,10px 100%,0 calc(100% - 10px))}
+.table-coin-ico{display:grid;place-items:center;width:24px;height:24px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff2b0,var(--gold) 45%,var(--gold2));color:#6a4300;box-shadow:0 0 10px #ffd45c88}
+.table-wallet b{min-width:58px;font-size:21px;font-weight:800;color:var(--gold);font-variant-numeric:tabular-nums;text-shadow:0 0 12px #ffd45c55}
+.table-game .table-claim{min-height:34px;padding:4px 10px;font-size:13px;font-weight:800;color:var(--cyan);background:#0f2a3e;box-shadow:inset 0 0 0 1px #4ff3e866}
+.table-header .sound-menu{z-index:20}
+
+/* 舞台：中上部不放任何 UI，给桌面与高空硬币留空 */
+.table-stage{position:relative;flex:1;min-height:0;overflow:hidden}
+.table-stage:after{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse 80% 70% at 50% 45%,transparent 60%,#060b18b0)}
+.table-viewport{width:100%;height:100%;touch-action:manipulation}
+.table-viewport canvas{display:block;width:100%;height:100%}
+.table-stage-heading{position:absolute;z-index:1;left:20px;top:16px;pointer-events:none}
+.table-stage-heading span{font:600 9px/1 ui-monospace,Menlo,monospace;letter-spacing:.3em;color:var(--pink)}
+.table-stage-heading h1{margin:6px 0 0;font-size:15px;font-weight:700;letter-spacing:.12em;color:#cfe0f5;opacity:.85}
+.table-phase{position:absolute;z-index:1;left:50%;bottom:14px;transform:translateX(-50%);display:flex;align-items:center;gap:9px;padding:8px 18px;white-space:nowrap;pointer-events:none;
+ font-size:14px;font-weight:700;letter-spacing:.08em;color:var(--text);background:#081429d9;box-shadow:inset 0 0 0 1px #4ff3e855;
+ clip-path:polygon(10px 0,calc(100% - 10px) 0,100% 50%,calc(100% - 10px) 100%,10px 100%,0 50%)}
+.table-phase i{width:7px;height:7px;border-radius:50%;background:var(--cyan);box-shadow:0 0 8px var(--cyan)}
+.table-phase.is-call{color:#1a1200;background:linear-gradient(90deg,var(--gold),#ffe58f);box-shadow:0 0 24px #ffd45c88;animation:table-call 1.1s ease-in-out infinite}
+.table-phase.is-call i{background:#1a1200;box-shadow:none}
+.table-key-hint{position:absolute;z-index:1;right:16px;bottom:18px;font-size:10px;color:var(--dim);pointer-events:none}
+
+/* 控制台 */
+.table-console{position:relative;flex:none;z-index:3;display:grid;gap:8px;padding:14px max(20px,calc((100vw - 980px)/2)) 10px;background:linear-gradient(180deg,#0c1a36,#070f22)}
+.table-console:before{content:"";position:absolute;left:0;right:0;top:0;height:2px;background:linear-gradient(90deg,var(--cyan),transparent 35%,transparent 65%,var(--pink));opacity:.7}
+.table-bet{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:14px 28px;align-items:center}
+.table-stake{display:grid;gap:8px}
+.table-stake-read{display:flex;align-items:baseline;gap:8px;white-space:nowrap}
+.table-stake-read small{font-size:12px;color:var(--dim);letter-spacing:.1em}
+.table-stake-read b{font-size:28px;font-weight:900;line-height:1;color:var(--text);font-variant-numeric:tabular-nums}
+.table-stake-read b.pay{color:var(--gold);text-shadow:0 0 14px #ffd45c66}
+.table-arrow{margin:0 6px;color:var(--pink);font-weight:900}
+.table-stake input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:24px;margin:0;background:transparent;cursor:pointer}
+.table-stake input[type=range]::-webkit-slider-runnable-track{height:6px;background:linear-gradient(90deg,var(--cyan) 0,var(--gold) var(--fill,0%),#1b2d50 var(--fill,0%))}
+.table-stake input[type=range]::-moz-range-track{height:6px;background:linear-gradient(90deg,var(--cyan) 0,var(--gold) var(--fill,0%),#1b2d50 var(--fill,0%))}
+.table-stake input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;margin-top:-8px;border-radius:50%;border:3px solid #fff3c4;background:var(--gold);box-shadow:0 0 12px #ffd45caa}
+.table-stake input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;border:3px solid #fff3c4;background:var(--gold);box-shadow:0 0 12px #ffd45caa}
+.table-stake input:disabled{opacity:.4}
+.table-presets{display:flex;gap:10px}
+/* 筹码：圆形 + 虚线边，颜色区分档位 */
+.table-game .chip{--c:var(--cyan);width:46px;height:46px;min-height:0;padding:0;border-radius:50%;clip-path:none;font-size:13px;font-weight:900;color:#fff;
+ background:radial-gradient(circle,#0b1630 52%,transparent 53%),repeating-conic-gradient(var(--c) 0 20deg,#0b1630 20deg 30deg);box-shadow:0 0 0 2px var(--c),0 4px 0 #02060f}
+.table-game .chip.c100{--c:var(--pink)}.table-game .chip.c500{--c:var(--gold)}.table-game .chip.cmax{--c:#8f7bff;font-size:11px}
+.table-game .chip:not(:disabled):hover{box-shadow:0 0 0 2px var(--c),0 0 16px var(--c),0 4px 0 #02060f;transform:translateY(-2px)}
+.table-game .chip[aria-pressed=true]{box-shadow:0 0 0 2px #fff,0 0 18px var(--c),0 4px 0 #02060f;transform:translateY(-3px)}
+.table-actions{display:flex;gap:12px;align-items:stretch}
+.table-faces{display:flex;gap:8px}
+.table-faces button{display:grid;place-items:center;gap:0;min-width:64px;padding:6px 10px;font-size:12px;font-weight:700;color:var(--dim)}
+.table-faces i{font-style:normal;font-size:22px;line-height:1.1}
+.table-game .table-faces button[aria-pressed=true]{color:var(--gold);background:#2a2410;box-shadow:inset 0 0 0 2px var(--gold),0 0 16px #ffd45c44}
+.table-game .table-primary{flex:1;min-width:200px;min-height:60px;padding:8px 22px;white-space:nowrap;font-size:18px;font-weight:900;letter-spacing:.1em;color:#1a1000;
+ background:linear-gradient(180deg,#ffe78f,var(--gold) 55%,var(--gold2));box-shadow:0 0 22px #ffd45c55;
+ clip-path:polygon(0 0,calc(100% - 14px) 0,100% 14px,100% 100%,14px 100%,0 calc(100% - 14px))}
+.table-game .table-primary:not(:disabled):hover{filter:brightness(1.08);background:linear-gradient(180deg,#fff0b0,var(--gold) 55%,var(--gold2));box-shadow:0 0 30px #ffd45c88}
+
+/* 进行中 */
+.table-playing{display:flex;align-items:center;justify-content:space-between;gap:18px;min-height:76px}
+.table-locked{display:grid;gap:4px}
+.table-locked small{font-size:11px;letter-spacing:.14em;color:var(--dim)}
+.table-locked small:before{content:"● ";color:var(--pink)}
+.table-locked b{font-size:28px;font-weight:900;color:var(--gold);font-variant-numeric:tabular-nums}
+.table-locked b span{margin-left:10px;font-size:13px;font-weight:600;color:#c4d6ec}
+.table-playing p{margin:0;font-size:14px;color:var(--dim)}
+.table-playing p.is-call{color:var(--gold);font-weight:800;animation:table-blink 1.1s ease-in-out infinite}
+.table-slot-buttons{display:flex;gap:10px}
+.table-slot-buttons button{min-width:76px;min-height:56px;font-size:18px;font-weight:900;color:var(--cyan)}
+.table-slot-buttons button:not(:disabled){box-shadow:inset 0 0 0 2px var(--cyan),0 0 14px #4ff3e844}
+.table-playing progress{width:140px;height:8px;-webkit-appearance:none;appearance:none;border:0;background:#1b2d50;accent-color:var(--gold)}
+.table-playing progress::-webkit-progress-bar{background:#1b2d50}
+.table-playing progress::-webkit-progress-value{background:linear-gradient(90deg,var(--cyan),var(--gold))}
+.table-playing progress::-moz-progress-bar{background:linear-gradient(90deg,var(--cyan),var(--gold))}
+
+/* 结算：赢 = 金光爆开；输 = 品红收敛 */
+.table-console.is-win{background:radial-gradient(ellipse 50% 140% at 18% 100%,#ffd45c33,transparent 70%),linear-gradient(180deg,#0c1a36,#070f22)}
+.table-console.is-lose{background:radial-gradient(ellipse 50% 140% at 18% 100%,#ff4fb022,transparent 70%),linear-gradient(180deg,#0c1a36,#070f22)}
+.table-result{display:flex;align-items:center;gap:28px;animation:table-rise .45s cubic-bezier(.2,.8,.2,1) both}
+.table-result-head{display:grid;gap:2px;min-width:170px}
+.table-result small{font-size:13px;font-weight:700;letter-spacing:.08em;color:#d6e4f5}
+.table-result strong{display:flex;align-items:baseline;gap:10px;font-size:46px;font-weight:900;line-height:1.05;font-variant-numeric:tabular-nums}
+.table-result strong.win{color:var(--gold);text-shadow:0 0 18px #ffd45caa,0 0 40px #ffb02e66;animation:table-pop .6s cubic-bezier(.2,1.6,.4,1) both}
+.table-result strong.lose{color:var(--pink);text-shadow:0 0 14px #ff4fb066}
+.table-result em{font-size:11px;font-style:normal;font-weight:600;letter-spacing:.1em;color:var(--dim);text-shadow:none}
+.table-result dl{flex:1;display:grid;grid-template-columns:repeat(4,1fr);margin:0;background:#060e22b3;box-shadow:inset 0 0 0 1px #2c4a7a66}
+.table-result dl>div{padding:8px 12px;border-left:1px solid #2c4a7a55}
+.table-result dl>div:first-child{border-left:0}
+.table-result dt{font-size:10px;letter-spacing:.1em;color:var(--dim)}
+.table-result dd{margin:4px 0 0;font-size:18px;font-weight:700;font-variant-numeric:tabular-nums}
+.table-result .total dd{color:var(--gold)}
+.table-result .table-primary{flex:0 0 160px;min-width:0}
+.table-error{margin:0;font-size:12px;color:#ff9dcf}
+.table-disclaimer{text-align:center;font-size:10px;letter-spacing:.08em;color:#5c7396}
+
+@keyframes table-call{50%{box-shadow:0 0 36px #ffd45ccc}}
+@keyframes table-blink{50%{opacity:.55}}
+@keyframes table-rise{from{opacity:0;transform:translateY(10px)}}
+@keyframes table-pop{0%{transform:scale(.6);opacity:0}100%{transform:none;opacity:1}}
+
+/* 手机 390×640：顶栏单行、控制台紧凑、点击目标 ≥40px */
+@media(max-width:700px){
+ .table-header{gap:6px;padding:7px 8px}
+ .table-wordmark{display:none}
+ .table-back{width:38px;min-height:38px!important}
+ .table-tabs{margin:0;padding:2px}
+ .table-tabs button{min-height:36px;padding:4px 8px;font-size:12px;gap:4px}
+ .table-tabs button i{display:none}
+ .table-wallet{gap:5px;padding:2px 2px 2px 6px}
+ .table-coin-ico{width:18px;height:18px}.table-coin-ico svg{width:11px;height:11px}
+ .table-wallet b{min-width:0;font-size:15px}
+ .table-game .table-claim{min-height:34px;padding:2px 7px;font-size:11px}
+ .table-header .sound-menu-btn{min-height:38px;padding:5px}
+ .table-stage-heading{left:10px;top:8px}.table-stage-heading h1{display:none}
+ .table-phase{bottom:8px;font-size:12px;padding:6px 14px}
+ .table-key-hint{display:none}
+ .table-console{gap:6px;padding:10px 12px max(8px,env(safe-area-inset-bottom))}
+ .table-bet{grid-template-columns:1fr;gap:8px}
+ .table-stake{gap:4px}
+ .table-stake-read b{font-size:22px}
+ .table-presets{justify-content:space-between;gap:6px}
+ .table-game .chip{width:42px;height:42px;font-size:12px}
+ .table-actions{gap:8px}
+ .table-faces button{min-width:52px;padding:4px 6px}
+ .table-faces i{font-size:18px}
+ .table-game .table-primary{min-width:0;min-height:50px;font-size:16px;padding:6px 12px}
+ .table-playing{flex-wrap:wrap;gap:8px;min-height:0}
+ .table-locked b{font-size:22px}
+ .table-slot-buttons{flex:1;justify-content:flex-end;gap:6px}
+ .table-slot-buttons button{min-width:0;flex:1;max-width:84px;min-height:50px}
+ .table-playing progress{width:100%}
+ .table-result{flex-wrap:wrap;gap:8px}
+ .table-result-head{min-width:0}
+ .table-result strong{font-size:34px}
+ .table-result dl{flex-basis:100%;grid-template-columns:repeat(4,1fr)}
+ .table-result dl>div{padding:6px 7px}
+ .table-result dd{font-size:14px}
+ .table-result .table-primary{flex:1 1 100%;min-height:46px}
+ .table-disclaimer{font-size:9px}
+}
+@media(max-height:550px) and (orientation:landscape){
+ .table-header{padding:4px 12px}
+ .table-console{padding:6px 20px;gap:4px}
+ .table-stake-read b,.table-locked b{font-size:20px}
+ .table-game .chip{width:38px;height:38px}
+ .table-game .table-primary{min-height:44px}
+ .table-result strong{font-size:28px}
+ .table-disclaimer,.table-stage-heading{display:none}
+}
+@media(prefers-reduced-motion:reduce){
+ .table-phase.is-call,.table-playing p.is-call,.table-result,.table-result strong.win{animation:none}
+}
+
+.table-stake-read em{margin-left:auto;color:#95b0c5;font:normal 10px system-ui;white-space:nowrap}@media(max-width:700px){.table-stake-read em{font-size:9px}}

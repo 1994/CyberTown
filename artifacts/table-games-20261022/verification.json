@@ -1,0 +1,33 @@
+{
+  "entry": "小镇游玩区域 → 小游戏大厅 → 幸运翻币 / 三杯幻影",
+  "directUrlEntry": false,
+  "claude": {
+    "reusedTerminal": "term_b0d1ac53-18b3-4fcb-af14-b0a7bbca65ed",
+    "scope": [
+      "src/minigames/table.css",
+      "src/minigames/TableGames.tsx presentation"
+    ],
+    "focusedPasses": 1
+  },
+  "checks": {
+    "typecheck": "passed",
+    "frontendRegression": "npm run test:web passed",
+    "rules": "100 randomized 18-swap rounds; exact debit/2x payout; duplicate credit; support geometry; 20-coin flight clearance passed",
+    "productionBuild": "passed",
+    "compressedAssets": "all gzip contents match finalized assets",
+    "desktop": "1280x720 UI playback",
+    "mobile": "390x640 iframe viewport; not physical phone hardware",
+    "hammer": "coin and blank clicks do not activate; actual hammer and focused Enter activate",
+    "refresh": "pending hammer retains deducted balance; settled win stays 2600 on refresh",
+    "maxReturn": "actual 20-coin win: opening1600 - stake1000 + return2000 = closing2600, profit1000",
+    "cleanup": "new round clears all 20 caught coins; screenshot final-cleaned.png",
+    "shell": "continuous fast swap; choices disabled until pick; direct cup and position-button reveal; wrong core shown",
+    "townWallet": "remains2000 after demo play"
+  },
+  "evidence": [
+    "return-final-24-payout.png",
+    "return-final-33-result.png",
+    "final-cleaned.png",
+    "mobile-before.png"
+  ]
+}
