@@ -7,6 +7,7 @@ import { Character, type Rig } from './Character.tsx';
 import { StaticBatch } from './StaticBatch.tsx';
 import { Label3D } from '../tea/Label3D.tsx';
 import { rt } from '../world/runtime.ts';
+import { TRAFFIC_ROUTES, trafficPose, trafficLoopLength, type TrafficRoute } from '../../shared/townTraffic.ts';
 import { std, glow } from './materials.ts';
 
 function Vehicle({x,z,color,van}: typeof TOWN_VEHICLES[number]) {
@@ -41,6 +42,43 @@ function Resident({index}:{index:number}) {
   });
   return <group ref={root} position={[route.a,0,route.z]}><Character ref={rig} look={look} scale={1.05}/><group ref={tag}><Label3D text="NPC" tone="off" position={[0,2.05,0]} height={.28}/></group></group>;
 }
+function TrafficCar({route,index,positions}:{route:TrafficRoute;index:number;positions:number[]}) {
+  const root=useRef<THREE.Group>(null);
+  const distance=useRef(positions[index]);
+  const reduced=useMemo(()=>matchMedia('(prefers-reduced-motion: reduce)').matches,[]);
+  const initial=trafficPose(route,distance.current);
+  useFrame(({clock},dt)=>{
+    if(!root.current)return;
+    const current=trafficPose(route,distance.current);
+    // Yield to the player crossing this lane rather than driving through them.
+    const dx=rt.me.x-current.x,dz=rt.me.z-current.z;
+    const ahead=dx*Math.sin(current.yaw)+dz*Math.cos(current.yaw);
+    const across=Math.abs(dx*Math.cos(current.yaw)-dz*Math.sin(current.yaw));
+    const pedestrianAhead=TOWN_WALKERS.some((walker,i)=>{
+      const span=walker.b-walker.a,phase=(clock.elapsedTime*.65+i*4.7)%(2*span);
+      const x=phase<span?walker.a+phase:walker.b-(phase-span);
+      const dx=x-current.x,dz=walker.z-current.z;
+      const front=dx*Math.sin(current.yaw)+dz*Math.cos(current.yaw);
+      return front>-.5&&front<3&&Math.abs(dx*Math.cos(current.yaw)-dz*Math.sin(current.yaw))<.9;
+    });
+    const length=trafficLoopLength(route);
+    const queued=positions.some((other,i)=>i!==index&&((other-distance.current)%length+length)%length<3.8);
+    if(!reduced&&!queued&&!pedestrianAhead&&!(ahead>-.5&&ahead<4&&across<1.5))distance.current+=Math.min(dt,.05)*route.speed;
+    positions[index]=distance.current;
+    const p=trafficPose(route,distance.current);
+    root.current.position.set(p.x,0,p.z);root.current.rotation.y=p.yaw;
+  });
+  return <group ref={root} name={`traffic-${route.id}-${index}`} position={[initial.x,0,initial.z]} rotation-y={initial.yaw} scale={route.scale}>
+    <StaticBatch><Vehicle x={0} z={0} color={['#51b8b4','#d5aa5c','#9c7bb6','#688fb9'][index%4]} van={index%3===0}/>
+    </StaticBatch>
+  </group>;
+}
+
+function TrafficRouteCars({route}:{route:TrafficRoute}) {
+ const positions=useMemo(()=>Array.from({length:route.cars},(_,i)=>trafficLoopLength(route)*(i+.25)/route.cars),[route]);
+ return <>{positions.map((_,i)=><TrafficCar key={i} route={route} index={i} positions={positions}/>)}</>;
+}
+
 /** 环境居民仅营造生活气息，无同事姓名/雇佣标记，不参与多人或经营状态。 */
 export function TownLife(){return <>
   <StaticBatch worldStatic>
@@ -51,5 +89,6 @@ export function TownLife(){return <>
       <mesh position={[.1,1.08,0]} material={std('#6e9d88')} castShadow><boxGeometry args={[.62,.5,.6]}/></mesh>
     </group>)}
   </StaticBatch>
+  {TRAFFIC_ROUTES.map(route=><TrafficRouteCars key={route.id} route={route}/>)}
   {TOWN_WALKERS.map((_,i)=><Resident key={i} index={i}/>)}
 </>}

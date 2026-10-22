@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { BRIDGES, RIVER, TOWN_DESTINATIONS, TOWN_DISTRICTS, TOWN_KIOSKS, TOWN_LANDMARKS, TOWN_ROADS, TOWN_SHOPHOUSES, TOWN_STREETS, isSite, type DestinationId } from '../../shared/townPlan.ts';
 import { BOXES, PATHS, WORLD_BOUNDS, findPath } from '../../shared/world.ts';
+import { TOWN_LOCKED_AREAS } from '../../shared/townLockedAreas.ts';
 import { useGame } from '../store.ts';
 import { rt, useWorld } from '../world/runtime.ts';
 
@@ -69,9 +70,14 @@ export function TownMap({ target, view, visited, onWalk }: { target: Destination
     })}
     {detail && TOWN_STREETS.map(s => <text key={s.name} className="town-map-street" x={s.x} y={s.z + 0.8} textAnchor="middle" fontSize={1.9}
       transform={s.vertical ? `rotate(-90 ${s.x} ${s.z})` : undefined}>{s.name}</text>)}
-    {detail && TOWN_LANDMARKS.map(l => <g key={l.name} className={`town-map-landmark ${l.open ? '' : 'closed'}`}>
+    {detail && TOWN_LANDMARKS.filter(l=>l.open).map(l => <g key={l.name} className={`town-map-landmark ${l.open ? '' : 'closed'}`}>
       <circle cx={l.x} cy={l.z} r={0.7} />
       <text x={l.x} y={l.z - 1.4} textAnchor="middle" fontSize={1.8}>{l.name}{!l.open ? ' · 未开放' : ''}</text>
+    </g>)}
+    {TOWN_LOCKED_AREAS.map(area=><g key={area.id} data-testid={`map-locked-area-${area.id}`}>
+      <title>{area.name} · 未解锁：{area.hint}</title>
+      <rect x={area.minX} y={area.minZ} width={area.maxX-area.minX} height={area.maxZ-area.minZ} fill="none" stroke="#a0acc3" strokeOpacity={.4} strokeWidth={.25*k} strokeDasharray={`${1.2*k} ${.8*k}`}/>
+      {detail&&<text x={area.x} y={area.z} textAnchor="middle" fill="#b6c0cf" fontSize={1.65}>{area.name} · 未解锁</text>}
     </g>)}
     {(Object.keys(TOWN_DESTINATIONS) as DestinationId[]).map(id => {
       if (id === 'leisure') return null;

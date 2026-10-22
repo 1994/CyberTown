@@ -2,8 +2,16 @@ import { useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { TEA_TOWN_SITES } from '../../shared/teaTown';
-import { TOWN_LANDMARKS, TOWN_SHOPHOUSES } from '../../shared/townPlan';
+import { TOWN_LOCKED_AREAS } from '../../shared/townLockedAreas';
+import { LockKeyhole } from 'lucide-react';
 import { rt } from '../world/runtime';
+import { WorldLabel } from '../scene/WorldLabel';
+import { Avatar } from '../ui/Avatar';
+import { useGame } from '../store';
+import { useTownState } from './townState';
+import { dressed } from '../look';
+import type { Look } from '../../shared/types';
+
 
 const textures=new Map<string,THREE.CanvasTexture>();
 function icon(kind:'enter'|'arcade'|'closed'){
@@ -21,10 +29,39 @@ function Marker({x,z,y=4,kind}:{x:number;z:number;y?:number;kind:'enter'|'arcade
  const ref=useRef<THREE.Sprite>(null);const texture=useMemo(()=>icon(kind),[kind]);
  const reduced=useMemo(()=>matchMedia('(prefers-reduced-motion: reduce)').matches,[]);
  useFrame(({clock})=>{if(!ref.current)return;const d=Math.hypot(rt.me.x-x,rt.me.z-z);ref.current.visible=kind!=='closed'||d<11;ref.current.position.y=y+(reduced||kind==='closed'?0:Math.sin(clock.elapsedTime*1.8)*.12);});
- return <sprite ref={ref} position={[x,y,z]} scale={kind==='closed'?[.025,.028,1]:[.052,.059,1]} renderOrder={5}><spriteMaterial map={texture} transparent sizeAttenuation={false} opacity={kind==='closed'?.65:1} depthWrite={false} depthTest={kind==='closed'} toneMapped={false}/></sprite>;
+ return <sprite ref={ref} position={[x,y,z]} scale={kind==='closed'?[.025,.028,1]:[.026,.0295,1]} renderOrder={5}><spriteMaterial map={texture} transparent sizeAttenuation={false} opacity={kind==='closed'?.65:1} depthWrite={false} depthTest={kind==='closed'} toneMapped={false}/></sprite>;
+}
+/** One badge replaces the entry icon on an owned shop; ownership comes from the
+ * current town, never the visiting player's identity. Avatar handles failed URLs. */
+function ShopOwnerBadge() {
+ const owner=useTownState(s=>s.ready?s.home?.owner:null);
+ const snapshot=useGame(s=>s.snapshot);
+ if(!owner)return <Marker x={TEA_TOWN_SITES.shop.x} z={TEA_TOWN_SITES.shop.z} y={4.6} kind="enter"/>;
+ const player=snapshot?.players.find(p=>p.id===owner.id);
+ const colleague=snapshot?.colleagues.find(c=>c.id===player?.avatarColleagueId);
+ const base:Look=colleague?dressed(colleague.look,player?.style):{skin:'#f1c7a1',hair:'#2b2b33',hairStyle:'short',shirt:owner.color,pants:'#2a3142',accessory:'none'};
+ const look={...base,avatarUrl:owner.avatarUrl??player?.avatarUrl??base.avatarUrl,avatarName:owner.name};
+ return <WorldLabel position={[-20.5,4.5,-1]} center zIndexRange={[5,0]} style={{pointerEvents:'none'}}>
+  <div key={owner.id} data-testid="shop-owner-badge" data-owner-id={owner.id} role="img" aria-label={`店主：${owner.name}`} style={{width:32,height:32,padding:2,background:'#101c30',border:'1px solid #f0cd73',borderRadius:8,boxShadow:'0 0 10px #f0cd732b',pointerEvents:'none'}}>
+   <Avatar look={look} size={26}/>
+  </div>
+ </WorldLabel>;
+}
+function LockedArea({area}:{area:typeof TOWN_LOCKED_AREAS[number]}) {
+ const badge=useRef<HTMLDivElement>(null),detail=useRef<HTMLDivElement>(null);
+ useFrame(({camera})=>{
+  const distance=Math.hypot(rt.me.x-area.x,rt.me.z-area.z);
+  if(badge.current)badge.current.style.display=distance<28&&camera.position.y<60?'flex':'none';
+  if(detail.current)detail.current.style.display=distance<10?'block':'none';
+ });
+ return <WorldLabel position={[area.x,4.3,area.z]} center zIndexRange={[4,0]} style={{pointerEvents:'none'}}>
+  <div ref={badge} data-testid={`locked-area-${area.id}`} style={{display:'none',alignItems:'center',gap:5,padding:'5px 7px',border:'1px solid #8b9bb355',background:'#101927e8',color:'#b7c3d5',fontSize:10,whiteSpace:'nowrap',borderRadius:4,pointerEvents:'none'}}>
+   <LockKeyhole size={12}/><div><span>{area.name} · 未解锁</span><div ref={detail} style={{display:'none',fontSize:10,color:'#e2cd9e',marginTop:5}}>{area.hint}</div></div>
+  </div>
+ </WorldLabel>;
 }
 export function EntranceMarkers(){return <group name="town-entrance-markers">
- {Object.entries(TEA_TOWN_SITES).map(([id,s])=><Marker key={id} x={s.x} z={s.z} y={3.7} kind={id==='arcade'?'arcade':'enter'}/>)}
- {TOWN_LANDMARKS.filter(l=>!l.open).map(l=><Marker key={l.name} x={l.x} z={l.z} y={5} kind="closed"/>)}
- {TOWN_SHOPHOUSES.map((h,i)=><Marker key={i} x={h.x} z={h.z} y={h.h+.8} kind="closed"/>)}
+ <ShopOwnerBadge/>
+ {Object.entries(TEA_TOWN_SITES).filter(([id])=>id!=='shop').map(([id,s])=><Marker key={id} x={s.x} z={s.z} y={3.7} kind={id==='arcade'?'arcade':'enter'}/>)}
+ {TOWN_LOCKED_AREAS.map(area=><LockedArea key={area.id} area={area}/>)}
  </group>;}

@@ -47,20 +47,15 @@ function Neon({ text, color, w, h, size: _size = 150, ...rest }: { text: string;
 /** 地面引导光圈：目标点更亮、脉动；其余只是淡淡标记。 */
 function Beacon({ x, z, color, hot }: { x: number; z: number; color: string; hot: boolean }) {
   const ring = useRef<THREE.Mesh>(null);
-  const arrow = useRef<THREE.Mesh>(null);
   useFrame(({ clock }) => {
     if (STILL) return;
     const t = clock.elapsedTime;
     ring.current?.scale.setScalar(1 + Math.sin(t * 3) * (hot ? 0.08 : 0.03));
-    if (arrow.current) arrow.current.position.y = 2.6 + Math.sin(t * 2.4) * 0.15;
   });
   return <group position={[x, 0, z]}>
     <mesh ref={ring} rotation-x={-Math.PI / 2} position-y={0.03} material={glow(color, hot ? 2.4 : 1.1)}>
       <ringGeometry args={[0.9, 1.08, 40]} />
     </mesh>
-    {hot && <mesh ref={arrow} position-y={2.6} rotation-x={Math.PI} material={glow(color, 2.6)}>
-      <coneGeometry args={[0.28, 0.5, 4]} />
-    </mesh>}
   </group>;
 }
 

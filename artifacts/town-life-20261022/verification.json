@@ -1,0 +1,26 @@
+{
+  "checks": {
+    "typecheck": "pass",
+    "build": "pass",
+    "renderTests": "15 passed",
+    "trafficTests": "2 passed: continuous loop and full vehicle footprint clears static collision obstacles",
+    "preview8897": "verified production index",
+    "ownerBadge": "one visible badge; owner li; label 店主：小李; measured 32x32 pixels",
+    "browserTraffic": "observed queue while player stands in lane, movement resumes after navigating to plaza",
+    "lockedAreas": "individual building locks removed; 7 area markers with proximity hints and map boundaries"
+  },
+  "traffic": {
+    "routes": 5,
+    "movingVehicles": 12,
+    "behavior": [
+      "looped lanes",
+      "yield to player and ambient pedestrians",
+      "following distance",
+      "reduced motion support"
+    ]
+  },
+  "notes": [
+    "Closed blocks are labelled as future demo content; no fabricated price or level unlock requirements",
+    "Only static files updated on preview; database preserved"
+  ]
+}
