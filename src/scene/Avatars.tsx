@@ -1,3 +1,4 @@
+import { riderBlocked, vehicleBlocked } from '../world/traffic.ts';
 import { useRide } from '../tea/rideState';
 import { Bicycle } from './Bicycle';
 import { RIDE_SPEED } from '../../shared/townActivities';
@@ -240,11 +241,13 @@ export function MePlayer({ myId }: { myId: string }) {
     const moving = Math.hypot(vx, vz) > 0.05;
     if (moving) {
       const [nx, nz] = moveWithCollision(me.x, me.z, vx * dt, vz * dt);
-      [me.x, me.z] = clampToBounds(nx, nz);
-      me.yaw = turnTowards(me.yaw, Math.atan2(vx, vz), dt, 12);
+      const yaw = turnTowards(me.yaw, Math.atan2(vx, vz), dt, 12);
+      const blocked = riding ? riderBlocked(nx,nz,yaw) : vehicleBlocked(nx,nz,.4);
+      if (!blocked) { [me.x, me.z] = clampToBounds(nx, nz); me.yaw = yaw; }
+      else { vx = vz = 0; }
       phase.current += dt * 10;
     }
-    me.moving = moving;
+    me.moving = moving && (vx !== 0 || vz !== 0);
     pushTrail(myId, me.x, me.z);
     if (group.current) {
       group.current.position.set(me.x, 0, me.z);

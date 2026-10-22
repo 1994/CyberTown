@@ -5,7 +5,7 @@ export const SHOPPING_STORES = [
  {x:-21.6,z:10.5,range:2.3,category:'accessory'},
  {x:-15,z:12.3,range:2.3,category:'vehicle'},
 ] as const;
-export const BIKE_STAND = { x: -7, z: 23, yaw: Math.PI / 2, range: 2.3 };
+export const BIKE_STAND = { x: -12, z: 17, yaw: Math.PI / 2, range: 2.3 };
 export const BASKETBALL = { x: 24, z: 34, width: 12, length: 14 };
 export const RIDE_SPEED = 6.4; // below the server's 7.5m/s movement budget
 export const SPORTS_BOXES = [

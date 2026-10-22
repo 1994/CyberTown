@@ -1,4 +1,6 @@
-import { useMemo, useRef } from 'react';
+import { liveVehicles } from '../world/traffic.ts';
+import { useRide } from '../tea/rideState.ts';
+import { useEffect, useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { TOWN_CRATES, TOWN_VEHICLES, TOWN_WALKERS } from '../../shared/townLife.ts';
@@ -47,6 +49,8 @@ function TrafficCar({route,index,positions}:{route:TrafficRoute;index:number;pos
   const distance=useRef(positions[index]);
   const reduced=useMemo(()=>matchMedia('(prefers-reduced-motion: reduce)').matches,[]);
   const initial=trafficPose(route,distance.current);
+  const vehicleId=`${route.id}:${index}`;
+  useEffect(()=>{liveVehicles.set(vehicleId,{...initial,scale:route.scale});return()=>{liveVehicles.delete(vehicleId);};},[vehicleId]);
   useFrame(({clock},dt)=>{
     if(!root.current)return;
     const current=trafficPose(route,distance.current);
@@ -63,9 +67,10 @@ function TrafficCar({route,index,positions}:{route:TrafficRoute;index:number;pos
     });
     const length=trafficLoopLength(route);
     const queued=positions.some((other,i)=>i!==index&&((other-distance.current)%length+length)%length<3.8);
-    if(!reduced&&!queued&&!pedestrianAhead&&!(ahead>-.5&&ahead<4&&across<1.5))distance.current+=Math.min(dt,.05)*route.speed;
+    if(!reduced&&!queued&&!pedestrianAhead&&!(ahead>-2&&ahead<(useRide.getState().riding?5:4)&&across<(useRide.getState().riding?2.3:1.5)))distance.current+=Math.min(dt,.05)*route.speed;
     positions[index]=distance.current;
     const p=trafficPose(route,distance.current);
+    liveVehicles.set(vehicleId,{...p,scale:route.scale});
     root.current.position.set(p.x,0,p.z);root.current.rotation.y=p.yaw;
   });
   return <group ref={root} name={`traffic-${route.id}-${index}`} position={[initial.x,0,initial.z]} rotation-y={initial.yaw} scale={route.scale}>

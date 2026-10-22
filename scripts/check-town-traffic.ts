@@ -27,3 +27,20 @@ test('moving vehicle footprint clears buildings, parked vans, trees and lamps',(
   }
  }
 });
+
+// Parking and mounting must clear the entire vehicle envelope, not its center.
+import { BIKE_STAND } from '../shared/townActivities.ts';
+import { touchesVehicle, bikeSamples } from '../shared/trafficCollision.ts';
+test('shared bicycle bay and mounting area stay clear of all traffic',()=>{
+ assert.equal(blockedAt(BIKE_STAND.x,BIKE_STAND.z,1.6),false);
+ for(const route of TRAFFIC_ROUTES) for(let d=0;d<trafficLoopLength(route);d+=.1){
+  assert.equal(touchesVehicle(BIKE_STAND.x,BIKE_STAND.z,BIKE_STAND.range,{...trafficPose(route,d),scale:route.scale}),false,route.id);
+ }
+});
+test('vehicle collision includes rotated sides and bicycle front wheel',()=>{
+ const car={x:0,z:0,yaw:Math.PI/2,scale:.65};
+ assert.equal(touchesVehicle(1.4,0,.43,car),true);
+ assert.equal(touchesVehicle(0,1.5,.43,car),false);
+ assert.equal(touchesVehicle(2.2,0,.43,car),false);
+ assert.equal(bikeSamples(2.2,0,Math.PI/2).some(p=>touchesVehicle(p.x,p.z,p.r,car)),true);
+});
