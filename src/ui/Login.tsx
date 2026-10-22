@@ -3,8 +3,57 @@ import { useGame } from '../store.ts';
 import { api, ApiError } from '../api.ts';
 import { rememberBrowserLogin } from '../auth/browser.ts';
 import { ArrowRight, Crown, Sparkles } from 'lucide-react';
+import { dressed } from '../look.ts';
+import { Avatar } from './Avatar.tsx';
+
+/** 已认证欢迎页：只展示当前登录者本人资料，点“进入小镇”才进入游戏。 */
+function Welcome() {
+  const snap = useGame((s) => s.snapshot)!;
+  const identityMode = useGame((s) => s.identityMode);
+  const enterTown = useGame((s) => s.enterTown);
+  const logout = useGame((s) => s.logout);
+  const me = snap.me;
+  const av = snap.colleagues.find((c) => c.id === me.avatarColleagueId);
+  // 优先真实头像；坏图由 Avatar 回退到本地卡通脸
+  const look = av ? { ...dressed(av.look, me.style), avatarUrl: me.avatarUrl ?? av.look.avatarUrl } : null;
+  const [imgFailed, setImgFailed] = useState(false);
+  return (
+    <div className="login-wrap">
+      <div className="login-shell">
+        <div className="login-card panel welcome-card">
+          <div className="logo big">赛博<span>小镇</span></div>
+          <div className="welcome-me" data-testid="welcome-profile">
+            {look ? <Avatar look={look} size={72} ring={me.color} />
+              : me.avatarUrl && !imgFailed ? <img className="avatar welcome-img" src={me.avatarUrl} alt="" width={72} height={72} referrerPolicy="no-referrer" onError={() => setImgFailed(true)} />
+                : <span className="welcome-mono" style={{ ['--pc' as string]: me.color }}>{me.name.slice(-1)}</span>}
+            <div>
+              <b>{me.name}</b>
+              {me.title && <span>{me.title}</span>}
+            </div>
+          </div>
+          <p className="tagline">街角奶茶快倒闭了，手机里有新任务。</p>
+          <button className="btn primary welcome-enter" onClick={() => enterTown()} data-testid="enter-town">
+            进入小镇<ArrowRight size={16} />
+          </button>
+          {identityMode === 'demo' && (
+            <button className="text-btn welcome-switch" onClick={() => void logout()} data-testid="switch-identity">
+              切换体验身份
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export function Login() {
+  const phase = useGame((s) => s.phase);
+  const hasSnap = useGame((s) => !!s.snapshot);
+  if (phase === 'welcome' && hasSnap) return <Welcome />;
+  return <LoginForm />;
+}
+
+function LoginForm() {
   const identities = useGame((s) => s.identities);
   const identityMode = useGame((s) => s.identityMode);
   const identityNotice = useGame((s) => s.identityNotice);
@@ -49,12 +98,12 @@ export function Login() {
         </div>
         <span className="login-pick">
           {identityMode === 'demo'
-            ? '选一个身份，开始你的快乐营业'
+            ? '选择体验身份（演示账号）'
             : identityMode === 'mock'
-              ? '本地 Mock 联调模式'
-              : '请从已配置的身份认证入口进入奶茶街区'}
+              ? '本地 Mock 联调模式 · 本页不收集凭证'
+              : browserLogin ? '使用公司账号登录' : '请从公司登录入口进入'}
         </span>
-        {identityMode === 'demo' && <div className="identity-grid" role="group" aria-label="选择测试身份">
+        {identityMode === 'demo' && <div className="identity-grid" role="group" aria-label="选择体验身份（演示账号）">
           {identities.map((p) => (
             <button
               key={p.id}
@@ -73,7 +122,7 @@ export function Login() {
           ))}
         </div>}
         {identityMode === 'sso' && browserLogin && (
-          <button className="btn primary" disabled={!!busy} onClick={() => {
+          <button className="btn primary welcome-enter company-login" disabled={!!busy} onClick={() => {
             setBusy('sso');
             setError(null);
             void api.beginBrowserLogin().then(({ url, state }) => {
@@ -92,7 +141,7 @@ export function Login() {
           </p>
         )}
         <p className="sso-line">
-          {identityMode === 'demo' ? '体验账号 · 非真实SSO · 可在不同标签页与自己联机' : identityNotice}
+          {identityMode === 'demo' ? '演示账号，并非员工名单 · 可在不同标签页与自己联机' : identityNotice}
         </p>
       </div>
       </div>

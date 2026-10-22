@@ -1,0 +1,42 @@
+{
+  "fixtureOnly": true,
+  "errors": [],
+  "checks": [
+    "Switch demo account clears prior entry and shows selected profile",
+    {
+      "viewport": [
+        1440,
+        900
+      ],
+      "verifiedNameAvatar": true,
+      "explicitEnter": true,
+      "noDemoIdentities": true
+    },
+    {
+      "viewport": [
+        390,
+        844
+      ],
+      "verifiedNameAvatar": true,
+      "explicitEnter": true,
+      "noDemoIdentities": true
+    },
+    {
+      "viewport": [
+        844,
+        390
+      ],
+      "verifiedNameAvatar": true,
+      "explicitEnter": true,
+      "noDemoIdentities": true
+    },
+    "Broken avatar without colleague falls back to name placeholder",
+    "Unreachable identity API shows retry; no fake identity or entry"
+  ],
+  "screens": [
+    "01-demo-confirm",
+    "02-spi-desktop",
+    "03-spi-mobile",
+    "04-spi-landscape"
+  ]
+}

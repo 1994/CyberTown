@@ -55,7 +55,7 @@ export function App() {
           )}
         </div>
       )}
-      {phase === 'login' && <><Login /><SoundToggle className="login-sound" /></>}
+      {(phase === 'login' || phase === 'welcome') && <><Login /><SoundToggle className="login-sound" /></>}
       {PERF_ENABLED && <RenderStats />}
       {new URLSearchParams(location.search).get('audio') === 'debug' && <SoundDiagnostics />}
     </div>

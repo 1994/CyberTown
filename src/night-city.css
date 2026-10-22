@@ -17,3 +17,15 @@
 .login-shell .identity.on,.login-shell .identity:hover { border-color:#e4cd35; background:#2b342b; color:#fff3ad; }
 @media(max-width:760px) { .login-shell { display:block; max-width:450px; } .login-shell .login-card.panel { padding:26px 24px; } }
 @media(max-height:600px) and (min-width:761px) { .login-shell { max-width:520px; max-height:calc(100dvh - 24px); overflow-y:auto; } .login-shell .login-card.panel { padding:18px 26px; } .login-shell .logo.big { font-size:42px; } }
+/* 已认证欢迎页：单栏、本人资料 + 进入小镇 */
+.login-wrap { overflow-y:auto; }
+.login-shell .login-card.panel.welcome-card { display:grid; gap:16px; justify-items:start; }
+.welcome-me { display:flex; align-items:center; gap:14px; width:100%; padding:12px 14px; border:1px solid #678f8c45; border-radius:14px; background:#1a2b34; }
+.welcome-me .avatar, .welcome-img { flex:none; width:72px; height:72px; border-radius:50%; object-fit:cover; }
+.welcome-mono { flex:none; width:72px; height:72px; display:grid; place-items:center; border-radius:50%; background:var(--pc,#3ef0ff); color:#0a141d; font-size:30px; font-weight:800; }
+.welcome-me div { display:grid; gap:2px; min-width:0; }
+.welcome-me b { font-size:20px; color:#fff3ad; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.welcome-me span { color:#9fb8b3; font-size:13px; }
+.welcome-enter { width:100%; min-height:48px; justify-content:center; gap:8px; display:inline-flex; align-items:center; }
+.welcome-switch { justify-self:center; min-height:40px; background:none; border:0; color:#9fb8b3; text-decoration:underline; cursor:pointer; }
+.login-shell .company-login { width:100%; min-height:46px; display:inline-flex; align-items:center; justify-content:center; gap:8px; }

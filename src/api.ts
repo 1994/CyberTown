@@ -16,8 +16,18 @@ import { apiURL, sessionKey } from './runtime-config.ts';
 /** 会话 token 只存 sessionStorage（每个标签页/浏览器独立身份，刷新可继续）。游戏数据全部来自服务端。 */
 export const session = {
   get: () => sessionStorage.getItem(sessionKey()),
-  set: (t: string) => sessionStorage.setItem(sessionKey(), t),
-  clear: () => sessionStorage.removeItem(sessionKey()),
+  set: (t: string) => {
+    if (sessionStorage.getItem(sessionKey()) !== t) {
+      sessionStorage.removeItem(sessionKey() + '.entered');
+    }
+    sessionStorage.setItem(sessionKey(), t);
+  },
+  entered: () => sessionStorage.getItem(sessionKey() + '.entered') === '1',
+  confirmEntry: () => sessionStorage.setItem(sessionKey() + '.entered', '1'),
+  clear: () => {
+    sessionStorage.removeItem(sessionKey());
+    sessionStorage.removeItem(sessionKey() + '.entered');
+  },
 };
 
 export class ApiError extends Error {

@@ -1,0 +1,9 @@
+
+Running 2 tests using 1 worker
+
+(node:40099) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 tests/e2e/login-entry.spec.ts:9:1 › demo 身份先确认姓名与头像，进入小镇前不挂载世界，刷新可恢复 (3.2s)
+  ✓  2 tests/e2e/login-entry.spec.ts:33:1 › 企业 SPI 假 fixture：SSO 姓名与坏头像回退，不显示 demo 身份列表 (2.0s)
+
+  2 passed (6.3s)

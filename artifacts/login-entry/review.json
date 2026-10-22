@@ -1,0 +1,21 @@
+{
+  "scope": "Existing corporate identity SPI -> verified current-user name/avatar -> explicit 进入小镇 confirmation. Demo identities remain test-only.",
+  "core": "No identity API or private provider changes; BrowserProvider callback and loginWithCredentials share the welcome phase. Entry confirmation is UI state only, never server authentication.",
+  "validation": [
+    "Typecheck and production build pass",
+    "Backend SPI profile/isolation/failure/persistence and BrowserProvider tests pass",
+    "Focused login-entry browser tests: 2 passed",
+    "Desktop/mobile/landscape welcome screenshots reviewed",
+    "Valid avatar and fallback without colleague verified",
+    "Unconfirmed refresh retains welcome; confirmed refresh resumes town; switching demo identity clears confirmation",
+    "Identity API unreachable: retry without fake identities or false entry"
+  ],
+  "limits": "Corporate protocol and employee directory are private. Local fixtures validate the existing bridge and profile rendering; no live corporate SSO was contacted.",
+  "delegation": {
+    "ui": "Claude, reused session",
+    "testHelpersAndE2E": "dsh, reused session",
+    "coreAndAcceptance": "Codex"
+  },
+  "preview": "http://127.0.0.1:8897/",
+  "existingDatabase": "Preserved; frontend assets only published"
+}

@@ -1,0 +1,2 @@
+ok  	github.com/1994/boss-works-for-me/backend	0.731s
+ok  	github.com/1994/boss-works-for-me/server	0.645s

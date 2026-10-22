@@ -49,7 +49,9 @@ await useGame.getState().loginWithCredentials({
 // 或使用 accessToken（取决于公司适配器支持什么）
 ```
 
-该入口负责换取本地会话、加载玩家并播放入场。也可使用底层 `api.authenticate(credentials)` 自行编排；上游 accessToken 不能直接当游戏 Bearer token。Demo模式显示测试选人，BrowserProvider模式显示通用公司登录入口；真实OIDC/SAML或其他协议仍由内网适配器实现。
+该入口负责换取本地会话并加载玩家，随后显示资料确认页：姓名、职称和头像读取 `/api/state` 的当前认证用户 `me`，点击“进入小镇”才挂载游戏。BrowserProvider 回调和内网登录壳调用此入口都会经过同一确认页；无需新增身份接口或再次提交姓名、头像。未确认时刷新仍显示资料，已确认的同一标签页会话刷新后恢复游戏，退出或更换会话后重新确认。此标记只控制页面动线，服务端鉴权照常执行。
+
+也可使用底层 `api.authenticate(credentials)` 自行编排；上游 accessToken 不能直接当游戏 Bearer token。Demo模式显示明确标注的体验身份，正式SPI模式不显示员工选择列表，BrowserProvider模式显示公司登录入口；真实OIDC/SAML或其他协议仍由内网适配器实现。头像缺失或加载失败时使用本地占位头像，不会回退到另一个演示身份。
 
 若使用 OIDC，签名、issuer、audience、有效期、授权码一次性消费、回调地址白名单，以及授权发起/回调时 state、nonce、PKCE 的校验由协议接入层完成；本 SPI 不替代这些流程。可信网关注入的身份可通过受控中间件 context 交给适配器，不能直接信任客户端同名 Header。会话仍沿用现有 Demo 生命周期：本地注销会删除 token 并关闭其 SSE；尚未实现 SSO 单点登出、停用用户即时撤销或会话过期策略。浏览器授权码流程的single-use校验由上述BrowserProvider适配器承担。
 

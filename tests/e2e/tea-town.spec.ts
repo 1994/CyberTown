@@ -9,7 +9,7 @@ async function current(page:Page,id:string):Promise<TeaSession>{const r=await pa
 async function frame(page:Page){await page.evaluate(async()=>{for(let i=0;i<8;i++)await new Promise<void>(r=>requestAnimationFrame(()=>r()));});}
 async function snap(page:Page,name:string){await frame(page);await page.screenshot({path:`${dir}/${name}.png`});}
 async function phone(page:Page){await page.getByTestId('town-world').getByRole('button',{name:'手机',exact:true}).click();await expect(page.getByTestId('town-phone')).toBeVisible();}
-async function enter(page:Page,id:string){await page.goto('/?lowfx=1');await page.getByTestId(`identity-${id}`).click();await expect(page.getByTestId('town-world')).toBeVisible();await expect(page.getByRole('button',{name:'手机',exact:true})).toBeEnabled();}
+async function enter(page:Page,id:string){await page.goto('/?lowfx=1');await page.getByTestId(`identity-${id}`).click();await page.getByTestId('enter-town').click();await expect(page.getByTestId('town-world')).toBeVisible();await expect(page.getByRole('button',{name:'手机',exact:true})).toBeEnabled();}
 async function accept(page:Page){await phone(page);await expect(page.getByTestId('town-mission')).toHaveAttribute('data-status','offered');await page.getByTestId('town-accept-mission').click();await expect(page.getByTestId('town-mission')).toHaveAttribute('data-status','accepted');}
 async function walkShop(page:Page){
  await page.getByTestId('town-go-shop').click();
@@ -82,7 +82,7 @@ test('手机自由动线：广场可选招募两人→步行奶茶小镇→同�
 test('正常画质：大地图→手机→步行入店，配乐随动线切换且静音可用',async({page})=>{
  test.setTimeout(90_000);const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));
  await page.goto('/?audio=debug');const diag=page.getByTestId('sound-diagnostics');await expect(diag).toHaveAttribute('data-state','locked');
- await page.getByTestId('identity-liu').click();await expect(page.getByTestId('town-world')).toBeVisible();await expect(diag).toHaveAttribute('data-music-scene','street');
+ await page.getByTestId('identity-liu').click();await page.getByTestId('enter-town').click();await expect(page.getByTestId('town-world')).toBeVisible();await expect(diag).toHaveAttribute('data-music-scene','street');
  await expect.poll(async()=>Number(await diag.getAttribute('data-music-notes'))).toBeGreaterThan(8);
  await page.addStyleTag({content:'.sound-debug{opacity:0;pointer-events:none}'});
  await page.keyboard.press('KeyM');await page.waitForTimeout(1200);await snap(page,'12-normal-world-overview');await page.keyboard.press('KeyM');

@@ -7,7 +7,7 @@ import { useWorld } from './world/runtime.ts';
 import { useCinema } from './scene/cinema.ts';
 import { takeBrowserCallback } from './auth/browser.ts';
 
-export type Phase = 'boot' | 'login' | 'game';
+export type Phase = 'boot' | 'login' | 'welcome' | 'game';
 export type Drawer =
   | null
   | 'messages'
@@ -78,6 +78,7 @@ interface GameStore {
   boot: () => Promise<void>;
   loginAs: (playerId: string) => Promise<void>;
   loginWithCredentials: (credentials: LoginCredentials) => Promise<void>;
+  enterTown: () => void;
   logout: () => Promise<void>;
   refresh: () => Promise<void>;
   toast: (t: Omit<Toast, 'id' | 'ttl'> & { ttl?: number }) => void;
@@ -157,11 +158,11 @@ export const useGame = create<GameStore>((set, get) => ({
             const snap = await api.state();
             set({
               snapshot: snap,
-              phase: 'game',
+              phase: session.entered() ? 'game' : 'welcome',
               lastSyncAt: Date.now(),
               clockOffset: snap.serverTime - Date.now(),
             });
-            // 小镇主线登录即进入大地图，不再自动播放旧公司开场（手动 replayIntro 仍可用）
+            // Already confirmed sessions resume; a new login first shows verified profile details.
             return;
           } catch (e) {
             if (e instanceof ApiError && e.status === 401) session.clear();
@@ -191,7 +192,7 @@ export const useGame = create<GameStore>((set, get) => ({
     const snap = await api.state();
     set({
       snapshot: snap,
-      phase: 'game',
+      phase: 'welcome',
       lastSyncAt: Date.now(),
       clockOffset: snap.serverTime - Date.now(),
       poachMarkers: {},
@@ -199,6 +200,12 @@ export const useGame = create<GameStore>((set, get) => ({
       celebration: null,
       lastCelebrationKey: '',
     });
+  },
+
+  enterTown() {
+    if (get().phase !== 'welcome' || !get().snapshot || !session.get()) return;
+    session.confirmEntry();
+    set({ phase: 'game' });
   },
 
   async logout() {
