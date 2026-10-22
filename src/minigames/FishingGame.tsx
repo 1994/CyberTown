@@ -15,6 +15,8 @@ export default function FishingGame({onExit}:{onExit:()=>void}){
  const start=()=>{setPaid(false);setError('');void sound.activate();commit(newFishingRound(crypto.randomUUID(),Date.now()));};
  const pull=()=>{void sound.activate();commit(pullFishing(current.current,Date.now()));};
  const release=()=>{if(current.current.held)commit({...current.current,held:false});};
+ const exit=()=>{commit({...current.current,held:false});onExit();};
+ useEffect(()=>{const key=(e:KeyboardEvent)=>{if(e.key==='Escape'){e.preventDefault();commit({...current.current,held:false});onExit();}};window.addEventListener('keydown',key);return()=>window.removeEventListener('keydown',key);},[onExit]);
  const aim=(x:number)=>{if(current.current.phase==='aim')commit({...current.current,aim:Math.max(-4.4,Math.min(4.4,x))});};
  const cast=()=>{void sound.activate();commit(castFishing(current.current,Date.now()));};
  useEffect(()=>{let last=Date.now(),saved=0;const id=setInterval(()=>{const now=Date.now(),prev=current.current,next=tickFishing(prev,now,(now-last)/1000);last=now;
@@ -28,7 +30,7 @@ export default function FishingGame({onExit}:{onExit:()=>void}){
  useEffect(()=>{if(round.phase==='result')void deposit();},[round.phase,round.id]);
  const seconds=Math.max(0,Math.ceil(FISHING.seconds-(Date.now()-round.started)/1000));
  return <main className="fishing-game">
-  <header><button aria-label="返回小游戏大厅" onClick={onExit} disabled={active||(round.phase==='result'&&!paid)}><ArrowLeft size={20}/></button><div><small>NEON ANGLER</small><b>霓虹夜钓</b></div><span className="fishing-wallet"><Coins size={18}/>{wallet.balance.toLocaleString()}</span><SoundMenu/></header>
+  <header><button aria-label="返回小游戏大厅" className="fishing-exit" onClick={exit} title="鱼获自动保留，挑战仍按原定时间结束"><ArrowLeft size={20}/><span>退出</span></button><div><small>NEON ANGLER</small><b>霓虹夜钓</b></div><span className="fishing-wallet"><Coins size={18}/>{wallet.balance.toLocaleString()}</span><SoundMenu/></header>
   <section className="fishing-water" aria-label="钓鱼水面：左右拖动鱼竿，松开下钩" onPointerDown={e=>{if(current.current.phase==='aim'){e.currentTarget.setPointerCapture(e.pointerId);const b=e.currentTarget.getBoundingClientRect();aim((e.clientX-b.left)/b.width*10-5);}}} onPointerMove={e=>{if(e.buttons&&current.current.phase==='aim'){const b=e.currentTarget.getBoundingClientRect();aim((e.clientX-b.left)/b.width*10-5);}}} onPointerUp={()=>{if(current.current.phase==='aim')cast();}}>
    <FishingScene round={round}/>
    {active&&<><div className="fishing-score"><b>{seconds}s</b><span><Fish size={16}/>{round.catches.length} 条</span><span>鱼获 {fishingReward(round.catches)}</span></div><div className={`fishing-hint ${round.phase}`} role="status">{round.message}</div></>}
@@ -38,7 +40,7 @@ export default function FishingGame({onExit}:{onExit:()=>void}){
   <footer>
    {active&&<><div className="fishing-meters"><label>拉近 <progress max={1} value={round.phase==='reel'?round.progress:0}/></label><label className={round.tension>.75?'danger':''}>张力 <progress max={1} value={round.phase==='reel'?round.tension:0}/></label></div>
    <div className="fishing-input"><label>鱼竿位置<input aria-label="鱼竿位置" type="range" min={-4.4} max={4.4} step={.1} value={round.aim} disabled={round.phase!=='aim'} onChange={e=>aim(+e.target.value)}/></label>{round.phase==='aim'?<button className="fishing-primary" onClick={cast}>下钩</button>:<button className={`fishing-primary ${round.phase==='bite'?'bite':''}`} disabled={!['wait','bite','reel'].includes(round.phase)} onPointerDown={e=>{e.preventDefault();e.currentTarget.setPointerCapture(e.pointerId);pull();}} onPointerUp={release} onPointerCancel={release} onKeyDown={e=>{if((e.key===' '||e.key==='Enter')&&!e.repeat){e.preventDefault();pull();}}} onKeyUp={release}>{round.phase==='bite'?'咬钩了！按住提竿':round.phase==='reel'?(round.held?'松开泄力':'按住收线'):round.phase==='caught'?'已钓起！':round.phase==='escaped'?'重新准备…':'等浮标沉下'}</button>}</div></>}
-   {error&&<p role="alert">{error}</p>}<small>独立试玩金币 · 不影响小镇余额 · 方向键移动 / 空格下钩、收线</small>
+   {error&&<p role="alert">{error}</p>}<small>退出保留鱼获 · 倒计时继续 · 方向键移动 / 空格收线</small>
   </footer>
  </main>;
 }

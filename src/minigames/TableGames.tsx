@@ -31,9 +31,10 @@ export default function TableGames({initialGame,onExit}:{initialGame:TableGame;o
  const changeAmount=(n:number)=>{setAmount(Math.max(10,Math.min(1000,Math.floor(n/10)*10,Math.floor(wallet.balance/10)*10)));if(performance.now()-coinSound.current>95){coinSound.current=performance.now();void sound.activate().then(()=>sound.play('catch'));}};
  const switchGame=(g:TableGame)=>{if(active||busy||g===game)return;void run(async()=>{await reset();setGame(g);});};
  const maxBet=Math.max(10,Math.min(1000,Math.floor(wallet.balance/10)*10));const fill=`${((amount-10)/Math.max(1,maxBet-10))*100}%`;
+ useEffect(()=>{const exit=(e:KeyboardEvent)=>{if(e.key==='Escape'&&!pending.current){e.preventDefault();onExit();}};window.addEventListener('keydown',exit);return()=>window.removeEventListener('keydown',exit);},[onExit]);
  return <main className="table-game" data-testid="table-game" data-game={game} data-phase={r?.phase??'idle'}>
   <header className="table-header">
-   <button className="table-back" aria-label="返回游玩区域" disabled={active||busy} onClick={onExit}><ArrowLeft size={18}/></button>
+   <button className="table-back" aria-label="返回游玩区域" disabled={busy} onClick={onExit} title="退出后保留本轮进度，再次进入继续"><ArrowLeft size={18}/><span>退出</span></button>
    <div className="table-wordmark"><small>NIGHT MARKET</small><b>霓虹赌摊</b></div>
    <nav className="table-tabs" aria-label="试玩场景"><button aria-pressed={game==='coin'} disabled={active||busy} onClick={()=>switchGame('coin')}><i aria-hidden="true">★</i>幸运翻币</button><button aria-pressed={game==='shell'} disabled={active||busy} onClick={()=>switchGame('shell')}><i aria-hidden="true">◎</i>三杯幻影</button></nav>
    <div className="table-wallet" aria-label="试玩金币"><span className="table-coin-ico"><Coins size={15}/></span><b data-testid="demo-balance">{wallet.balance.toLocaleString()}</b><button className="table-claim" disabled={active||busy} onClick={()=>void run(()=>claim())} aria-label="免费领取1000枚试玩金币">+1000</button></div>
@@ -61,7 +62,7 @@ export default function TableGames({initialGame,onExit}:{initialGame:TableGame;o
     {game==='shell'?<div className="table-slot-buttons">{['左','中','右'].map((text,i)=><button key={text} disabled={r?.phase!=='pick'||busy} onClick={()=>pick(i)}>{text}</button>)}</div>:<p className={r?.phase==='hammer'?'is-call':''}>{r?.phase==='hammer'?'点击桌上的榔头':r?.phase==='payout'?'奖励到账中':r?.phase==='loss'?'本轮未猜中':'等待结果'}</p>}
     {r?.phase==='payout'&&<progress max={1} value={clamp01(r.credited/(r.count*2))} aria-label="奖励到账进度"/>}
    </div>}
-   {error&&<p role="alert" className="table-error">{error}</p>}<small className="table-disclaimer">独立试玩金币 · 不影响小镇余额及业绩</small>
+   {error&&<p role="alert" className="table-error">{error}</p>}<small className="table-disclaimer">独立试玩金币 · 退出保留本轮，再次进入继续</small>
   </footer>
  </main>;
 }
