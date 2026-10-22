@@ -1,0 +1,70 @@
+
+Running 19 tests using 1 worker
+
+(node:81325) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   1 tests/e2e/hiring-model.spec.ts:39:1 › 自然培养与合同流转：真实签约、自动杂活、召回、撤单、跨镇成交 (2.2m)
+  ✘   2 tests/e2e/hiring-model.spec.ts:121:1 › 雇佣大厅触屏：竖横屏可选人、取消确认、切换员工与市场 (36.5s)
+(node:83449) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   3 tests/e2e/login-entry.spec.ts:13:1 › demo 身份先确认姓名与头像，进入小镇前不挂载世界，刷新可恢复 (21.3s)
+  ✓   4 tests/e2e/login-entry.spec.ts:37:1 › 企业 SPI 假 fixture：SSO 姓名与坏头像回退，不显示 demo 身份列表 (10.1s)
+
+  ✓   5 tests/e2e/tea-business.spec.ts:98:1 › 经营强化：确认开班/真实报表/免费试营/升级业务挑战 (1.2m)
+
+  ✓   6 tests/e2e/tea-preflight.spec.ts:148:1 › 三段真实经营：20/32/48 客、升级、次数耗尽与主线完成 (37.7s)
+  ✓   7 tests/e2e/tea-preflight.spec.ts:237:1 › 网络故障回归：开门回包丢失、双击防重、step 两次失败后恢复 (30.4s)
+  ✓   8 tests/e2e/tea-town.spec.ts:46:1 › 大地图救店：手机可暂缓→不招募独自赚钱→回地图查账→升级保存 (1.9m)
+
+  ✓   9 tests/e2e/tea-town.spec.ts:74:1 › 手机自由动线：广场可选招募两人→步行奶茶小镇→同事自动赚金币 (1.4m)
+  ✓  10 tests/e2e/tea-town.spec.ts:89:1 › 正常画质：大地图→手机→步行入店，配乐随动线切换且静音可用 (48.6s)
+  ✓  11 tests/e2e/town-arrival.spec.ts:107:1 › 私人小镇双端到达：默认独处、SSE房间隔离与首次引导 (1.4m)
+  ✓  12 tests/e2e/town-arrival.spec.ts:142:1 › welcome 未确认入镇时不会建立 world SSE (11.8s)
+  ✘  13 tests/e2e/town-arrival.spec.ts:159:1 › 断网恢复：offline 提示真实、恢复后仍在小镇且不扣费 (1.1m)
+(node:90483) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  14 tests/e2e/town-districts.spec.ts:82:1 › 桌面街区导航：地图分区、真实步行到娱乐/广场/店门与 WASD 中断 (47.5s)
+  ✓  15 tests/e2e/town-districts.spec.ts:154:1 › 移动端地图布局：竖屏/横屏目标可点、无溢出、可关闭重开且不扣金币 (27.3s)
+  ✓  16 tests/e2e/town-expansion.spec.ts:26:1 › 大地图四处真实步行考察、一次奖励、存档与首店成长条件 (1.8m)
+  ✓  17 tests/e2e/town-expansion.spec.ts:75:1 › 扩图触屏布局：分区视图、八个目的地和版图可操作 (1.8m)
+  ✓  18 tests/e2e/town-guide.spec.ts:55:1 › 桌面首次入镇：真实手机任务、帮助重开与刷新持久化 (24.0s)
+  ✓  19 tests/e2e/town-guide.spec.ts:108:1 › 触屏竖屏/横屏：旧 v1 与已接任务仍首次显示 v2，且无 WASD/P (26.5s)
+
+
+  1) tests/e2e/hiring-model.spec.ts:121:1 › 雇佣大厅触屏：竖横屏可选人、取消确认、切换员工与市场 ─────────────────────────────
+
+    Error: browserContext._wrapApiCall: file data stream has unexpected number of bytes
+
+      135 |     await page.screenshot({animations:'disabled',path:`${dir}/touch-${viewport.width}-market.png`});
+      136 |     await page.getByTestId('hiring-close').click();
+    > 137 |     expect((await home(page)).coins).toBe(before.coins);expect(errors).toEqual([]);await context.close();
+          |                                                                                    ^
+      138 |   }
+      139 | });
+      140 |
+        at /Users/r/code/boss-works-for-me/tests/e2e/hiring-model.spec.ts:137:84
+
+    Error: End of central directory record signature not found. Either not a zip file, or file is truncated.
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/hiring-model-雇佣大厅触屏：竖横屏可选人、取消确认、切换员工与市场/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/hiring-model-雇佣大厅触屏：竖横屏可选人、取消确认、切换员工与市场/test-failed-2.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/hiring-model-雇佣大厅触屏：竖横屏可选人、取消确认、切换员工与市场/error-context.md
+
+  2) tests/e2e/town-arrival.spec.ts:159:1 › 断网恢复：offline 提示真实、恢复后仍在小镇且不扣费 ──────────────────────────
+
+    Test timeout of 60000ms exceeded.
+
+    Error: End of central directory record signature not found. Either not a zip file, or file is truncated.
+
+    Error Context: test-results/town-arrival-断网恢复：offline-提示真实、恢复后仍在小镇且不扣费/error-context.md
+
+  2 failed
+    tests/e2e/hiring-model.spec.ts:121:1 › 雇佣大厅触屏：竖横屏可选人、取消确认、切换员工与市场 ──────────────────────────────
+    tests/e2e/town-arrival.spec.ts:159:1 › 断网恢复：offline 提示真实、恢复后仍在小镇且不扣费 ───────────────────────────
+  17 passed (18.5m)

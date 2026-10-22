@@ -1,0 +1,6 @@
+
+> boss-works-for-me@1.0.0 test:map
+> node scripts/check-map-routes.ts
+
+地图路径检查通过：104 条出生点到地标/招募点路线（每 0.05 米检查碰撞）
+扩图检查通过：324 条地标互通、核心步行 <9秒、2位NPC十分钟连续巡游及前后端边界契约

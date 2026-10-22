@@ -1,0 +1,914 @@
+{
+  "config": {
+    "argv": [
+      "/opt/homebrew/Cellar/node/25.9.0_3/bin/node",
+      "/Users/r/code/boss-works-for-me/node_modules/.bin/playwright",
+      "test",
+      "hiring-model.spec.ts",
+      "tea-town.spec.ts",
+      "login-entry.spec.ts",
+      "town-arrival.spec.ts",
+      "tea-business.spec.ts",
+      "tea-preflight.spec.ts",
+      "town-guide.spec.ts",
+      "town-districts.spec.ts",
+      "town-expansion.spec.ts"
+    ],
+    "configFile": "/Users/r/code/boss-works-for-me/playwright.config.ts",
+    "rootDir": "/Users/r/code/boss-works-for-me/tests/e2e",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/Users/r/code/boss-works-for-me/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "",
+        "name": "",
+        "testDir": "/Users/r/code/boss-works-for-me/tests/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 180000
+      }
+    ],
+    "filteredProjects": [
+      {
+        "grep": {},
+        "grepInvert": null,
+        "outputDir": "/Users/r/code/boss-works-for-me/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "name": "",
+        "testDir": "/Users/r/code/boss-works-for-me/tests/e2e",
+        "snapshotDir": "/Users/r/code/boss-works-for-me/tests/e2e",
+        "testIgnore": [],
+        "testMatch": "**/*.@(spec|test).?(c|m)[jt]s?(x)",
+        "timeout": 180000,
+        "use": {
+          "baseURL": "http://127.0.0.1:8899",
+          "channel": "chrome",
+          "viewport": {
+            "width": 1440,
+            "height": 900
+          },
+          "trace": "retain-on-failure",
+          "screenshot": "only-on-failure"
+        },
+        "dependencies": [],
+        "ignoreSnapshots": false,
+        "__projectId": ""
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "test-results/e2e-report.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "default",
+    "updateSourceMethod": "patch",
+    "version": "1.64.1",
+    "workers": 1,
+    "webServer": {
+      "command": "node scripts/start-e2e-server.ts",
+      "url": "http://127.0.0.1:8899/api/health",
+      "reuseExistingServer": false,
+      "timeout": 60000,
+      "stdout": "ignore",
+      "stderr": "pipe"
+    }
+  },
+  "suites": [
+    {
+      "title": "hiring-model.spec.ts",
+      "file": "hiring-model.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "自然培养与合同流转：真实签约、自动杂活、召回、撤单、跨镇成交",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 200000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 129639,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-22T08:29:03.039Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "a18aab114cf6cf7afe0a-efa2beaf604cb21613d1",
+          "file": "hiring-model.spec.ts",
+          "line": 39,
+          "column": 1
+        },
+        {
+          "title": "雇佣大厅触屏：竖横屏可选人、取消确认、切换员工与市场",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 36531,
+                  "error": {
+                    "message": "Error: browserContext._wrapApiCall: file data stream has unexpected number of bytes",
+                    "stack": "Error: browserContext._wrapApiCall: file data stream has unexpected number of bytes\n    at /Users/r/code/boss-works-for-me/tests/e2e/hiring-model.spec.ts:137:84",
+                    "location": {
+                      "file": "/Users/r/code/boss-works-for-me/tests/e2e/hiring-model.spec.ts",
+                      "column": 84,
+                      "line": 137
+                    },
+                    "snippet": "  135 |     await page.screenshot({animations:'disabled',path:`${dir}/touch-${viewport.width}-market.png`});\n  136 |     await page.getByTestId('hiring-close').click();\n> 137 |     expect((await home(page)).coins).toBe(before.coins);expect(errors).toEqual([]);await context.close();\n      |                                                                                    ^\n  138 |   }\n  139 | });\n  140 |"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/Users/r/code/boss-works-for-me/tests/e2e/hiring-model.spec.ts",
+                        "column": 84,
+                        "line": 137
+                      },
+                      "message": "Error: browserContext._wrapApiCall: file data stream has unexpected number of bytes\n\n  135 |     await page.screenshot({animations:'disabled',path:`${dir}/touch-${viewport.width}-market.png`});\n  136 |     await page.getByTestId('hiring-close').click();\n> 137 |     expect((await home(page)).coins).toBe(before.coins);expect(errors).toEqual([]);await context.close();\n      |                                                                                    ^\n  138 |   }\n  139 | });\n  140 |\n    at /Users/r/code/boss-works-for-me/tests/e2e/hiring-model.spec.ts:137:84"
+                    },
+                    {
+                      "message": "Error: End of central directory record signature not found. Either not a zip file, or file is truncated."
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-22T08:31:14.056Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/Users/r/code/boss-works-for-me/test-results/hiring-model-雇佣大厅触屏：竖横屏可选人、取消确认、切换员工与市场/test-failed-1.png"
+                    },
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/Users/r/code/boss-works-for-me/test-results/hiring-model-雇佣大厅触屏：竖横屏可选人、取消确认、切换员工与市场/test-failed-2.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/Users/r/code/boss-works-for-me/test-results/hiring-model-雇佣大厅触屏：竖横屏可选人、取消确认、切换员工与市场/error-context.md"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/Users/r/code/boss-works-for-me/tests/e2e/hiring-model.spec.ts",
+                    "column": 84,
+                    "line": 137
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "a18aab114cf6cf7afe0a-222b70b5d4b162e7e38a",
+          "file": "hiring-model.spec.ts",
+          "line": 121,
+          "column": 1
+        }
+      ]
+    },
+    {
+      "title": "login-entry.spec.ts",
+      "file": "login-entry.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "demo 身份先确认姓名与头像，进入小镇前不挂载世界，刷新可恢复",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 21274,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-22T08:31:52.870Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "f758e005b93892d43eb5-a8ff1b7d551b387286ce",
+          "file": "login-entry.spec.ts",
+          "line": 13,
+          "column": 1
+        },
+        {
+          "title": "企业 SPI 假 fixture：SSO 姓名与坏头像回退，不显示 demo 身份列表",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 10127,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-22T08:32:15.600Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "f758e005b93892d43eb5-68d0167cf239732985e5",
+          "file": "login-entry.spec.ts",
+          "line": 37,
+          "column": 1
+        }
+      ]
+    },
+    {
+      "title": "tea-business.spec.ts",
+      "file": "tea-business.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "经营强化：确认开班/真实报表/免费试营/升级业务挑战",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 240000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 70970,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [
+                    {
+                      "buffer": ""
+                    }
+                  ],
+                  "retry": 0,
+                  "startTime": "2026-10-22T08:32:25.832Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "3b1e6b02005f8eae47b1-741601f9ff4cdd6c53ec",
+          "file": "tea-business.spec.ts",
+          "line": 98,
+          "column": 1
+        }
+      ]
+    },
+    {
+      "title": "tea-preflight.spec.ts",
+      "file": "tea-preflight.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "三段真实经营：20/32/48 客、升级、次数耗尽与主线完成",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 300000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 37694,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [
+                    {
+                      "buffer": ""
+                    }
+                  ],
+                  "retry": 0,
+                  "startTime": "2026-10-22T08:33:36.998Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "a8e5f0c6d4e952a8a9d7-0fd4e4d8f209298a2949",
+          "file": "tea-preflight.spec.ts",
+          "line": 148,
+          "column": 1
+        },
+        {
+          "title": "网络故障回归：开门回包丢失、双击防重、step 两次失败后恢复",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 30381,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-22T08:34:14.735Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "a8e5f0c6d4e952a8a9d7-b48ad668b338e5765e3b",
+          "file": "tea-preflight.spec.ts",
+          "line": 237,
+          "column": 1
+        }
+      ]
+    },
+    {
+      "title": "tea-town.spec.ts",
+      "file": "tea-town.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "大地图救店：手机可暂缓→不招募独自赚钱→回地图查账→升级保存",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 116782,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-22T08:34:45.217Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "074df68402517f9cb242-086d7beba2bc366af5cb",
+          "file": "tea-town.spec.ts",
+          "line": 46,
+          "column": 1
+        },
+        {
+          "title": "手机自由动线：广场可选招募两人→步行奶茶小镇→同事自动赚金币",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 150000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 84921,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [
+                    {
+                      "buffer": ""
+                    }
+                  ],
+                  "retry": 0,
+                  "startTime": "2026-10-22T08:36:42.049Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "074df68402517f9cb242-5683672cb57fbb53ac2a",
+          "file": "tea-town.spec.ts",
+          "line": 74,
+          "column": 1
+        },
+        {
+          "title": "正常画质：大地图→手机→步行入店，配乐随动线切换且静音可用",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 48557,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-22T08:38:07.121Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "074df68402517f9cb242-65ab40bd6606d8e352e9",
+          "file": "tea-town.spec.ts",
+          "line": 89,
+          "column": 1
+        }
+      ]
+    },
+    {
+      "title": "town-arrival.spec.ts",
+      "file": "town-arrival.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "私人小镇双端到达：默认独处、SSE房间隔离与首次引导",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 83437,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-22T08:38:55.809Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "b8eeb593df54fe4764be-9bda25ee126dad8b68d5",
+          "file": "town-arrival.spec.ts",
+          "line": 107,
+          "column": 1
+        },
+        {
+          "title": "welcome 未确认入镇时不会建立 world SSE",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 11849,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-22T08:40:19.306Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "b8eeb593df54fe4764be-003f204499140d0698fc",
+          "file": "town-arrival.spec.ts",
+          "line": 142,
+          "column": 1
+        },
+        {
+          "title": "断网恢复：offline 提示真实、恢复后仍在小镇且不扣费",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "timedOut",
+                  "duration": 65705,
+                  "error": {
+                    "message": "\u001b[31mTest timeout of 60000ms exceeded.\u001b[39m",
+                    "stack": "\u001b[31mTest timeout of 60000ms exceeded.\u001b[39m"
+                  },
+                  "errors": [
+                    {
+                      "message": "\u001b[31mTest timeout of 60000ms exceeded.\u001b[39m"
+                    },
+                    {
+                      "message": "Error: End of central directory record signature not found. Either not a zip file, or file is truncated."
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-22T08:40:31.265Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/Users/r/code/boss-works-for-me/test-results/town-arrival-断网恢复：offline-提示真实、恢复后仍在小镇且不扣费/error-context.md"
+                    }
+                  ]
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "b8eeb593df54fe4764be-9674a908eb5c97943b3f",
+          "file": "town-arrival.spec.ts",
+          "line": 159,
+          "column": 1
+        }
+      ]
+    },
+    {
+      "title": "town-districts.spec.ts",
+      "file": "town-districts.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "桌面街区导航：地图分区、真实步行到娱乐/广场/店门与 WASD 中断",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 47452,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-22T08:41:50.462Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "35c5ee213036aa707c81-678d1602de64da641b81",
+          "file": "town-districts.spec.ts",
+          "line": 82,
+          "column": 1
+        },
+        {
+          "title": "移动端地图布局：竖屏/横屏目标可点、无溢出、可关闭重开且不扣金币",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 27298,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-22T08:42:40.466Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "35c5ee213036aa707c81-3c6a583a730136f48d2d",
+          "file": "town-districts.spec.ts",
+          "line": 154,
+          "column": 1
+        }
+      ]
+    },
+    {
+      "title": "town-expansion.spec.ts",
+      "file": "town-expansion.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "大地图四处真实步行考察、一次奖励、存档与首店成长条件",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 260000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 105010,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-22T08:43:07.844Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "75585812e4bc5a26bbbc-2fbdaf52a98b5f88b511",
+          "file": "town-expansion.spec.ts",
+          "line": 26,
+          "column": 1
+        },
+        {
+          "title": "扩图触屏布局：分区视图、八个目的地和版图可操作",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 105825,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-22T08:44:52.902Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "75585812e4bc5a26bbbc-4285c1756bb70db4c143",
+          "file": "town-expansion.spec.ts",
+          "line": 75,
+          "column": 1
+        }
+      ]
+    },
+    {
+      "title": "town-guide.spec.ts",
+      "file": "town-guide.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "桌面首次入镇：真实手机任务、帮助重开与刷新持久化",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 24010,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-22T08:46:38.798Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "2248aa68cb5ca8a50ffc-0e7d498fdaa04b551ebf",
+          "file": "town-guide.spec.ts",
+          "line": 55,
+          "column": 1
+        },
+        {
+          "title": "触屏竖屏/横屏：旧 v1 与已接任务仍首次显示 v2，且无 WASD/P",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 26541,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-22T08:47:02.876Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "2248aa68cb5ca8a50ffc-ea25d52b539ede1de389",
+          "file": "town-guide.spec.ts",
+          "line": 108,
+          "column": 1
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-10-22T08:28:59.809Z",
+    "duration": 1110728.065,
+    "expected": 17,
+    "skipped": 0,
+    "unexpected": 2,
+    "flaky": 0
+  }
+}

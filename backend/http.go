@@ -46,6 +46,7 @@ type App struct {
 	clients                   map[*subscriber]bool
 	closed                    bool
 	world                     map[string]WorldPlayer
+	townOwner                 map[string]string
 	socialAt                  map[string]int64
 	identityProvider          identity.Provider
 	worldFocus                map[string]worldFocus
@@ -58,7 +59,7 @@ func NewApp(game *Game, opts Options) *App {
 	if provider == nil {
 		provider = &demoIdentityProvider{game}
 	}
-	app := &App{Game: game, Options: opts, identityProvider: provider, clients: map[*subscriber]bool{}, world: map[string]WorldPlayer{}, socialAt: map[string]int64{}, worldFocus: map[string]worldFocus{}, worldStop: make(chan struct{}), worldDone: make(chan struct{})}
+	app := &App{Game: game, Options: opts, identityProvider: provider, clients: map[*subscriber]bool{}, world: map[string]WorldPlayer{}, townOwner: map[string]string{}, socialAt: map[string]int64{}, worldFocus: map[string]worldFocus{}, worldStop: make(chan struct{}), worldDone: make(chan struct{})}
 	go app.worldLoop()
 	return app
 }
@@ -240,6 +241,7 @@ func (a *App) handle(w http.ResponseWriter, r *http.Request) error {
 		}
 		a.mu.Lock()
 		a.world = map[string]WorldPlayer{}
+		a.townOwner = map[string]string{}
 		a.socialAt = map[string]int64{}
 		a.mu.Unlock()
 		a.Broadcast(map[string]any{"kind": "reset", "at": a.Game.Now()})
@@ -422,6 +424,17 @@ func (a *App) handle(w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 func (a *App) events(w http.ResponseWriter, r *http.Request, player, token string) error {
+	if owner := r.URL.Query().Get("town"); owner != "" {
+		if owner == "self" {
+			owner = player
+		}
+		if _, err := a.Game.TownEnter(player, owner); err != nil {
+			return err
+		}
+		a.mu.Lock()
+		a.switchTownLocked(player, owner)
+		a.mu.Unlock()
+	}
 	flusher, ok := w.(http.Flusher)
 	if !ok {
 		return fail(500, "STREAM_UNAVAILABLE", "连接不支持实时通知")

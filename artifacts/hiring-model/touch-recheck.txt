@@ -1,0 +1,8 @@
+
+Running 1 test using 1 worker
+
+(node:87252) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 tests/e2e/hiring-model.spec.ts:121:1 › 雇佣大厅触屏：竖横屏可选人、取消确认、切换员工与市场 (1.7m)
+
+  1 passed (1.8m)

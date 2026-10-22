@@ -1,0 +1,22 @@
+{
+  "demo": "liu",
+  "levels": [
+    1,
+    2,
+    3
+  ],
+  "completed": [
+    20,
+    32,
+    48
+  ],
+  "net": [
+    240,
+    224,
+    552
+  ],
+  "attempts": 0,
+  "stage": "complete",
+  "practiceHeld": 0,
+  "errors": []
+}

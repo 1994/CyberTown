@@ -104,102 +104,39 @@ async function packets(page: Page) {
   return page.evaluate(() => (window as PacketWindow).__townWorldPackets ?? []);
 }
 
-test('演示账号双端到达：真实名牌/SSE移动/离开与首次引导', async ({ browser }) => {
+test('私人小镇双端到达：默认独处、SSE房间隔离与首次引导', async ({ browser }) => {
   test.setTimeout(120_000);
   const baseURL = test.info().project.use.baseURL ?? 'http://127.0.0.1:8899';
   const aCtx = await browser.newContext({ baseURL, viewport: { width: 1440, height: 900 } });
   const bCtx = await browser.newContext({ baseURL, viewport: { width: 1440, height: 900 } });
-  const a = await aCtx.newPage();
-  const b = await bCtx.newPage();
+  const a = await aCtx.newPage(); const b = await bCtx.newPage();
   const errors: string[] = [];
-  a.on('pageerror', (error) => errors.push(`li: ${error.message}`));
-  b.on('pageerror', (error) => errors.push(`wang: ${error.message}`));
-
-  await enter(a, 'li');
-  await expect(a.getByTestId('town-arrival')).toBeVisible();
-  await a.getByTestId('town-arrival-dismiss').click();
-  await expect(a.getByTestId('town-arrival')).toHaveCount(0);
-  await enter(b, 'wang');
-  await dismissArrival(b);
-  await waitLive(a, 1);
-  await waitLive(b, 1);
-
-  await expect(a.locator('.ptag[data-player="wang"]')).toBeVisible();
-  await expect(b.locator('.ptag[data-player="li"]')).toBeVisible();
-
-  await a.getByTestId('town-presence-toggle').click();
-  const listA = a.getByTestId('town-nearby-list');
-  await expect(listA).toBeVisible();
-  await expect(listA).toContainText('老王');
-  await expect(listA).not.toContainText('张总');
-  await a.getByTestId('town-presence-toggle').click();
-
-  await b.getByTestId('town-presence-toggle').click();
-  const listB = b.getByTestId('town-nearby-list');
-  await expect(listB).toBeVisible();
-  await expect(listB).toContainText('小李');
-  await expect(listB).not.toContainText('张总');
-  await b.getByTestId('town-presence-toggle').click();
-  await a.screenshot({ path: `${dir}/01-two-players.png` });
-
-  // 首次引导已手动关闭；刷新不能再出现，而且没有替玩家接受任务。
-  await a.reload();
-  await expect(a.getByTestId('town-world')).toBeVisible();
-  await expect(a.getByTestId('town-arrival')).toHaveCount(0);
-  await waitLive(a, 1);
-  await a.getByTestId('town-world').getByRole('button', { name: '手机', exact: true }).click();
-  await expect(a.getByTestId('town-phone')).toBeVisible();
-  await expect(a.getByTestId('town-mission')).toHaveAttribute('data-status', 'offered');
-  await a.getByRole('button', { name: '收起手机', exact: true }).click();
-  await expect(a.getByTestId('town-phone')).toHaveCount(0);
-
-  // B 的独立 world=2 SSE 必须真的收到 A 移动后的坐标。
-  await collectWorld(b);
-  await expect.poll(async () => (await packets(b)).length, { timeout: 10_000 }).toBeGreaterThan(0);
-  const baseCount = (await packets(b)).length;
-  const initial = await worldPos(a, 'li');
-  await a.keyboard.down('KeyW');
-  await a.waitForTimeout(900);
-  await a.keyboard.up('KeyW');
-  await a.waitForTimeout(700);
-  const moved = await worldPos(a, 'li');
-  expect(Math.hypot(moved.x - initial.x, moved.z - initial.z)).toBeGreaterThan(0.25);
-
-  await expect.poll(async () => {
-    const seen = (await packets(b)).slice(baseCount);
-    return seen.filter((p) => p.id === 'li'
-      && Math.hypot(p.x - moved.x, p.z - moved.z) < 0.35).length;
-  }, { timeout: 10_000 }).toBeGreaterThan(0);
-  const received = (await packets(b)).slice(baseCount)
-    .filter((p) => p.id === 'li' && Math.hypot(p.x - moved.x, p.z - moved.z) < 0.35);
-  expect(received.some((p) => Math.hypot(p.x - initial.x, p.z - initial.z) > 0.25)).toBe(true);
-  await a.screenshot({ path: `${dir}/02-moved.png` });
-
-  // 关闭 B 的隔离 context：A 的附近人数和列表都必须回落。
-  await a.getByTestId('town-presence-toggle').click();
-  await expect(a.getByTestId('town-nearby-list')).toContainText('老王');
-  await bCtx.close();
-  await waitLive(a, 0);
-  await expect(a.getByTestId('town-nearby-list')).toHaveCount(0);
-  await expect(a.locator('.ptag[data-player="wang"]')).toHaveCount(0);
-  await a.screenshot({ path: `${dir}/03-departed.png` });
-
-  writeFileSync(`${dir}/presence.json`, JSON.stringify({
-    demo: true,
-    players: ['li', 'wang'],
-    arrival: { first: true, dismissed: true, reloadPersisted: true, mission: 'offered' },
-    presence: { aState: 'live', aNearby: 0, bState: 'live', bNearby: 1, npcExcluded: true },
-    nearbyNames: { li: ['老王'], wang: ['小李'] },
-    movement: {
-      from: { x: initial.x, z: initial.z },
-      to: { x: moved.x, z: moved.z },
-      bPackets: received.length,
-      sse: '/api/events?world=2',
-    },
-    errors,
-  }, null, 2));
-  expect(errors).toEqual([]);
-  await aCtx.close();
+  a.on('pageerror', error => errors.push(error.message));
+  b.on('pageerror', error => errors.push(error.message));
+  try {
+    await enter(a, 'li'); await dismissArrival(a);
+    await enter(b, 'wang'); await dismissArrival(b);
+    await waitLive(a, 0); await waitLive(b, 0);
+    await expect(a.locator('.ptag[data-player="wang"]')).toHaveCount(0);
+    await expect(b.locator('.ptag[data-player="li"]')).toHaveCount(0);
+    await expect(a.getByTestId('town-presence-toggle')).toBeDisabled();
+    await expect(a.getByTestId('town-nearby-list')).toHaveCount(0);
+    await a.screenshot({ path: `${dir}/01-private-town.png` });
+    await a.reload(); await expect(a.getByTestId('town-world')).toBeVisible();
+    await expect(a.getByTestId('town-arrival')).toHaveCount(0); await waitLive(a, 0);
+    await a.getByTestId('town-world').getByRole('button', { name: '手机', exact: true }).click();
+    await expect(a.getByTestId('town-mission')).toHaveAttribute('data-status', 'offered');
+    await a.getByRole('button', { name: '收起手机', exact: true }).click();
+    await collectWorld(b);
+    await expect.poll(async () => (await packets(b)).length, { timeout: 10000 }).toBeGreaterThan(0);
+    const initial = await worldPos(a, 'li');
+    await a.keyboard.down('KeyW'); await a.waitForTimeout(900); await a.keyboard.up('KeyW');
+    await expect.poll(async () => { const p = await worldPos(a, 'li'); return Math.hypot(p.x-initial.x,p.z-initial.z); }).toBeGreaterThan(0.25);
+    expect((await packets(b)).some(p => p.id === 'li')).toBe(false);
+    await bCtx.close(); await waitLive(a, 0);
+    writeFileSync(`${dir}/private-presence.json`, JSON.stringify({ privateTown: true, aNearby: 0, bNearby: 0, strangerPackets: 0, arrivalSkipPersists: true, errors }, null, 2));
+    expect(errors).toEqual([]);
+  } finally { await aCtx.close(); await bCtx.close().catch(() => undefined); }
 });
 
 test('welcome 未确认入镇时不会建立 world SSE', async ({ browser }) => {

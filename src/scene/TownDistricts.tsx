@@ -8,6 +8,7 @@ import { useGame } from '../store.ts';
 import { glow, std } from './materials.ts';
 import { StaticBatch } from './StaticBatch.tsx';
 import { neonText } from './textures.ts';
+import { TownExpansion } from './TownExpansion.tsx';
 
 // 小镇街区美术：街屋围合、区界门楼、街面色调、社区中心凉棚、北区围挡、外围低层屋顶。
 // 全部静态合批，不加实时灯；占地与 shared/townPlan.ts 一致（碰撞在 world.ts）。
@@ -15,7 +16,7 @@ import { neonText } from './textures.ts';
 /** 当前是否小镇游戏（登录背景保持旧园区）。 */
 export const useTownMode = () => useGame(s => s.phase === 'game');
 
-const PALETTE: Record<DistrictId, { walls: string[]; awning: [string, string]; window: string; sign: string; trim: string }> = {
+export const PALETTE: Record<DistrictId, { walls: string[]; awning: [string, string]; window: string; sign: string; trim: string }> = {
   commerce: { walls: ['#3a2f36', '#33333f', '#3b3130', '#2f3442'], awning: ['#ffb347', '#ff5f8f'], window: '#ffcf8a', sign: '#ffd08a', trim: '#ff9f43' },
   leisure: { walls: ['#2b2a46', '#24324a', '#302848', '#22303f'], awning: ['#b18bff', '#3ef0ff'], window: '#c9b6ff', sign: '#9ef8ff', trim: '#b18bff' },
   plaza: { walls: ['#2d3a44'], awning: ['#ffd166', '#fff3e6'], window: '#ffe2b0', sign: '#ffd166', trim: '#ffd166' },
@@ -23,7 +24,7 @@ const PALETTE: Record<DistrictId, { walls: string[]; awning: [string, string]; w
 };
 
 const stripeCache = new Map<string, THREE.CanvasTexture>();
-function stripes(a: string, b: string) {
+export function stripes(a: string, b: string) {
   const key = a + b;
   let t = stripeCache.get(key);
   if (!t) {
@@ -38,7 +39,7 @@ function stripes(a: string, b: string) {
   return t;
 }
 
-function Neon({ text, color, w, h, size = 150, position, rotation, single = false }: { text: string; color: string; w: number; h: number; size?: number; position: [number, number, number]; rotation?: [number, number, number]; single?: boolean }) {
+export function Neon({ text, color, w, h, size = 150, position, rotation, single = false }: { text: string; color: string; w: number; h: number; size?: number; position: [number, number, number]; rotation?: [number, number, number]; single?: boolean }) {
   return <mesh position={position} rotation={rotation}>
     <planeGeometry args={[w, h]} />
     <meshBasicMaterial map={neonText([{ text, color, size }])} transparent toneMapped={false} color={new THREE.Color(1.8, 1.8, 1.8)} depthWrite={false} side={single ? THREE.FrontSide : THREE.DoubleSide} />
@@ -46,7 +47,9 @@ function Neon({ text, color, w, h, size = 150, position, rotation, single = fals
 }
 
 /** 一栋街屋：主体 + 错落屋顶 + 门脸（窗、门、雨棚/灯带、招牌）。门脸朝 face 方向。 */
-function House({ h, i }: { h: Shophouse; i: number }) {
+export function House({ h: raw, i }: { h: Shophouse; i: number }) {
+  // 纵街街屋：在本地坐标按“门脸朝 +z”建模，再整体旋转朝 ±x
+  const h = raw.side ? { ...raw, w: raw.d, d: raw.w, face: 1 as const } : raw;
   const P = PALETTE[h.district];
   const wall = P.walls[i % P.walls.length];
   const awning = useMemo(() => stripes(P.awning[0], P.awning[1]), [P]);
@@ -54,7 +57,7 @@ function House({ h, i }: { h: Shophouse; i: number }) {
   const front = (h.d / 2) * f;
   const step = i % 2 ? 0.5 : 0.9;
   const commerce = h.district === 'commerce';
-  return <group position={[h.x, 0, h.z]}>
+  return <group position={[h.x, 0, h.z]} rotation-y={raw.side ? (raw.side * Math.PI) / 2 : 0}>
     <mesh position={[0, h.h / 2, 0]} material={std(wall, 0.75, 0.15)} castShadow receiveShadow><boxGeometry args={[h.w, h.h, h.d]} /></mesh>
     {/* 错落屋顶：檐口 + 后退的小阁楼/水箱 */}
     <mesh position={[0, h.h + 0.06, 0]} material={std('#151b24', 0.5, 0.5)}><boxGeometry args={[h.w + 0.16, 0.12, h.d + 0.16]} /></mesh>
@@ -176,7 +179,8 @@ function OuterBlocks() {
     const items: { x: number; z: number; w: number; d: number; h: number }[] = [];
     let seed = 7;
     const rnd = () => { seed = (seed * 16807) % 2147483647; return seed / 2147483647; };
-    for (let x = -96; x <= 96; x += 7) for (let z = -84; z <= 84; z += 7) {
+    const RX = B.maxX + 42, RZ = B.maxZ + 36;
+    for (let x = -RX; x <= RX; x += 7) for (let z = -RZ; z <= RZ; z += 7) {
       if (Math.abs(x) < B.maxX + 5 && Math.abs(z) < B.maxZ + 5) continue;
       if (rnd() < 0.18) continue; // 留出街巷
       items.push({ x: x + (rnd() - 0.5) * 1.5, z: z + (rnd() - 0.5) * 1.5, w: 4 + rnd() * 2.2, d: 4 + rnd() * 2.2, h: 1.6 + rnd() * rnd() * 7 });
@@ -194,7 +198,7 @@ function OuterBlocks() {
   }, []);
   return <group>
     <mesh rotation-x={-Math.PI / 2} position={[0, -0.92, 0]} receiveShadow>
-      <planeGeometry args={[220, 200]} />
+      <planeGeometry args={[2 * (WORLD_BOUNDS.maxX + 52), 2 * (WORLD_BOUNDS.maxZ + 46)]} />
       <meshStandardMaterial color="#121826" roughness={0.9} />
     </mesh>
     <primitive object={mesh} />
@@ -213,6 +217,7 @@ export function TownDistricts() {
       <CivicCenter />
       <ExpansionFence />
     </StaticBatch>
+    <TownExpansion />
     <OuterBlocks />
   </group>;
 }

@@ -1,8 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
 import { Smartphone } from 'lucide-react';
 import { TEA_TOWN_SITES } from '../../shared/teaTown.ts';
-import { TOWN_DESTINATIONS, type DestinationId } from '../../shared/townPlan.ts';
-import { TownMap } from './TownMap.tsx';
+import { SITE_IDS, TOWN_DESTINATIONS, type DestinationId, type SiteId } from '../../shared/townPlan.ts';
+import { TOWN_OPPORTUNITIES } from '../../shared/townExplore.ts';
+import { teaLiveApi } from './liveApi.ts';
+import { MAP_VIEW_LABEL, TownMap, type MapView } from './TownMap.tsx';
 import { OfficeCanvas } from '../scene/Office.tsx';
 import { useGame } from '../store.ts';
 import { Joystick } from '../ui/Joystick.tsx';
@@ -10,7 +12,9 @@ import { SoundMenu } from '../ui/SoundControl.tsx';
 import { useTouchUi } from '../ui/useTouchUi.ts';
 import { walkNear } from '../world/navigation.ts';
 import { rt, useWorld } from '../world/runtime.ts';
-import { TeaGame, WorkerCard } from './TeaGame.tsx';
+import { TeaGame } from './TeaGame.tsx';
+import { HiringHall } from './HiringHall.tsx';
+import { useTownState } from './townState.ts';
 import { TownPhone, type PhoneTab } from './TownPhone.tsx';
 import { TownArrival, TownPresence, arrivalSeen, markArrival, useWorldReady } from './TownArrival.tsx';
 import { useTownLook } from './TownLandmarks.tsx';
@@ -28,8 +32,13 @@ const DEST = TOWN_DESTINATIONS;
 const distDest = (d: DestinationId) => Math.hypot(rt.me.x - DEST[d].x, rt.me.z - DEST[d].z);
 // 交互点沿用各自范围；街区目的地走到 2.2m 内即算到达
 const reach = (d: DestinationId) => d === 'shop' || d === 'recruit' ? SITES[d].range : 2.2;
+/** 考察按钮出现距离（服务端校验 4.2m，前端更保守） */
+const SURVEY_RANGE = 2.8;
 const DEST_ORDER: DestinationId[] = ['shop', 'leisure', 'plaza', 'recruit'];
-const DEST_LABEL: Record<DestinationId, string> = { shop: '商业街 · 奶茶店', leisure: '娱乐街', plaza: '回广场', recruit: '广场招募' };
+const DEST_LABEL: Record<DestinationId, string> = {
+  shop: '商业街 · 奶茶店', leisure: '娱乐街', plaza: '回广场', recruit: '雇佣大厅',
+  ...Object.fromEntries(TOWN_OPPORTUNITIES.map(o => [o.id, o.name])) as Record<SiteId, string>,
+};
 
 export function TownGame() {
   const myId = useGame(s => s.snapshot!.me.id);
@@ -63,6 +72,9 @@ export function TownGame() {
   // go() 创建的路线引用：地面点击/键盘/摇杆换掉或清空它 = 取消这次带路（逐点 shift 同一数组不算）
   const travelPath = useRef<[number, number][] | null>(null);
   const [far, setFar] = useState(0);
+  const [mapView, setMapView] = useState<MapView>('all');
+  const [nearSite, setNearSite] = useState<SiteId | null>(null);
+  const [survey, setSurvey] = useState<{ busy: boolean; error: string }>({ busy: false, error: '' });
   const [hint, setHint] = useState('');
 
   const mission = home?.mission.status ?? null;
@@ -75,7 +87,11 @@ export function TownGame() {
   useEffect(() => { setOutside(place !== 'shop'); }, [place, setOutside]);
 
   // 场景外观：等级、任务状态、当前导航目标
-  useEffect(() => { useTownLook.setState({ level: home?.shop.level ?? 1, mission, target: travel === 'shop' || travel === 'recruit' ? travel : null }); }, [home?.shop.level, mission, travel]);
+  // 已考察据点只认服务端 home.exploration；数据缺失时视为未知，不伪造
+  const exploration = home?.exploration;
+  const visited = exploration?.opportunities.filter(o => o.visitedAt > 0).map(o => o.id) ?? [];
+  const visitedKey = visited.join('|');
+  useEffect(() => { useTownLook.setState({ level: home?.shop.level ?? 1, mission, target: travel, visited: visitedKey ? visitedKey.split('|') : [] }); }, [home?.shop.level, mission, travel, visitedKey]);
 
   // 5Hz：判断是否走到交互点、导航是否到达/被玩家自己的操作取消
   useEffect(() => {
@@ -83,6 +99,9 @@ export function TownGame() {
     const id = setInterval(() => {
       const n: Site | null = distTo('shop') <= SITES.shop.range ? 'shop' : distTo('recruit') <= SITES.recruit.range ? 'recruit' : null;
       setNear(n);
+      let site: SiteId | null = null;
+      for (const id of SITE_IDS) if (distDest(id) <= SURVEY_RANGE) site = id;
+      setNearSite(site);
       if (travel) {
         const d = distDest(travel);
         // 只在真实可交互/到达范围内算到达；路线被换掉或清空即取消
@@ -93,6 +112,20 @@ export function TownGame() {
     }, 200);
     return () => clearInterval(id);
   }, [place, travel, arrived]);
+
+  // 离开据点就清掉上次的错误提示
+  useEffect(() => { setSurvey({ busy: false, error: '' }); }, [nearSite]);
+  const doSurvey = async (id: SiteId) => {
+    if (survey.busy) return;
+    setSurvey({ busy: true, error: '' });
+    try {
+      await teaLiveApi.explore(id);
+      await c.refresh();
+      setSurvey({ busy: false, error: '' });
+    } catch (e) {
+      setSurvey({ busy: false, error: e instanceof Error ? e.message : '考察失败，再试一次' });
+    }
+  };
 
   // 招募面板、店内时锁住地图移动（手机由 openPhone 自带 phone 锁）
   const away = place !== 'map';
@@ -123,7 +156,7 @@ export function TownGame() {
     if (distTo(s) > SITES[s].range + 0.3) { setHint('再走近一点'); return; }
     rt.path = null;
     setTravel(null);
-    if (s === 'recruit') { c.goStreet(); setPlace('recruit'); }
+    if (s === 'recruit') { setHallTab('candidates'); setPlace('recruit'); }
     else { c.goShop(); setPlace('shop'); }
   };
   // E 键 / 手机互动：复用原世界的 world-interact 事件
@@ -150,6 +183,24 @@ export function TownGame() {
   };
   useEffect(() => { if (!arrived) return; const t = setTimeout(() => setArrived(null), 3000); return () => clearTimeout(t); }, [arrived]);
 
+  // 雇佣大厅：地图招募点 / 手机“员工” / 筹备缺员工入口都进同一个大厅；关闭回地图，不自动营业
+  const [hallTab, setHallTab] = useState<'candidates' | 'staff' | 'market'>('candidates');
+  const syncTea = () => { void c.refresh().catch(() => undefined); };
+  // 5s 的 TownHome 轮询带来派工收入/升级/挂牌变化时，同步奶茶侧钱包与可排员工（c.refresh，不重置营业/计划）
+  const townKey = useTownState(s => s.home ? `${s.home.coins}|${s.home.clones.map(x => `${x.id}:${x.level}:${x.xp}:${x.job?.kind ?? ''}:${x.listingId ?? ''}`).join(',')}` : '');
+  const { refresh: teaRefresh } = c;
+  const firstKey = useRef(true);
+  useEffect(() => {
+    if (!townKey) return;
+    if (firstKey.current) { firstKey.current = false; return; }
+    void teaRefresh().catch(() => undefined);
+  }, [townKey, teaRefresh]);
+  const openHall = (tab: 'candidates' | 'staff') => {
+    closePhone(); setMap(false); rt.path = null; travelPath.current = null; setTravel(null);
+    if (place === 'shop' && live) c.pause();
+    setHallTab(tab); setPlace('recruit');
+  };
+
   const exitShop = () => {
     // 回地图：活动营业先暂停，回来按“继续”恢复同一 session
     if (live) c.pause();
@@ -157,10 +208,10 @@ export function TownGame() {
   };
 
   const phoneUi = phone && home && <TownPhone home={home} tab={phone} onTab={setTab} onClose={closePhone} busy={c.busy}
-    hires={hires} toast={c.toast} onAccept={c.acceptMission} onGo={s => { if (place === 'shop') exitShop(); go(s); }} />;
+    hires={hires} toast={c.toast} onAccept={c.acceptMission} onGo={s => { if (place === 'shop') exitShop(); go(s); }} onHall={() => openHall('staff')} />;
 
   if (place === 'shop') return <>
-    <TeaGame controller={c} onExit={exitShop} onPhone={() => openPhone('mission')} />
+    <TeaGame controller={c} onExit={exitShop} onPhone={() => openPhone('mission')} onHall={() => openHall('staff')} />
     {phoneUi && <div className="town town-over">{phoneUi}</div>}
   </>;
 
@@ -188,12 +239,23 @@ export function TownGame() {
       </header>
 
       {map && home && <div className="town-map" role="dialog" aria-label="小镇地图">
-        <header><b>小镇地图</b><span>点地图或选目的地</span>
+        <header><b>小镇地图</b>
+          {exploration
+            ? <span className="town-explore-chip" data-testid="town-exploration-progress" data-visited={exploration.visited} data-total={exploration.total}>商圈 {exploration.visited}/{exploration.total}</span>
+            : <span className="town-explore-chip dim">商圈加载中</span>}
           <button className="town-x" onClick={() => setMap(false)} aria-label="收起地图" data-testid="town-map-close">×</button></header>
-        <TownMap target={travel} onWalk={() => { setTravel(null); setArrived(null); }} />
+        <nav className="town-mapviews" aria-label="地图视图">
+          {(Object.keys(MAP_VIEW_LABEL) as MapView[]).map(v => <button key={v} className={mapView === v ? 'on' : ''} aria-pressed={mapView === v}
+            onClick={() => setMapView(v)} data-testid="town-map-view" data-view={v}>{MAP_VIEW_LABEL[v]}</button>)}
+        </nav>
+        <TownMap target={travel} view={mapView} visited={visited} onWalk={() => { setTravel(null); setArrived(null); }} />
         <div className="town-dests">
+          <small>老镇</small>
           {DEST_ORDER.map(d => <button key={d} className={`tea-btn ${d === 'shop' ? 'primary' : ''} dest-${d}`} onClick={() => go(d)}
             data-testid={`town-map-destination-${d}`}>{DEST_LABEL[d]}</button>)}
+          <small>商圈据点</small>
+          {SITE_IDS.map(d => <button key={d} className={`tea-btn dest-site ${visited.includes(d) ? 'done' : ''}`} onClick={() => go(d)}
+            data-testid={`town-map-destination-${d}`}>{visited.includes(d) ? '✓ ' : ''}{DEST_LABEL[d]}</button>)}
         </div>
       </div>}
 
@@ -225,27 +287,40 @@ export function TownGame() {
           ? <button className="tea-btn primary" onClick={() => enter('shop')} data-testid="town-enter-shop">
             进{['街角奶茶', '霓虹奶茶', '夜城茶饮旗舰'][(home?.shop.level ?? 1) - 1] ?? '奶茶店'}{!touch && <kbd>E</kbd>}</button>
           : <button className="tea-btn" onClick={() => enter('recruit')} data-testid="town-recruit">
-            招帮手 <small>可选</small>{!touch && <kbd>E</kbd>}</button>}
+            进雇佣大厅 <small>可选</small>{!touch && <kbd>E</kbd>}</button>}
       </div>}
 
-      {place === 'recruit' && home && <section className="tea-panel town-recruit" aria-label="广场招募">
-        <header><b>广场招募</b><span>可选 0–2 人 · 短班工资</span></header>
-        <div className="tea-cards">
-          {c.pool.map(w => {
-            const on = c.team.some(h => h.id === w.id);
-            return <WorkerCard key={w.id} w={w} on={on} onClick={() => c.pick(w.id)} disabled={live || (!on && (!w.enabled || w.remaining <= 0))} />;
-          })}
-        </div>
-        <div className="town-row">
-          <span className="tea-mini">已带 {hires}/2</span>
-          <button className="tea-btn primary" onClick={() => setPlace('map')}>好了，回地图</button>
-        </div>
-      </section>}
+      {place === 'map' && nearSite && !map && !phone && !guided && <SurveyCard id={nearSite} home={home} busy={survey.busy} error={survey.error} onSurvey={() => void doSurvey(nearSite)} />}
+
 
       {touch && !locked && <Joystick />}
       {(hint || c.toast) && <div className="tea-toast" role="status">{hint || c.toast}</div>}
       {c.error && <div className="tea-banner">{c.error}<button onClick={() => void c.load()}>刷新</button></div>}
     </div>
     {phoneUi}
+    {place === 'recruit' && <HiringHall initialTab={hallTab} onClose={() => setPlace('map')} onChanged={syncTea}
+      onShop={id => {
+        // 召回的店员：选入本班（只在 controller 可排名单里时）并带路去奶茶店，不自动营业
+        if (c.pool.some(w => w.id === id) && !c.team.some(t => t.id === id)) c.pick(id);
+        setPlace('map'); go('shop');
+      }} />}
   </div>;
+}
+
+/** 据点考察卡：走到 2.8m 内出现，显式点按钮才请求；奖励/已考察只认服务端。 */
+function SurveyCard({ id, home, busy, error, onSurvey }: { id: SiteId; home: ReturnType<typeof useTeaChapter>['home']; busy: boolean; error: string; onSurvey: () => void }) {
+  const info = TOWN_OPPORTUNITIES.find(o => o.id === id)!;
+  const state = home?.exploration?.opportunities.find(o => o.id === id);
+  const done = !!state && state.visitedAt > 0;
+  const status = !home?.exploration ? 'loading' : busy ? 'busy' : done ? 'done' : error ? 'error' : 'ready';
+  return <section className={`town-survey ${done ? 'done' : ''}`} data-testid="town-survey" data-site={id} data-state={status} aria-label={`${info.name}考察`}>
+    <header><small>{info.district === 'commerce' ? '商业区据点' : '娱乐区据点'}</small><b>{info.name}</b></header>
+    {status === 'loading' && <p>商圈数据加载中，稍后再试</p>}
+    {done && <p className="town-insight">已考察 · {state!.insight || info.insight}</p>}
+    {!done && home?.exploration && <>
+      <p>记录客流与租金，为连锁选址做准备</p>
+      <button className="tea-btn primary" disabled={busy} onClick={onSurvey}>{busy ? '考察中…' : `考察 +${info.reward} 金币`}</button>
+    </>}
+    {error && <p className="tea-hint bad" role="alert">{error}，可重试</p>}
+  </section>;
 }

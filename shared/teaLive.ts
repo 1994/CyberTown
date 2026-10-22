@@ -1,5 +1,6 @@
 import type { TeaFrame, TeaHome, TeaPlan, TeaRole, TeaRun } from './tea.ts';
 import type { TeaMission, TeaWallet } from './teaTown.ts';
+import type { TownExploration } from './townExplore.ts';
 
 export type TeaLesson = 'solo' | 'duo' | 'rush' | 'free' | 'rescue';
 export type TeaChapterStage = 'solo' | 'duo' | 'rush' | 'upgrade' | 'complete';
@@ -13,6 +14,7 @@ export interface TeaChapter {
 }
 
 export interface TeaLiveHome extends TeaHome {
+  exploration?: TownExploration;
   chapter: TeaChapter;
   mission: TeaMission;
   wallet: TeaWallet;

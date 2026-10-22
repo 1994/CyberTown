@@ -10,7 +10,7 @@ import { createSyncQueue } from './syncQueue.ts';
  * SSE 实时同步：服务端每次状态变化推送 {type:'sync', event}，客户端立即拉取最新快照。
  * 断线时浏览器自动重连（retry 1.5s），并用 4 秒轮询兜底，保证 ≤3 秒同步目标在正常网络下达成。
  */
-export function useRealtime(enabled: boolean) {
+export function useRealtime(enabled: boolean, townOwner?: string | null) {
   useEffect(() => {
     if (!enabled) return;
     const token = session.get();
@@ -18,7 +18,7 @@ export function useRealtime(enabled: boolean) {
     const { refresh, setConn, handleEvent } = useGame.getState();
     const sync = createSyncQueue(refresh, handleEvent);
     setConn('connecting');
-    const es = new EventSource(apiURL(`/api/events?token=${encodeURIComponent(token)}&world=2`));
+    const es = new EventSource(apiURL(`/api/events?token=${encodeURIComponent(token)}&world=2${townOwner ? '&town='+encodeURIComponent(townOwner) : ''}`));
     let poll: number | null = null;
     let alive = true;
 
@@ -68,5 +68,5 @@ export function useRealtime(enabled: boolean) {
       window.removeEventListener('offline', markOffline);
       if (poll) clearInterval(poll);
     };
-  }, [enabled]);
+  }, [enabled, townOwner]);
 }

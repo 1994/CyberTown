@@ -90,7 +90,7 @@ test('桌面街区导航：地图分区、真实步行到娱乐/广场/店门与
   const mini = page.getByTestId('minimap');
   await expect(mini.getByText(/商业街|商业区/).first()).toBeVisible();
   await expect(mini.getByText(/娱乐街|娱乐区/).first()).toBeVisible();
-  await expect(mini.getByText('共享广场').first()).toBeVisible();
+  await expect(mini.getByText(/小镇广场|中央广场|共享广场/).first()).toBeVisible();
   await shot(page, '01-desktop-map');
 
   await page.getByTestId('town-map-destination-leisure').click();

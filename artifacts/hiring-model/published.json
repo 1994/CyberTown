@@ -1,0 +1,23 @@
+{
+  "url": "http://127.0.0.1:8897",
+  "health": {
+    "dbReaders": 10,
+    "ok": true,
+    "parallelism": 10,
+    "runtime": "go",
+    "time": 1792658996889,
+    "version": 8
+  },
+  "assets": [
+    {
+      "path": "/assets/index-C3LlmaCz.js",
+      "sha256": "fc6caf811ad1d8592d843a59cf06d695959c23d8484a84ed7d609ba3410ad0f0"
+    },
+    {
+      "path": "/assets/index-D9x3ETve.css",
+      "sha256": "7564fd7351d14e641df22f6aa4f65f17b351ab94a1648de1d594312bb7143f20"
+    }
+  ],
+  "existingDatabase": ".run/tea-final.db",
+  "backup": ".run/tea-before-town-release-20261022.db"
+}

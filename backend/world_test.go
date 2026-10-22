@@ -121,8 +121,8 @@ func TestWorldRejectsInvalidAndFastInputs(t *testing.T) {
 	e.call(t, "/api/world", token, nil)
 	e.clock.Add(200)
 	for _, move := range []map[string]any{
-		{"x": 46, "z": 11, "yaw": 0, "moving": true},
-		{"x": 0, "z": -34, "yaw": 0, "moving": true},
+		{"x": 91, "z": 11, "yaw": 0, "moving": true},
+		{"x": 0, "z": -67, "yaw": 0, "moving": true},
 		{"x": nil, "z": 11, "yaw": 0, "moving": true},
 		{"x": 0, "z": 11, "yaw": 0},
 	} {
@@ -248,6 +248,6 @@ func TestCampusBoundsContractAndOuterStreetMovement(t *testing.T) {
 		assertCode(t, status, body, 200, "")
 	}
 	e.clock.Add(1000)
-	status, body = e.call(t, "/api/world/move", token, map[string]any{"x": 46, "z": 11, "yaw": 0, "moving": true})
+	status, body = e.call(t, "/api/world/move", token, map[string]any{"x": 91, "z": 11, "yaw": 0, "moving": true})
 	assertCode(t, status, body, 400, "BAD_POSITION")
 }

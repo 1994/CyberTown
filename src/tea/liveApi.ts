@@ -7,7 +7,7 @@ import type {
 import { ApiError, session } from '../api.ts';
 import { apiURL } from '../runtime-config.ts';
 
-async function call<T>(method: string, path: string, body?: unknown): Promise<T> {
+export async function teaCall<T>(method: string, path: string, body?: unknown): Promise<T> {
   const token = session.get();
   let res: Response;
   try {
@@ -41,7 +41,10 @@ async function call<T>(method: string, path: string, body?: unknown): Promise<T>
   return data as T;
 }
 
+const call = teaCall;
+
 export const teaLiveApi = {
+  explore: (siteId: string) => call<TeaLiveHome>('POST', '/api/tea/explore', { siteId }),
   home: () => call<TeaLiveHome>('GET', '/api/tea/home'),
   open: (input: TeaOpenSession) =>
     call<TeaSession>('POST', '/api/tea/sessions', input),

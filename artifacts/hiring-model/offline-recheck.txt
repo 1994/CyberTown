@@ -1,0 +1,8 @@
+
+Running 1 test using 1 worker
+
+(node:94723) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 tests/e2e/town-arrival.spec.ts:159:1 › 断网恢复：offline 提示真实、恢复后仍在小镇且不扣费 (17.2s)
+
+  1 passed (20.8s)

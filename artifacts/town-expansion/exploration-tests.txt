@@ -1,0 +1,8 @@
+=== RUN   TestTownExploreHTTPProximityAndRewards
+--- PASS: TestTownExploreHTTPProximityAndRewards (0.02s)
+=== RUN   TestTownExploreChainReadyAndPersistence
+--- PASS: TestTownExploreChainReadyAndPersistence (0.01s)
+=== RUN   TestTownExploreMigrationAndAtomicReward
+--- PASS: TestTownExploreMigrationAndAtomicReward (0.01s)
+PASS
+ok  	github.com/1994/boss-works-for-me/backend	0.601s

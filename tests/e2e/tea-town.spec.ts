@@ -1,4 +1,5 @@
 import { test, expect, type Page } from '@playwright/test';
+import { prepareTrainedTownClones } from './town-test-fixtures.ts';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import type { TeaSession, TeaLiveHome } from '../../shared/teaLive.ts';
 
@@ -73,10 +74,11 @@ test('大地图救店：手机可暂缓→不招募独自赚钱→回地图查�
 test('手机自由动线：广场可选招募两人→步行奶茶小镇→同事自动赚金币',async({page})=>{
  test.setTimeout(150_000);await page.setViewportSize({width:390,height:844});await page.emulateMedia({reducedMotion:'reduce'});
  const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));await enter(page,'mei');await accept(page);
- await page.getByTestId('town-go-recruit').click();await expect(page.getByTestId('town-recruit')).toBeVisible({timeout:20_000});await page.getByTestId('town-recruit').click();
- await expect(page.getByRole('region',{name:'广场招募'})).toBeVisible();await snap(page,'08-mobile-recruit');
- for(const name of ['老王','小李'])await page.locator('.tea-card').filter({hasText:name}).locator('.tea-card-main').click();
- await page.getByRole('button',{name:'好了，回地图',exact:true}).click();await phone(page);await walkShop(page);await snap(page,'09-mobile-prep');await contained(page);
+ await page.getByRole('button',{name:'收起手机',exact:true}).click();
+ await prepareTrainedTownClones(page);
+ await phone(page);await walkShop(page);
+ for (const id of ['demo-wang','demo-li']) await page.getByTestId(`tea-staff-${id}`).click();
+ await snap(page,'09-mobile-prep');await contained(page);
  const opened=await open(page);expect(opened.run.workers).toHaveLength(3);
  await page.getByRole('button',{name:'x2',exact:true}).click();
  await expect(page.locator('.tea-report')).toBeVisible({timeout:50_000});const ended=await current(page,opened.id);expect(ended.commands).toHaveLength(0);expect(ended.run.result.completed).toBe(20);await snap(page,'10-mobile-report');

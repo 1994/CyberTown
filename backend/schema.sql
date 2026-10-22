@@ -188,3 +188,46 @@ CREATE TABLE IF NOT EXISTS tea_business_progress (
  regular_best INTEGER NOT NULL DEFAULT 0,
  flagship_best INTEGER NOT NULL DEFAULT 0
 );
+
+-- Optional district scouting, with one reward per player and site.
+CREATE TABLE IF NOT EXISTS town_explorations (
+ player_id TEXT NOT NULL REFERENCES players(id) ON DELETE CASCADE,
+ site_id TEXT NOT NULL, visited_at INTEGER NOT NULL,
+ PRIMARY KEY(player_id,site_id)
+);
+
+CREATE TABLE IF NOT EXISTS town_profiles (
+ player_id TEXT PRIMARY KEY REFERENCES players(id) ON DELETE CASCADE,
+ level INTEGER NOT NULL DEFAULT 1
+);
+CREATE TABLE IF NOT EXISTS town_clone_demand (
+ source_id TEXT PRIMARY KEY, hires INTEGER NOT NULL DEFAULT 0
+);
+CREATE TABLE IF NOT EXISTS town_clones (
+ owner_id TEXT NOT NULL REFERENCES players(id) ON DELETE CASCADE,
+ source_id TEXT NOT NULL, xp INTEGER NOT NULL DEFAULT 0,
+ hired_price INTEGER NOT NULL, hired_at INTEGER NOT NULL,
+ PRIMARY KEY(owner_id,source_id)
+);
+CREATE TABLE IF NOT EXISTS town_jobs (
+ id TEXT PRIMARY KEY, owner_id TEXT NOT NULL REFERENCES players(id) ON DELETE CASCADE,
+ source_id TEXT NOT NULL, kind TEXT NOT NULL,
+ started_at INTEGER NOT NULL, ends_at INTEGER NOT NULL,
+ status TEXT NOT NULL DEFAULT 'active',
+ reward INTEGER NOT NULL, xp INTEGER NOT NULL, duration_ms INTEGER NOT NULL,
+ earned INTEGER NOT NULL DEFAULT 0, cycles INTEGER NOT NULL DEFAULT 0,
+ FOREIGN KEY(owner_id,source_id) REFERENCES town_clones(owner_id,source_id) ON DELETE CASCADE
+);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_town_clone_active_job ON town_jobs(owner_id,source_id) WHERE status='active';
+
+-- Transferable employee contracts; closed listings are immutable trade receipts.
+CREATE TABLE IF NOT EXISTS town_employee_market (
+ id TEXT PRIMARY KEY, seller_id TEXT NOT NULL REFERENCES players(id) ON DELETE CASCADE,
+ source_id TEXT NOT NULL, request_key TEXT NOT NULL, data TEXT NOT NULL,
+ price INTEGER NOT NULL CHECK(price BETWEEN 10 AND 100000), xp INTEGER NOT NULL,
+ status TEXT NOT NULL DEFAULT 'active' CHECK(status IN ('active','sold','cancelled')),
+ buyer_id TEXT REFERENCES players(id) ON DELETE CASCADE,
+ listed_at INTEGER NOT NULL, closed_at INTEGER NOT NULL DEFAULT 0,
+ UNIQUE(seller_id,request_key)
+);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_town_employee_listing ON town_employee_market(seller_id,source_id) WHERE status='active';

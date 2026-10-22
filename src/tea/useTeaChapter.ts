@@ -253,11 +253,11 @@ export function useTeaChapter() {
       : frame.cashierQueue > 0 ? '点前台，接待一批客人' : lesson === 'solo' ? '等第一位客人进店' : '同事会自动接活'
     : lesson === 'rescue' ? home?.business?.goal ?? (home?.mission.status === 'completed' ? '小店重新开张，继续自由经营' : '撑过这一班，让小店重新有收入')
       : home?.chapter.stage === 'upgrade' ? '用收益为小店换上新招牌'
-      : view === 'ending' ? home?.shop.level === 3 ? '主线完成，旗舰店开张' : '第一章完成，同事接管日常'
+      : view === 'ending' ? home?.shop.level === 3 ? '首店篇完成，继续探索商圈' : '第一章完成，同事接管日常'
         : lesson === 'solo' ? '独自做出第一杯奶茶'
           : lesson === 'duo' ? '招位同事，替你自动制作'
             : lesson === 'rush' ? selected.length < 2 ? '再招一位同事，接管前台' : '撑过高峰，完成72杯'
-              : home?.shop.level === 3 ? '主线完成，自由经营' : '升级到夜城茶饮旗舰';
+              : home?.shop.level === 3 ? '首店篇完成，继续探索商圈' : '升级到夜城茶饮旗舰';
   useTeaAudio({ view: outside ? 'street' : view === 'ending' ? 'report' : view, run, frame, shopLevel: home?.shop.level ?? 0, teamKey: selected.join('|') });
 
   return { home, business: home?.business, error, toast, busy, view, lesson, goal, hiresNeeded, team, pool, roles, stock, strategy, totalCost, problems,

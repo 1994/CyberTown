@@ -1,0 +1,6 @@
+[
+  {"id":"west-market","name":"西街集市","district":"commerce","x":-64,"z":-12,"reward":30,"insight":"客流稳定、租金较低，适合规划首家分店。"},
+  {"id":"river-dock","name":"河港商埠","district":"commerce","x":-62,"z":42,"reward":30,"insight":"通勤与批发客多，适合高周转门店。"},
+  {"id":"star-park","name":"星光乐园","district":"leisure","x":64,"z":-12,"reward":30,"insight":"夜间客流高，适合娱乐与餐饮联动。"},
+  {"id":"river-walk","name":"滨河步道","district":"leisure","x":62,"z":42,"reward":30,"insight":"游客停留久，适合休闲体验与品牌展示。"}
+]

@@ -1,0 +1,146 @@
+/* 雇佣大厅：黄青霓虹招聘中心。桌面三栏（候选 / 详情 / 我的员工），触屏分页：列表 → 详情，员工独立页签。 */
+.hall-wrap { position: absolute; inset: 0; z-index: 32; display: grid; place-items: center; padding: 16px; background: rgba(3, 4, 10, 0.6); backdrop-filter: blur(3px); }
+.hall {
+  --tea-bg: rgba(8, 10, 18, 0.9); --tea-line: rgba(62, 240, 255, 0.28); --tea-cyan: #3ef0ff; --tea-yellow: #ffd400; --tea-red: #ff3b5c; --tea-text: #e8f4ff; --tea-dim: #8d9bb8;
+  width: min(1180px, 100%); height: min(760px, calc(100dvh - 32px)); display: flex; flex-direction: column; gap: 10px; padding: 14px 16px;
+  color: var(--tea-text); background: linear-gradient(160deg, #0d1426f5, #070a14fa); border: 1px solid var(--tea-line); border-top: 3px solid var(--tea-yellow);
+  box-shadow: 0 30px 80px #000c, 0 0 60px rgba(255, 212, 0, 0.08); font: 14px/1.45 system-ui, -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  animation: hall-in 0.28s ease-out;
+}
+.hall:focus { outline: none; }
+.hall button { font: inherit; color: inherit; cursor: pointer; }
+.hall button:disabled { cursor: not-allowed; opacity: 0.45; }
+@keyframes hall-in { from { transform: translateY(14px) scale(0.99); opacity: 0; } }
+.hall-top { display: flex; align-items: center; gap: 12px; }
+.hall-title { display: grid; }
+.hall-title small { color: var(--tea-dim); font-size: 11px; letter-spacing: 0.08em; }
+.hall-title b { font-size: 20px; color: var(--tea-yellow); text-shadow: 0 0 16px rgba(255, 212, 0, 0.45); }
+.hall-tabs { display: flex; gap: 4px; margin-left: 8px; }
+.hall-tabs button { min-height: 38px; padding: 4px 14px; border: 1px solid rgba(255, 255, 255, 0.14); background: rgba(255, 255, 255, 0.04); color: var(--tea-dim); }
+.hall-tabs button.on { border-color: var(--tea-cyan); color: var(--tea-cyan); background: rgba(62, 240, 255, 0.1); }
+.hall-tabs em { font-style: normal; margin-left: 4px; color: var(--tea-yellow); }
+.hall-coins { margin-left: auto; display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; border-left: 2px solid var(--tea-yellow); background: rgba(255, 212, 0, 0.08); color: var(--tea-yellow); font-size: 17px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.hall-success { margin: 0; padding: 8px 12px; color: #04121a; background: #7dffb0; font-weight: 600; animation: hall-in 0.25s ease-out; }
+.hall-error { margin: 0; padding: 8px 12px; display: flex; gap: 10px; align-items: center; color: #ffd6dd; background: rgba(255, 59, 92, 0.15); border: 1px solid var(--tea-red); }
+.hall-error button { margin-left: auto; border: 1px solid currentColor; background: none; padding: 2px 10px; }
+
+.hall-body { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(260px, 1fr) minmax(300px, 1.1fr) minmax(300px, 1.1fr); gap: 12px; }
+.hall-body > section { min-height: 0; overflow-y: auto; scrollbar-width: thin; padding: 10px; background: rgba(255, 255, 255, 0.025); border: 1px solid rgba(255, 255, 255, 0.07); }
+.hall-tools { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 8px; }
+.hall-tools button { min-height: 32px; padding: 2px 10px; font-size: 12px; border: 1px solid rgba(255, 255, 255, 0.14); background: none; color: var(--tea-dim); border-radius: 16px; }
+.hall-tools button.on { border-color: var(--tea-yellow); color: var(--tea-yellow); }
+.hall-tools select { margin-left: auto; min-height: 32px; background: #0d1426; color: var(--tea-text); border: 1px solid rgba(255, 255, 255, 0.14); }
+.hall-list { margin: 0; padding: 0; list-style: none; display: grid; gap: 6px; }
+.hall-cand { width: 100%; display: grid; grid-template-columns: auto 1fr auto; gap: 10px; align-items: center; padding: 8px 10px; text-align: left; border: 1px solid rgba(255, 255, 255, 0.08); background: rgba(255, 255, 255, 0.03); transition: border-color 0.15s, transform 0.15s; }
+.hall-cand:hover { border-color: rgba(62, 240, 255, 0.5); transform: translateX(2px); }
+.hall-cand.on { border-color: var(--tea-cyan); background: rgba(62, 240, 255, 0.08); box-shadow: inset 3px 0 0 var(--tea-cyan); }
+.hall-cand.owned { opacity: 0.6; }
+.hall-cand-main { display: grid; min-width: 0; }
+.hall-cand-main b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hall-cand-main small, .hall-cand-price small { color: var(--tea-dim); font-size: 11px; }
+.hall-cand-price { display: grid; justify-items: end; }
+.hall-cand-price b { color: var(--tea-yellow); font-size: 17px; font-variant-numeric: tabular-nums; }
+.hall-cand-price em { font-style: normal; color: #7dffb0; font-size: 12px; }
+.hall-face { flex: none; display: grid; place-items: center; border-radius: 50%; object-fit: cover; border: 2px solid rgba(255, 255, 255, 0.2); color: #0a141d; font-weight: 800; }
+
+.hall-detail { display: grid; align-content: start; gap: 12px; }
+.hall-detail.empty { place-items: center; color: var(--tea-dim); }
+.hall-back { display: none; justify-self: start; border: 0; background: none; color: var(--tea-cyan); min-height: 36px; }
+.hall-detail > header { display: flex; gap: 14px; align-items: center; }
+.hall-detail > header div { display: grid; }
+.hall-detail > header b { font-size: 22px; }
+.hall-detail > header span { color: var(--tea-cyan); font-size: 13px; }
+.hall-demo { font-style: normal; font-size: 10px; margin-left: 6px; padding: 0 4px; border: 1px solid var(--tea-dim); color: var(--tea-dim); }
+.hall-stats { display: grid; gap: 6px; }
+.hall-stats span { display: grid; grid-template-columns: 36px 1fr 28px; gap: 8px; align-items: center; font-size: 12px; }
+.hall-stats em { font-style: normal; color: var(--tea-dim); }
+.hall-stats b { height: 8px; background: rgba(255, 255, 255, 0.08); }
+.hall-stats i { display: block; height: 100%; background: linear-gradient(90deg, var(--tea-cyan), var(--tea-yellow)); }
+.hall-stats small { text-align: right; font-variant-numeric: tabular-nums; }
+.hall-facts { display: grid; grid-template-columns: auto 1fr; gap: 5px 14px; margin: 0; padding: 10px 12px; background: rgba(255, 255, 255, 0.04); border-left: 3px solid var(--tea-yellow); }
+.hall-facts dt { color: var(--tea-dim); font-size: 12px; }
+.hall-facts dd { margin: 0; text-align: right; font-variant-numeric: tabular-nums; }
+.hall-facts dd.price { color: var(--tea-yellow); font-weight: 800; font-size: 18px; }
+.hall-ladder { margin: 0; padding: 0; list-style: none; display: grid; gap: 4px; }
+.hall-ladder li { display: flex; gap: 10px; align-items: baseline; padding: 6px 10px; font-size: 12px; background: rgba(255, 255, 255, 0.03); color: var(--tea-dim); }
+.hall-ladder li b { color: var(--tea-text); min-width: 64px; }
+.hall-ladder li.now { border-left: 3px solid var(--tea-cyan); color: var(--tea-text); }
+.hall-hire { min-height: 50px; font-size: 16px; }
+.hall-owned { margin: 0; padding: 10px; text-align: center; color: #7dffb0; border: 1px dashed rgba(125, 255, 176, 0.4); }
+
+.hall-staff h3 { margin: 0 0 8px; font-size: 15px; }
+.hall-staff h3 em { font-style: normal; color: var(--tea-yellow); margin-left: 4px; font-size: 13px; }
+.hall-staff ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 8px; }
+.hall-clone { display: grid; gap: 6px; padding: 10px; background: rgba(255, 255, 255, 0.035); border: 1px solid rgba(255, 255, 255, 0.08); }
+.hall-clone.fresh { border-color: #7dffb0; box-shadow: 0 0 18px rgba(125, 255, 176, 0.25); animation: hall-in 0.4s ease-out; }
+.hall-clone > header { display: flex; gap: 10px; align-items: center; }
+.hall-clone > header div { display: grid; min-width: 0; }
+.hall-clone > header > em { margin-left: auto; font-style: normal; font-size: 11px; padding: 1px 8px; border-radius: 10px; border: 1px solid rgba(255, 255, 255, 0.2); color: var(--tea-dim); white-space: nowrap; }
+.hall-clone > header > em.ready { border-color: #7dffb0; color: #7dffb0; }
+.hall-clone > header > em.out { border-color: #ffb347; color: #ffb347; }
+.hall-lv { font-size: 11px; color: var(--tea-dim); }
+.hall-lv.lv2 { color: var(--tea-cyan); }
+.hall-lv.lv3 { color: var(--tea-yellow); }
+.hall-xp { position: relative; height: 14px; background: rgba(255, 255, 255, 0.06); }
+.hall-xp i { position: absolute; inset: 0 auto 0 0; background: linear-gradient(90deg, #7dffb0, var(--tea-cyan)); transition: width 0.4s; }
+.hall-xp small { position: relative; display: block; text-align: center; font: 600 10px/14px system-ui; color: #fff; text-shadow: 0 1px 2px #000; }
+.hall-job { margin: 0; font-size: 12px; color: var(--tea-dim); }
+.hall-job b { color: var(--tea-yellow); font-variant-numeric: tabular-nums; }
+.hall-jobs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; }
+.hall-jobs .tea-btn { min-height: 42px; padding: 4px 2px; font-size: 12px; display: grid; justify-items: center; }
+.hall-jobs .tea-btn small { margin: 0; font-size: 10px; }
+.hall-jobs .tea-btn.on { border-color: #ffb347; color: #ffb347; opacity: 1; }
+.hall-lock { margin: 0; font-size: 11px; color: #ffb347; }
+
+.hall-confirm-wrap { position: absolute; inset: 0; z-index: 2; display: grid; place-items: center; padding: 16px; background: rgba(3, 4, 10, 0.5); }
+.hall-confirm header { display: flex !important; gap: 12px; align-items: center; }
+.hall-confirm header div { display: grid; }
+.hall-confirm header b { font-size: 20px; }
+.hall-note { margin: 0; font-size: 12px; color: var(--tea-dim); }
+
+@media (max-width: 900px) {
+  .hall-wrap { padding: 0; place-items: stretch; }
+  .hall { width: 100%; height: 100dvh; padding: calc(env(safe-area-inset-top, 0px) + 10px) 12px calc(env(safe-area-inset-bottom, 0px) + 10px); }
+  .hall-top { flex-wrap: wrap; gap: 8px; }
+  .hall-tabs { order: 3; width: 100%; margin: 0; }
+  .hall-tabs button { flex: 1; }
+  .hall-coins { margin-left: auto; }
+  .hall-body { display: block; overflow-y: auto; }
+  .hall-body > section { border: 0; background: none; padding: 0; overflow: visible; }
+  /* 触屏：候选页只显示列表；选中后只显示详情；员工页只显示员工 */
+  .hall-body.tab-candidates .hall-staff, .hall-body.tab-staff .hall-candidates, .hall-body.tab-staff .hall-detail { display: none; }
+  .hall-body.tab-candidates:not(.has-detail) .hall-detail { display: none; }
+  .hall-body.tab-candidates.has-detail .hall-candidates { display: none; }
+  .hall-back { display: block; }
+}
+@media (max-height: 500px) {
+  .hall-detail > header b { font-size: 18px; }
+  .hall-hire { min-height: 44px; }
+}
+@media (prefers-reduced-motion: reduce) { .hall, .hall-success, .hall-clone.fresh { animation: none; } .hall-xp i { transition: none; } }
+
+/* 交易市场 / 挂牌 */
+.hall-market { grid-template-columns: 1.3fr 1fr !important; }
+.hall-market h3 { margin: 0 0 8px; font-size: 15px; }
+.hall-market h3 small { margin-left: 6px; color: var(--tea-dim); font-size: 11px; font-weight: 400; }
+.hall-listing { display: grid; grid-template-columns: auto 1fr auto; gap: 10px; align-items: center; padding: 8px 10px; border: 1px solid rgba(255, 255, 255, 0.08); background: rgba(255, 255, 255, 0.03); }
+.hall-listing .hall-cand-price { gap: 4px; }
+.hall-listing .tea-btn { min-height: 38px; padding: 4px 14px; font-size: 12px; }
+.hall-cand-main i.hall-lv { font-style: normal; margin-left: 4px; }
+.hall-trades { margin: 0; padding: 0; list-style: none; display: grid; gap: 6px; }
+.hall-trades li { display: flex; align-items: center; gap: 8px; padding: 6px 8px; background: rgba(255, 255, 255, 0.03); }
+.hall-trades li span { display: grid; min-width: 0; margin-right: auto; }
+.hall-trades li small { color: var(--tea-dim); font-size: 11px; }
+.hall-trades li[data-status="sold"] small { color: #7dffb0; }
+.hall-trades em { font-style: normal; font-size: 11px; color: var(--tea-dim); }
+.hall-trades .tea-btn { min-height: 36px; padding: 4px 12px; font-size: 12px; }
+.hall-clone.listed { border-color: rgba(177, 139, 255, 0.5); }
+.hall-clone > header > em.listed { border-color: #b18bff; color: #d6c6ff; }
+.hall-clone-acts { display: flex; gap: 6px; }
+.hall-clone-acts .tea-btn { flex: 1; min-height: 40px; font-size: 12px; padding: 4px 8px; }
+.hall-price-input { display: grid; gap: 4px; font-size: 12px; color: var(--tea-dim); }
+.hall-price-input input { min-height: 44px; padding: 0 12px; font: 700 18px system-ui; color: var(--tea-yellow); background: #0d1426; border: 1px solid var(--tea-line); }
+@media (max-width: 900px) {
+  .hall-market { display: block !important; }
+  .hall-market > section + section { margin-top: 14px; }
+}

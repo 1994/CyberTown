@@ -74,17 +74,20 @@ func teaBusiness(tx *sql.Tx, player, day string, shop TeaShop, mission TeaMissio
 			b.UpgradeReason = "已解锁旗舰扩建"
 		}
 	default:
-		b.Stage, b.Title, b.Goal, b.Reward = "flagship", "招牌热场", "正式营业盈利并完成36杯", "完成经营主线 · 自由挑战纪录"
+		b.Stage, b.Title, b.Goal, b.Reward = "flagship", "招牌热场", "正式营业盈利并完成36杯", "完成首店篇 · 准备连锁布局"
 		b.Progress, b.Target = flagship, 36
 		b.UpgradeReason = "门店已达最高等级"
 		if flagship >= 36 || legacyPassed {
-			b.Stage, b.Title, b.Goal, b.Reward = "complete", "小镇招牌店", "经营主线完成，继续挑战出杯纪录", "旗舰店已开张"
+			b.Stage, b.Title, b.Goal, b.Reward = "complete", "小镇招牌店", "首店篇完成，探索新商圈，准备连锁布局", "首店旗舰已开张"
 		}
 	}
 	return b, nil
 }
 
 func teaBusinessRecord(tx *sql.Tx, player string, r TeaRun) error {
+	if err := townRecordService(tx, player, r); err != nil {
+		return err
+	}
 	if r.Mode != "official" || r.Challenge.RuleVersion != "tea.4" || r.Result.Revenue <= 0 || r.Result.Profit+r.Result.Bonus <= 0 {
 		return nil
 	}

@@ -13,11 +13,12 @@ import (
 )
 
 // Campus extent is mirrored by shared/world.ts and checked by the map contract test.
-const worldMinX, worldMaxX, worldMinZ, worldMaxZ = -45, 45, -33, 33
+const worldMinX, worldMaxX, worldMinZ, worldMaxZ = -90, 90, -66, 66
 
 // World positions and expression bubbles are ephemeral. Wallet rewards and
 // pair cooldowns are transactional SQLite records, and survive restarts.
 type WorldPlayer struct {
+	TownID     string  `json:"townId,omitempty"`
 	ID         string  `json:"id"`
 	X          float64 `json:"x"`
 	Z          float64 `json:"z"`
@@ -45,7 +46,7 @@ func (a *App) ensureWorldLocked(id string) WorldPlayer {
 		// the benches along z=9; only new world entries use this spawn.
 		z = 10.5 + float64((n/7)%3)
 	}
-	p := WorldPlayer{ID: id, X: x, Z: z, UpdatedAt: a.Game.Now()}
+	p := WorldPlayer{ID: id, TownID: a.townOwner[id], X: x, Z: z, UpdatedAt: a.Game.Now()}
 	a.world[id] = p
 	return p
 }
@@ -186,6 +187,10 @@ func (a *App) highfiveWorld(id, target string) (int64, error) {
 		return 0, fail(409, "OFFLINE", "对方暂时离开了")
 	}
 	p, q := a.ensureWorldLocked(id), a.ensureWorldLocked(target)
+	if p.TownID != q.TownID {
+		a.mu.Unlock()
+		return 0, fail(403, "TOWN_OTHER", "先进入同一座小镇再互动")
+	}
 	if math.Hypot(p.X-q.X, p.Z-q.Z) > 4 {
 		a.mu.Unlock()
 		return 0, fail(409, "TOO_FAR", "走近一点再碰杯")
@@ -226,6 +231,10 @@ func (a *App) handleWorld(w http.ResponseWriter, r *http.Request, id string) err
 	case "/api/world/focus":
 		target := stringField(body, "targetId")
 		a.mu.Lock()
+		if a.townOwner[id] != a.townOwner[target] {
+			a.mu.Unlock()
+			return fail(403, "TOWN_OTHER", "对方在另一座小镇")
+		}
 		if target == "" || !a.onlineLocked(target) {
 			a.mu.Unlock()
 			return fail(409, "OFFLINE", "对方暂时离开了")

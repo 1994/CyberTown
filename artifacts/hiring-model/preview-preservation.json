@@ -1,0 +1,137 @@
+{
+  "preview": "http://127.0.0.1:8897",
+  "allExistingRecordsPreserved": true,
+  "newTablesPresent": [
+    "town_profiles",
+    "town_clones",
+    "town_jobs",
+    "town_employee_market",
+    "town_explorations"
+  ],
+  "tables": {
+    "colleagues": {
+      "rows": 11,
+      "sha256": "32bcf8b039b136d999c3e7fb3f519f4b3ff405cda0991a6e12ee7d10265c249f"
+    },
+    "identity_bindings": {
+      "rows": 4,
+      "sha256": "b848e32f8a8d4146288c747f60a2fd950dd9fd0673371d38b28791d14154c983"
+    },
+    "identity_sessions": {
+      "rows": 7,
+      "sha256": "95c74aac8f9e54c40c96b5a2e8cfa70ac787d195fbd6dd88158c67a4d162d283"
+    },
+    "ledger": {
+      "rows": 17,
+      "sha256": "f088a08700bc0396b9d363fd2b25cbb7949c8550f11bafeae90e52bb54e7832a"
+    },
+    "messages": {
+      "rows": 2,
+      "sha256": "e6456f6517a710f571248f5b150c6b553ebd140b7b2dbfcd70fa3bfd8494fc77"
+    },
+    "meta": {
+      "rows": 2,
+      "sha256": "af19e15f540b1030335476d15c728710c9fe003a589962633885aeeb0a43409c"
+    },
+    "player_careers": {
+      "rows": 4,
+      "sha256": "e84cd60001d3cf7d0eb97e7fc0c8574f1fdc2c8c1eb864f2599ce0364d784867"
+    },
+    "player_items": {
+      "rows": 0,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "player_styles": {
+      "rows": 4,
+      "sha256": "2e96ddda967146edd3a00d6a021207274740587da0bef3828c68fbebd8dc78a2"
+    },
+    "player_years": {
+      "rows": 4,
+      "sha256": "d1f83e9d9790c1e7e7d856651f6021ec00860739741ae876db7e1ec3b90f86ea"
+    },
+    "players": {
+      "rows": 4,
+      "sha256": "067a4791a346665753bad759692a6679f4cb200e80a4fd1ad63145b9bd61f9c3"
+    },
+    "project_runs": {
+      "rows": 0,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "sessions": {
+      "rows": 7,
+      "sha256": "a3adc07f3b9d22bdee77cacd7364c6ccfe5a689d2c94e069437354acd95c2ff6"
+    },
+    "social_rewards": {
+      "rows": 0,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "tea_avatars": {
+      "rows": 4,
+      "sha256": "58aa05c7ba9b19205201073c48f4ae67ef037e3e48204ae95a55e3c6bb45abc3"
+    },
+    "tea_business_progress": {
+      "rows": 0,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "tea_chapters": {
+      "rows": 2,
+      "sha256": "9471b0c29f814dbb99a0b05f7213b2c30f1ad3209fd14204b4ecdec3f1945c15"
+    },
+    "tea_jobs": {
+      "rows": 1,
+      "sha256": "7c1b8c1457d85bd3ff5cc2647766450b9e00b14aefb199294ee9e44160fb5984"
+    },
+    "tea_live_jobs": {
+      "rows": 0,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "tea_missions": {
+      "rows": 0,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "tea_runs": {
+      "rows": 6,
+      "sha256": "9e7755be9f4cc6bb3a5f2663890184191aedb719b705bf6c9b93cd873538bd2b"
+    },
+    "tea_sessions": {
+      "rows": 2,
+      "sha256": "900d343395952f713cbb6380c3f6a9481bcd5c0311df9ae746aae120f0137978"
+    },
+    "tea_shops": {
+      "rows": 4,
+      "sha256": "fbb7301d63b4f35ec0dc8ed77d92a537ccec77f8a60a6b9d900d0be9cd8b3414"
+    },
+    "town_clone_demand": {
+      "rows": 0,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "town_clones": {
+      "rows": 0,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "town_employee_market": {
+      "rows": 0,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "town_explorations": {
+      "rows": 0,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "town_jobs": {
+      "rows": 0,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "town_profiles": {
+      "rows": 0,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "trades": {
+      "rows": 0,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "year_awards": {
+      "rows": 0,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    }
+  }
+}

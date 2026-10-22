@@ -1,0 +1,78 @@
+{
+  "realWalking": true,
+  "captures": [
+    {
+      "id": "west-market",
+      "coins": 2030,
+      "visited": 1
+    },
+    {
+      "id": "river-dock",
+      "coins": 2060,
+      "visited": 2
+    },
+    {
+      "id": "star-park",
+      "coins": 2090,
+      "visited": 3
+    },
+    {
+      "id": "river-walk",
+      "coins": 2120,
+      "visited": 4
+    }
+  ],
+  "before": 2000,
+  "after": 2120,
+  "mission": "offered",
+  "saved": {
+    "visited": 4,
+    "total": 4,
+    "rewardTotal": 120,
+    "firstShopComplete": false,
+    "chainReady": false,
+    "opportunities": [
+      {
+        "id": "west-market",
+        "name": "西街集市",
+        "district": "commerce",
+        "x": -64,
+        "z": -12,
+        "reward": 30,
+        "insight": "客流稳定、租金较低，适合规划首家分店。",
+        "visitedAt": 1792658617270
+      },
+      {
+        "id": "river-dock",
+        "name": "河港商埠",
+        "district": "commerce",
+        "x": -62,
+        "z": 42,
+        "reward": 30,
+        "insight": "通勤与批发客多，适合高周转门店。",
+        "visitedAt": 1792658633781
+      },
+      {
+        "id": "star-park",
+        "name": "星光乐园",
+        "district": "leisure",
+        "x": 64,
+        "z": -12,
+        "reward": 30,
+        "insight": "夜间客流高，适合娱乐与餐饮联动。",
+        "visitedAt": 1792658670446
+      },
+      {
+        "id": "river-walk",
+        "name": "滨河步道",
+        "district": "leisure",
+        "x": 62,
+        "z": 42,
+        "reward": 30,
+        "insight": "游客停留久，适合休闲体验与品牌展示。",
+        "visitedAt": 1792658684305
+      }
+    ]
+  },
+  "errors": []
+}

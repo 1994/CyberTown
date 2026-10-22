@@ -1,0 +1,15 @@
+
+> boss-works-for-me@1.0.0 test:collision
+> node scripts/check-collision.ts
+
+✔ spatial broad phase exactly matches full scan across the entire map and supported radii (50.391541ms)
+✔ broad phase preserves contact edges, bucket seams and nonfinite input behavior (14.571166ms)
+✔ repeated character shapes share immutable buffers without changing topology or UVs (1.551666ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 69.664625

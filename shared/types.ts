@@ -139,6 +139,7 @@ export type EmoteKind = 'wave' | 'dance' | 'coffee';
 /** 在线玩家在园区中的位置与社交状态（只包含当前有 SSE 连接的测试身份） */
 export interface WorldPlayer {
   id: string;
+  townId?: string;
   x: number;
   z: number;
   yaw: number;

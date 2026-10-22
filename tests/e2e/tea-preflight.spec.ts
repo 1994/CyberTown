@@ -1,4 +1,5 @@
 import { test, expect, type Page } from '@playwright/test';
+import { prepareTrainedTownClones } from './town-test-fixtures.ts';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import type { TeaSession, TeaLiveHome } from '../../shared/teaLive.ts';
 
@@ -47,16 +48,10 @@ async function dismissArrival(page: Page) {
   }
 }
 async function recruitTwo(page: Page) {
-  await phone(page);
-  await page.getByTestId('town-go-recruit').click();
-  await expect(page.getByTestId('town-recruit')).toBeVisible({ timeout: 20_000 });
-  await page.getByTestId('town-recruit').click();
-  await expect(page.getByRole('region', { name: '广场招募' })).toBeVisible();
-  for (const name of ['老王', '小李']) {
-    await page.locator('.tea-card').filter({ hasText: name }).locator('.tea-card-main').click();
-  }
-  await page.getByRole('button', { name: '好了，回地图', exact: true }).click();
+  // Later business regression uses trained fixtures; natural training has its own UI test.
+  await prepareTrainedTownClones(page);
 }
+
 async function walkShop(page: Page) {
   await phone(page);
   await page.getByTestId('town-go-shop').click();
@@ -64,6 +59,10 @@ async function walkShop(page: Page) {
   await expect(page.getByTestId('town-enter-shop')).toBeVisible({ timeout: 35_000 });
   await page.getByTestId('town-enter-shop').click();
   await expect(page.locator('.tea-prep')).toBeVisible();
+  for (const id of ['demo-wang', 'demo-li']) {
+    const card = page.getByTestId(`tea-staff-${id}`);
+    if (await card.count() && await card.getAttribute('aria-pressed') !== 'true') await card.click();
+  }
 }
 async function confirmOpen(page: Page) {
   const dialog = page.getByTestId('tea-open-confirm');
@@ -224,7 +223,7 @@ test('三段真实经营：20/32/48 客、升级、次数耗尽与主线完成',
   await phone(page);
   const goal = page.getByTestId('town-business-goal');
   await expect(goal).toHaveAttribute('data-stage', 'complete');
-  await expect(goal).toContainText('主线已完成');
+  await expect(goal).toContainText('首店篇完成');
   await snap(page, '07-complete-phone');
   writeFileSync(`${dir}/three-shifts.json`, JSON.stringify({
     demo: 'liu', levels: [lv1.run.challenge.shopLevel, lv2.run.challenge.shopLevel, lv3.run.challenge.shopLevel],

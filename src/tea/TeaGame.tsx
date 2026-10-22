@@ -6,6 +6,8 @@ import { SoundMenu } from '../ui/SoundControl.tsx';
 import type { TeaChapterController } from './useTeaChapter.ts';
 import { TeaScene } from './TeaScene.tsx';
 import { OpenConfirm, ReportDialog } from './TeaDialogs.tsx';
+import { Face } from './HiringHall.tsx';
+import { useTownState } from './townState.ts';
 import '../sound.css';
 import './tea.css';
 
@@ -54,7 +56,9 @@ export function WorkerCard({ w, on, onClick, disabled }: { w: TeaWorker; on: boo
   </div>;
 }
 
-export function TeaGame({ controller: c, onExit, onPhone }: { controller: TeaChapterController; onExit: () => void; onPhone: () => void }) {
+export function TeaGame({ controller: c, onExit, onPhone, onHall }: { controller: TeaChapterController; onExit: () => void; onPhone: () => void; onHall: () => void }) {
+  // 自有分身的职级/经理能力：只作展示，可排员工以 controller pool（服务端：Lv2+、已召回）为准
+  const clones = useTownState(s => s.home?.clones);
   const me = useGame(s => s.snapshot?.me);
   const { home, team, frame, run } = c;
   // 招募在广场完成；店里只有筹备/营业/报告，controller 若仍停在 street 也按筹备呈现
@@ -162,10 +166,26 @@ export function TeaGame({ controller: c, onExit, onPhone }: { controller: TeaCha
       </div>}
       <div className="tea-block">
         {team.map(w => <div key={w.id} className="tea-assign" style={{ '--c': w.color } as React.CSSProperties}>
-          <b>{w.id === self.id ? '你' : w.name}</b><span className="tea-mini">{w.id === self.id ? '半自动 · 指派批次' : '全自动'}</span>
+          <b>{w.id === self.id ? '你' : w.name}</b><span className="tea-mini">{w.id === self.id ? '半自动 · 指派批次'
+            : clones?.find(x => x.id === w.id)?.canManage ? '全自动 · 经理在机动岗自动补位' : '全自动'}</span>
           {team.length > 1 && <div className="tea-seg">{(Object.keys(ROLE) as TeaRole[]).map(r =>
             <button key={r} className={c.roles[w.id] === r ? 'on' : ''} onClick={() => c.setRole(w.id, r)}>{ROLE[r]}</button>)}</div>}
         </div>)}
+      </div>
+      <div className="tea-block tea-staffpick">
+        <h3>带员工入店 <small>0–2 位 · 全自动 · 每班工资</small></h3>
+        {c.pool.length
+          ? <div className="tea-staffrow">{c.pool.map(w => {
+            const on = team.some(t => t.id === w.id);
+            const cl = clones?.find(x => x.id === w.id);
+            return <button key={w.id} className={`tea-staff ${on ? 'on' : ''}`} aria-pressed={on} onClick={() => c.pick(w.id)} data-testid={`tea-staff-${w.id}`}>
+              <Face w={{ name: w.name, color: w.color, avatarUrl: cl?.avatarUrl }} size={34} />
+              <span><b>{w.name}</b><small>{cl ? `Lv${cl.level} ${cl.canManage ? '经理' : '店员'}` : '店员'} · 每班 {w.salary}</small></span>
+            </button>;
+          })}</div>
+          : <div className="tea-staff-empty"><p>还没有可入店的店员（Lv2 且已召回）</p>
+            <button className="tea-btn" onClick={onHall} data-testid="tea-go-hall">去雇佣大厅养成店员</button></div>}
+        {c.pool.length > 0 && <button className="tea-linkbtn" onClick={onHall}>雇佣大厅 ›</button>}
       </div>
       {official && <div className="tea-block tea-grid2">
         <div><h3>备货</h3><div className="tea-seg">{(biz?.stockOptions ?? (rescue ? RESCUE_STOCKS : STOCKS)).map(s => <button key={s} className={`${c.stock === s ? 'on' : ''} ${biz?.recommendedStock === s ? 'rec' : ''}`}
@@ -177,7 +197,7 @@ export function TeaGame({ controller: c, onExit, onPhone }: { controller: TeaCha
         <span>原料 <b>{cost.material}</b></span><span>工资 <b>{cost.wages}</b></span><span>运营 <b>{cost.operating}</b></span>
         <span className={`sum ${c.totalCost > ch.budget || home.wallet.balance < c.totalCost ? 'bad' : ''}`}>预付 <b>{c.totalCost}</b></span>
       </div>}
-      {hires.length === 0 && <p className="tea-hint">没帮手也能开，招人去广场</p>}
+      {hires.length === 0 && <p className="tea-hint">没员工也能开：你半自动接待 + 制作</p>}
       {rescue && home.mission.status === 'offered' && <div className="tea-row tea-mission-gate">
         <button className="tea-btn" disabled={c.busy} onClick={() => void c.acceptMission()} data-testid="town-accept-mission">接任务</button>
       </div>}
@@ -233,8 +253,8 @@ export function TeaGame({ controller: c, onExit, onPhone }: { controller: TeaCha
       onUpgrade={() => void c.upgrade()} onPrep={c.next} onExit={onExit} />}
 
     {view === 'ending' && rescue && <section className="tea-panel tea-report tea-ending">
-      <h2>{lv >= 3 ? '旗舰开张' : '小店焕新'}</h2>
-      <p className="tea-ending-sub">街角奶茶重新开张，回小镇继续探索</p>
+      <h2>{lv >= 3 ? '首店篇完成' : '小店焕新'}</h2>
+      <p className="tea-ending-sub">{lv >= 3 || biz?.stage === 'complete' ? '首店篇完成，继续探索商圈' : '街角奶茶重新开张，回小镇继续探索'}</p>
       <div className="tea-records">
         <span><em>门店</em><b>Lv.{lv}</b>{LEVEL_NAME[lv - 1] ?? ''}</span>
         {home.mission.status === 'completed' && <span><em>救店净赚</em><b>+{home.mission.income}</b>金币</span>}
@@ -251,8 +271,8 @@ export function TeaGame({ controller: c, onExit, onPhone }: { controller: TeaCha
     </section>}
 
     {view === 'ending' && !rescue && <section className="tea-panel tea-report tea-ending">
-      <h2>{lv >= 3 && passed ? '主线完成' : chStage === 'upgrade' ? '正式达标！' : '同事接管日常'}</h2>
-      <p className="tea-ending-sub">{lv >= 3 && passed ? '夜城茶饮旗舰已开张' : chStage === 'upgrade' ? '用这次收益焕新门店，完成第一章' : '从一个人忙，到店自己转起来'}</p>
+      <h2>{lv >= 3 && passed ? '首店篇完成' : chStage === 'upgrade' ? '正式达标！' : '同事接管日常'}</h2>
+      <p className="tea-ending-sub">{lv >= 3 && passed ? '首店篇完成，继续探索商圈' : chStage === 'upgrade' ? '用这次收益焕新门店，完成第一章' : '从一个人忙，到店自己转起来'}</p>
       <div className="tea-records">
         <span><em>独自</em><b>{home.chapter.soloBest}</b>/ {SOLO_ARRIVALS} 位</span>
         <span><em>1 位同事</em><b>{home.chapter.duoBest}</b>/ {DUO_ARRIVALS} 位</span>

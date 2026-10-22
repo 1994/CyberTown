@@ -9,10 +9,11 @@ import { glow, std } from '../scene/materials.ts';
 import { neonText } from '../scene/textures.ts';
 import { LocalPointLight } from '../scene/LocalLights.tsx';
 import { rt } from '../world/runtime.ts';
+import { TOWN_OPPORTUNITIES } from '../../shared/townExplore.ts';
 
 /** 大地图上奶茶小镇的外观状态：由 TownGame 从 home 写入，场景只读。 */
-export const useTownLook = create<{ active: boolean; level: number; mission: TeaMission['status'] | null; target: 'shop' | 'recruit' | null }>(() => ({
-  active: false, level: 1, mission: null, target: null,
+export const useTownLook = create<{ active: boolean; level: number; mission: TeaMission['status'] | null; target: string | null; visited: string[] }>(() => ({
+  active: false, level: 1, mission: null, target: null, visited: [],
 }));
 
 const SHOP = TEA_TOWN_SITES.shop;
@@ -110,8 +111,8 @@ function RecruitStand({ hot }: { hot: boolean }) {
     <group position={[RECRUIT.x - 1.6, 0, RECRUIT.z - 0.4]} rotation-y={Math.PI / 4}>
       <mesh position-y={0.9} material={std('#1a232b', 0.5, 0.5)}><boxGeometry args={[0.1, 1.8, 0.1]} /></mesh>
       <mesh position-y={1.95} material={std('#0b1016', 0.5, 0.4)}><boxGeometry args={[1.5, 0.62, 0.08]} /></mesh>
-      <Neon text="广场招募" color="#3ef0ff" w={1.45} h={0.38} size={170} position={[0, 1.98, 0.05]} />
-      <Neon text="可选 · 0–2 人" color="#ffd166" w={1.2} h={0.2} size={130} position={[0, 1.76, 0.05]} />
+      <Neon text="雇佣大厅" color="#3ef0ff" w={1.45} h={0.38} size={170} position={[0, 1.98, 0.05]} />
+      <Neon text="招员工 · 可选" color="#ffd166" w={1.2} h={0.2} size={130} position={[0, 1.76, 0.05]} />
     </group>
     <Beacon x={RECRUIT.x} z={RECRUIT.z} color="#3ef0ff" hot={hot} />
   </group>;
@@ -135,7 +136,7 @@ function TownGate() {
 }
 
 /** 3D 地面路线：沿当前 rt.path 每隔约 1.1m 放一个箭头，手动行走取消/改道时同步消失或刷新。 */
-const ROUTE_MAX = 90;
+const ROUTE_MAX = 160;
 function TownRoute() {
   const mesh = useMemo(() => {
     const shape = new THREE.Shape();
@@ -155,6 +156,10 @@ function TownRoute() {
     if (now - last.current.at < 0.12 && path === last.current.path && (path?.length ?? 0) === last.current.len) return;
     last.current = { at: now, path, len: path?.length ?? 0 };
     if (!path || !path.length) { mesh.count = 0; return; }
+    // 长路线抽稀：总长超出上限时加大间距，保证整条路都有箭头
+    let total = 0, qx = rt.me.x, qz = rt.me.z;
+    for (const [x, z] of path) { total += Math.hypot(x - qx, z - qz); qx = x; qz = z; }
+    const gap = Math.max(1.1, total / (ROUTE_MAX - 2));
     let n = 0, px = rt.me.x, pz = rt.me.z, carry = 0.9;
     for (const [x, z] of path) {
       const seg = Math.hypot(x - px, z - pz);
@@ -164,7 +169,7 @@ function TownRoute() {
         o.position.set(px + ((x - px) * d) / seg, 0.035, pz + ((z - pz) * d) / seg);
         o.rotation.set(0, yaw + Math.PI, 0);
         o.updateMatrix(); mesh.setMatrixAt(n++, o.matrix);
-        d += 1.1;
+        d += gap;
       }
       carry = d - seg; px = x; pz = z;
     }
@@ -174,8 +179,21 @@ function TownRoute() {
   return <group name="town-route"><primitive object={mesh} /></group>;
 }
 
+/** 商圈据点：地面光圈 + 立牌；已考察转绿并显示 ✓（状态来自服务端 home.exploration）。 */
+function SiteMarker({ id, name, x, z, district, visited, hot }: { id: string; name: string; x: number; z: number; district: string; visited: boolean; hot: boolean }) {
+  const color = visited ? '#7dffb0' : district === 'commerce' ? '#ffb347' : '#b18bff';
+  return <group name={`town-site-${id}`}>
+    <Beacon x={x} z={z} color={color} hot={hot || !visited} />
+    {/* 悬浮立牌：不落地、不占据点 4m 空地 */}
+    <group position={[x, 3.4, z]} rotation-y={Math.PI / 4}>
+      <mesh material={std('#0b1016', 0.5, 0.4)}><boxGeometry args={[2.3, 0.55, 0.06]} /></mesh>
+      <Neon text={visited ? `✓ ${name}` : name} color={color} w={2.2} h={0.48} size={140} position={[0, 0, 0.04]} />
+    </group>
+  </group>;
+}
+
 export function TownLandmarks() {
-  const { level, mission, target } = useTownLook();
+  const { level, mission, target, visited, active } = useTownLook();
   const closing = level <= 1 && mission !== 'completed';
   return <group>
     <TeaShopFacade level={level} closing={closing} />
@@ -183,5 +201,6 @@ export function TownLandmarks() {
     <RecruitStand hot={target === 'recruit'} />
     <TownGate />
     <TownRoute />
+    {active && TOWN_OPPORTUNITIES.map(o => <SiteMarker key={o.id} {...o} visited={visited.includes(o.id)} hot={target === o.id} />)}
   </group>;
 }

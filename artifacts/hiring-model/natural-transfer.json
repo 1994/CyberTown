@@ -1,0 +1,13 @@
+{
+  "naturalTraining": true,
+  "hire": 120,
+  "price": 250,
+  "fee": 13,
+  "proceeds": 237,
+  "xp": 60,
+  "buyerCoins": 1750,
+  "sellerCoins": 2153,
+  "earnedPreserved": 36,
+  "canStaffAfterTransfer": true,
+  "errors": []
+}

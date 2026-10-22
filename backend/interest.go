@@ -91,7 +91,7 @@ func selectInterest(index worldIndex, center WorldPlayer, previous map[string]Wo
 		center = p
 	}
 	pinned, hasPin := index.ByID[focus]
-	hasPin = hasPin && pinned.ID != center.ID
+	hasPin = hasPin && pinned.ID != center.ID && pinned.TownID == center.TownID
 	limit := worldLimit
 	if hasPin {
 		limit--
@@ -102,7 +102,7 @@ func selectInterest(index worldIndex, center WorldPlayer, previous map[string]Wo
 	for x := min.X; x <= max.X; x++ {
 		for z := min.Z; z <= max.Z; z++ {
 			for _, p := range index.Cells[worldCell{x, z}] {
-				if p.ID == center.ID {
+				if p.ID == center.ID || p.TownID != center.TownID {
 					continue
 				}
 				dx, dz := p.X-center.X, p.Z-center.Z
@@ -153,7 +153,13 @@ func (a *App) worldViewLocked(id string, previous map[string]WorldPlayer) ([]Wor
 		focus.ID = ""
 	}
 	view, nearby := selectInterest(buildWorldIndex(players), a.ensureWorldLocked(id), previous, focus.ID)
-	return view, len(players), nearby
+	count := 0
+	for _, p := range players {
+		if p.TownID == a.townOwner[id] {
+			count++
+		}
+	}
+	return view, count, nearby
 }
 
 // Movement writes mark the next 200ms batch instead of broadcasting on each POST.
@@ -250,12 +256,16 @@ func (a *App) flushWorld(tick int) {
 	}
 	a.mu.Unlock()
 	index := buildWorldIndex(all)
+	counts := map[string]int{}
+	for _, p := range all {
+		counts[p.TownID]++
+	}
 	frames := make([]worldFrame, len(jobs))
 	// Amortize scheduling with >=32 viewers per worker; bounded by available CPU.
 	workers := min(32, runtime.GOMAXPROCS(0), max(1, len(jobs)/32))
 	compute := func(start, end int) {
 		for i := start; i < end; i++ {
-			frames[i] = buildWorldFrame(index, jobs[i], tick, now, len(all))
+			frames[i] = buildWorldFrame(index, jobs[i], tick, now, counts[jobs[i].center.TownID])
 		}
 	}
 	if workers == 1 {
@@ -280,7 +290,7 @@ func (a *App) flushWorld(tick int) {
 		}
 		c.view = f.next
 		c.worldReady = true
-		c.onlineCount = len(all)
+		c.onlineCount = counts[a.townOwner[c.player]]
 		c.nearbyCount = f.nearby
 		// A pending old packet is known before encoding. Replace it with the full
 		// current AOI, so dropping a delta cannot strand entered/removed people.

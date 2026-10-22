@@ -51,7 +51,7 @@ export function TownPresence({ myId, ready, collapsed = false }: { myId: string;
   // 引导卡显示时收起名单（同步内部 open，避免父子状态不一致）
   useEffect(() => { if (collapsed) setOpen(false); }, [collapsed]);
   const expanded = open && live && near.length > 0 && !collapsed;
-  const status = conn === 'offline' ? '重连中…' : !live ? '正在进入小镇…' : near.length ? `附近 ${near.length} 位玩家` : '附近暂无其他玩家';
+  const status = conn === 'offline' ? '重连中…' : !live ? '正在进入小镇…' : near.length ? `附近 ${near.length} 位玩家` : '你的小镇 · 独处中';
   return <div className="town-presence" data-testid="town-presence"
     data-state={conn === 'offline' ? 'offline' : live ? 'live' : 'connecting'} data-nearby={near.length}>
     <button className="town-presence-main" data-testid="town-presence-toggle" onClick={() => { if (!collapsed) setOpen(v => !v); }} disabled={!live || !near.length || collapsed} aria-expanded={expanded}>
@@ -77,7 +77,7 @@ export function markArrival(id: string) { try { localStorage.setItem(arrivalKey(
 /** 入镇操作指引：所在区域 + 本人 + 怎么走 + 手机在哪。可关闭，右上「指引」随时重开。 */
 export function TownArrival({ myId, touch, onPhone, onClose }: { myId: string; touch: boolean; onPhone: () => void; onClose: () => void }) {
   const me = useGame(s => s.snapshot?.players.find(p => p.id === myId));
-  // 跟随真实坐标：新玩家在共享广场，老位置（如奶茶店门口）照实显示
+  // 跟随真实坐标：新玩家在小镇广场，老位置（如奶茶店门口）照实显示
   const zone = useDistrict().name;
   return <section className="town-arrival" data-testid="town-arrival" role="dialog" aria-label={`到达${zone}`}>
     <button className="town-x" onClick={onClose} aria-label="关闭引导，自由逛逛" data-testid="town-arrival-dismiss">×</button>
@@ -87,6 +87,8 @@ export function TownArrival({ myId, touch, onPhone, onClose }: { myId: string; t
     </div>
     <ul className="town-guide">
       <li><b>移动</b><span>{touch ? '左下摇杆，或点地面' : '点地面，或 WASD'}</span></li>
+      <li><b>小镇</b><span>这是你的小镇；广场「雇佣大厅」可选招员工</span></li>
+      <li><b>地图</b><span>西商业、东娱乐，4 处商圈可考察</span></li>
       <li id="town-guide-phone"><b>手机</b><span>右上角「手机」看任务和钱包{!touch && <>，或按 <kbd>P</kbd></>}</span></li>
     </ul>
     <div className="town-row">

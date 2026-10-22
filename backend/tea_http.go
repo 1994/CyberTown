@@ -22,7 +22,34 @@ func teaDecode(w http.ResponseWriter, r *http.Request, v any) error {
 }
 func (a *App) handleTea(w http.ResponseWriter, r *http.Request, player string) error {
 	path := r.URL.Path
+	if path == "/api/tea/town" || strings.HasPrefix(path, "/api/tea/town/") {
+		return a.handleTown(w, r, player)
+	}
+	if r.Method != "GET" {
+		a.mu.Lock()
+		owner := a.townOwner[player]
+		a.mu.Unlock()
+		if owner != "" && owner != player {
+			return fail(403, "TOWN_VISITOR", "参观时不能经营，请先回自己的小镇")
+		}
+	}
 	switch {
+	case path == "/api/tea/explore" && r.Method == "POST":
+		var body struct {
+			SiteID string `json:"siteId"`
+		}
+		if err := teaDecode(w, r, &body); err != nil {
+			return err
+		}
+		a.mu.Lock()
+		pos := a.ensureWorldLocked(player)
+		a.mu.Unlock()
+		h, err := a.Game.TownExplore(player, body.SiteID, pos.X, pos.Z)
+		if err != nil {
+			return err
+		}
+		respond(w, 200, h)
+		a.Broadcast(map[string]any{"kind": "town_explored", "playerId": player})
 	case path == "/api/tea/mission/accept" && r.Method == "POST":
 		var body struct{}
 		if err := teaDecode(w, r, &body); err != nil {

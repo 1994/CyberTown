@@ -474,3 +474,15 @@
 .tea-official-why { margin-top: -4px; }
 .tea-hist em.ok { color: #7dffb0; }
 .tea-hist em.bad { color: var(--tea-red); }
+
+/* 筹备：带员工入店（来自雇佣大厅的 Lv2+ 已召回分身） */
+.tea-staffpick h3 small { margin-left: 6px; }
+.tea-staffrow { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 6px; }
+.tea-staff { display: flex; align-items: center; gap: 8px; padding: 6px 8px; text-align: left; border: 1px solid rgba(255, 255, 255, 0.12); background: rgba(255, 255, 255, 0.04); }
+.tea-staff span { display: grid; min-width: 0; }
+.tea-staff small { color: var(--tea-dim); font-size: 11px; }
+.tea-staff.on { border-color: var(--tea-cyan); background: rgba(62, 240, 255, 0.1); box-shadow: inset 3px 0 0 var(--tea-cyan); }
+.tea-staff-empty { display: grid; gap: 6px; padding: 8px 10px; border: 1px dashed rgba(255, 212, 0, 0.35); }
+.tea-staff-empty p { margin: 0; font-size: 12px; color: var(--tea-dim); }
+.tea-staff-empty .tea-btn { min-height: 42px; }
+.tea-linkbtn { justify-self: start; margin-top: 4px; border: 0; background: none; color: var(--tea-cyan); font-size: 12px; min-height: 32px; padding: 0; }

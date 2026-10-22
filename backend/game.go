@@ -286,7 +286,7 @@ func (g *Game) Audit() (Audit, error) {
 		if err != nil {
 			return err
 		}
-		rows, err = tx.Query("SELECT ref,SUM(delta) FROM ledger WHERE ref LIKE 'trade:%' GROUP BY ref HAVING SUM(delta)!=0")
+		rows, err = tx.Query("SELECT ref,SUM(delta) FROM ledger WHERE ref LIKE 'trade:%' OR reason IN ('town_market_buy','town_market_sell','town_market_fee') GROUP BY ref HAVING SUM(delta)!=0")
 		if err != nil {
 			return err
 		}

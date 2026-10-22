@@ -29,6 +29,7 @@ import type { Near } from '../world/runtime.ts';
 import { useGame } from '../store.ts';
 import { TownLandmarks } from '../tea/TownLandmarks.tsx';
 import { TownDistricts, useTownMode } from './TownDistricts.tsx';
+import { TownStaffActors } from '../tea/TownStaffActors.tsx';
 
 const params = new URLSearchParams(location.search);
 /** ?lowfx=1：关闭后期与阴影（低端设备/无 GPU 的录制环境） */
@@ -226,7 +227,8 @@ export function OfficeCanvas({ myId, covered: townCovered = false }: { myId: str
         <Room />
         <TownLandmarks />
         <TownDistricts />
-        <Colleagues />
+        {/* 私人小镇只显示自己雇佣的分身；登录背景保留旧同事群像 */}
+        {town ? <TownStaffActors /> : <Colleagues />}
         {myId && <MePlayer key={myId} myId={myId} />}
         {myId && <RemotePlayers myId={myId} />}
         {playing && <NearScanner />}

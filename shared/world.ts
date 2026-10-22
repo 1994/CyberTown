@@ -1,9 +1,10 @@
 // 园区地图：区域、出生点、碰撞体与寻路（前端使用；数值与 /api/world 的边界一致）。
 // 坐标单位米，x 向东（右），z 向南（朝向默认镜头）。原办公室位于中心 [-8.5,8.5]×[-6,6]。
 import { createCollisionIndex } from './collision.ts';
-import { CIVIC_POSTS, EXPANSION_FENCE, GATE_POST_Z, TOWN_GATES, TOWN_SHOPHOUSES } from './townPlan.ts';
+import { CIVIC_POSTS, EXPANSION_FENCE, GATE_POST_Z, RIVER_BOXES, TOWN_GATES, TOWN_KIOSKS, TOWN_LANDMARK_BOXES, TOWN_LANDMARK_CIRCLES, TOWN_POSTS, TOWN_SHOPHOUSES, TOWN_TREES } from './townPlan.ts';
+import { TOWN_OPPORTUNITIES } from './townExplore.ts';
 
-export const WORLD_BOUNDS = { minX: -45, maxX: 45, minZ: -33, maxZ: 33 };
+export const WORLD_BOUNDS = { minX: -90, maxX: 90, minZ: -66, maxZ: 66 };
 export const PLAYER_RADIUS = 0.36;
 export const WALK_SPEED = 4.2; // m/s（服务端有速度校验，前端不超过 4.6）
 export const INTERACT_RANGE = 2.6; // 与同事互动距离
@@ -101,6 +102,8 @@ export const ZONES: Zone[] = [
   { id: 'rooftop', name: '天台步道', icon: '🌙', x: 0, z: -24, color: '#b18bff' },
   { id: 'photo', name: '霓虹合影街', icon: '📸', x: 33, z: 0, color: '#3ef0ff' },
   { id: 'promenade', name: '下班漫步道', icon: '🌆', x: 0, z: 24, color: '#ffd166' },
+  // 扩展商圈据点（坐标来自 gameplay/town-opportunities.json）
+  ...TOWN_OPPORTUNITIES.map(o => ({ id: o.id, name: o.name, icon: o.district === 'commerce' ? '🏪' : '🎡', x: o.x, z: o.z, color: o.district === 'commerce' ? '#ffb347' : '#b18bff' })),
 ];
 
 /** 项目区里的「项目终端」：走过去按 E 也能接紧急项目 */
@@ -208,6 +211,10 @@ export const BOXES: Box[] = [
   // ── 小镇街屋与北区围挡（shared/townPlan.ts） ──
   ...TOWN_SHOPHOUSES.map(h => centered(h.x, h.z, h.w, h.d)),
   box(EXPANSION_FENCE.minX, EXPANSION_FENCE.maxX, EXPANSION_FENCE.minZ, EXPANSION_FENCE.maxZ),
+  // ── 扩展外区：摊亭、地标、河道（桥位留空） ──
+  ...TOWN_KIOSKS.map(k => centered(k.x, k.z, k.w, k.d)),
+  ...TOWN_LANDMARK_BOXES.map(b => box(b.minX, b.maxX, b.minZ, b.maxZ)),
+  ...RIVER_BOXES.map(b => box(b.minX, b.maxX, b.minZ, b.maxZ)),
 ];
 
 export const CIRCLES: Circle[] = [
@@ -234,6 +241,8 @@ export const CIRCLES: Circle[] = [
   // 区界门楼立柱、社区中心凉棚前柱
   ...TOWN_GATES.map(g => ({ x: g.x, z: GATE_POST_Z, r: 0.1 })),
   ...CIVIC_POSTS.map(([x, z]) => ({ x, z, r: 0.12 })),
+  ...TOWN_LANDMARK_CIRCLES.map(({ x, z, r }) => ({ x, z, r })),
+  ...TOWN_POSTS,
 ];
 
 /** 园区树木（装饰 + 碰撞） */
@@ -267,6 +276,7 @@ export const TREES: [number, number][] = [
   [-20, 13],
   [-16, 9],
 ];
+TREES.push(...TOWN_TREES);
 for (const [x, z] of TREES) CIRCLES.push({ x, z, r: 0.45 });
 
 /** 路灯（装饰 + 碰撞） */
