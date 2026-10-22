@@ -395,8 +395,8 @@ function Plaza() {
         <planeGeometry args={[12, 3]} />
         <meshBasicMaterial
           map={neonText([
-            { text: '今天老板给我打工', color: '#66f4ff', size: 104 },
-            { text: '工作交给老板，快乐留给自己', color: '#ffa0e0', size: 46 },
+            { text: '赛博小镇', color: '#66f4ff', size: 92 },
+            { text: '自由探索 · 街角奶茶', color: '#ffa0e0', size: 46 },
           ])}
           transparent
           toneMapped={false}

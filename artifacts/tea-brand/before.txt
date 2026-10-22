@@ -1,0 +1,15 @@
+public/art/README.md:3:`boss-bonus-poster.webp` 是本项目为登录页和三处街边灯箱生成的原创职场讽刺广告，1024×1536，约326 KiB。使用内置 ImageGen 工具生成，再以 `cwebp -q 82 -m 6` 转为 WebP；未裁切或改变构图。运行和构建不依赖 ImageGen 或 cwebp。
+public/art/README.md:7:> 为卡通赛博朋克社交游戏《今天老板给我打工》制作一张精致、抓眼球的竖版游戏世界内企业广告。黄黑警示色、少量青色与红色，旧印刷与工业贴纸质感。中央是一位穿西装、系红领带的镀铬机器人老板，戴青色电子护目镜，向观众递出一枚刻有皇冠的金色奖金硬币。夸张、幽默、具有职场反转意味；清楚的大字“老板给我打工”，底部“BONUS CLUB”。构图完整，适合登录主视觉和建筑广告灯箱，不要现有游戏标志或角色，不要界面截图或设备样机，不要水印，背景不透明。
+src/scene/Colleagues.tsx:222:          setBubble('📦 换个老板打工去…');
+src/scene/Room.tsx:151:    { text: '今天老板给我打工', color: '#ff4fb8', size: 104 },
+src/scene/Room.tsx:152:    { text: 'BOSS · WORKS · FOR · ME', color: '#3ef0ff', size: 46 },
+src/scene/UrbanDetails.tsx:11:const POSTER = `${import.meta.env.BASE_URL}art/boss-bonus-poster.webp`;
+src/scene/Campus.tsx:398:            { text: '今天老板给我打工', color: '#66f4ff', size: 104 },
+src/scene/textures.ts:150:    g.fillText('本季度 KPI ↑ 老板打工中', 30, 30);
+src/ui/Progression.tsx:624:        <h3>{team.length ? '今天的快乐搭子' : '老板，加入我的小队'}</h3>
+src/ui/CinematicOverlay.tsx:5:const CHAPTERS = ['城市之上', '今天，换你当老板', '老板已就位', '你的快乐营业，开始'];
+src/ui/CinematicOverlay.tsx:41:        <h1>今天<span>老板</span><br />给我打工</h1>
+src/ui/GameHud.tsx:622:        今天<em>老板</em>给我打工
+src/ui/phoneTasks.ts:27:    { id: 'hire-boss', title: '把老板招进你的小队', detail: '这次轮到老板干活，高属性帮你赚更多。', from: '人才小助手', tag: '老板打工', priority: 'urgent', done: boss, progress: boss ? '老板已就位' : '0 / 1 位老板', actionLabel: '找老板', page: 'contacts' },
+src/ui/Login.tsx:33:      <aside className="login-art" aria-hidden="true"><img src={`${import.meta.env.BASE_URL}art/boss-bonus-poster.webp`} alt="" decoding="async" /></aside>
+src/ui/Login.tsx:37:          今晚，老板替你打工

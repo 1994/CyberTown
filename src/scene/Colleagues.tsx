@@ -219,7 +219,7 @@ function ColleagueActor({
         faceYaw = null;
         if (el > 2.2) {
           r.trans = { kind: 'travel', t0: now, fx: tr.fx };
-          setBubble('📦 换个老板打工去…');
+          setBubble('📦 去新店报到…');
         }
       } else if (tr.kind === 'cheer') {
         pose.celebrate = 1;

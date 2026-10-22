@@ -1,0 +1,16 @@
+{
+  "scope": "Remove posters entirely; use 赛博小镇 title and concise guidance throughout active UI and scene signs.",
+  "artWorker": "Claude, reused provider session e0d44bbc-059c-4573-b0f5-130b7cfd483d",
+  "acceptance": "Codex independent review",
+  "checks": [
+    "TypeScript build passes",
+    "Vite production build passes",
+    "Desktop 1440x900, mobile 390x844, landscape 844x390 checked visually",
+    "No poster requests or page errors",
+    "Original town map and phone mission present",
+    "No old branding in active src/public/index.html"
+  ],
+  "preview": "http://127.0.0.1:8897/",
+  "publishedFrontendOnly": true,
+  "saveData": "Existing database and server unchanged"
+}

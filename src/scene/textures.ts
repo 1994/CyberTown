@@ -147,7 +147,7 @@ export function chartScreen() {
     g.stroke();
     g.fillStyle = '#ffffff';
     g.font = 'bold 26px system-ui, "PingFang SC", "Microsoft YaHei", sans-serif';
-    g.fillText('本季度 KPI ↑ 老板打工中', 30, 30);
+    g.fillText('赛博小镇 · 夜间营业', 30, 30);
     return tex(c);
   });
 }

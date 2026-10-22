@@ -1,0 +1,45 @@
+{
+  "screens": [
+    "01-login-desktop",
+    "02-login-mobile",
+    "03-login-landscape",
+    "04-town-arrival",
+    "05-town-overview",
+    "06-phone-mission"
+  ],
+  "errors": [],
+  "posters": [],
+  "checks": [
+    {
+      "viewport": [
+        1440,
+        900
+      ],
+      "singleColumn": "458px",
+      "posterRemoved": true,
+      "identitiesAccessible": true
+    },
+    {
+      "viewport": [
+        390,
+        844
+      ],
+      "singleColumn": "minmax(0px, 1fr)",
+      "posterRemoved": true,
+      "identitiesAccessible": true
+    },
+    {
+      "viewport": [
+        844,
+        390
+      ],
+      "singleColumn": "458px",
+      "posterRemoved": true,
+      "identitiesAccessible": true
+    },
+    {
+      "originalTown": true,
+      "phoneMission": true
+    }
+  ]
+}

@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
-import { useTexture } from '@react-three/drei';
 import * as THREE from 'three';
 import { rng } from '../../shared/rules.ts';
 import { rt, useWorld } from '../world/runtime.ts';
@@ -8,25 +7,10 @@ import { useRenderQuality } from '../renderQuality.ts';
 import { StaticBatch } from './StaticBatch.tsx';
 import { glow, std } from './materials.ts';
 
-const POSTER = `${import.meta.env.BASE_URL}art/boss-bonus-poster.webp`;
-
-/** One original image, one GPU texture; frames stay inside existing shop bodies. */
+/** Rooftop service trunks only. */
 export function UrbanDetails() {
-  const image = useTexture(POSTER);
-  image.colorSpace = THREE.SRGBColorSpace;
-  image.anisotropy = 4;
-  const boards = [[-39, 2.65, -2.94], [39, 2.65, -2.94], [-11, 2.3, -24.94]];
   const frame = std('#111f26', .42, .65);
-  const trim = std('#acb1a0', .35, .6);
   return <StaticBatch worldStatic>
-    {boards.map(([x,y,z], i) => <group key={x} position={[x,y,z]}>
-      <mesh position={[0,0,-.06]} material={frame}><boxGeometry args={[2.96,4.42,.12]} /></mesh>
-      <mesh position={[0,0,.012]}><planeGeometry args={[2.72,4.08]} /><meshBasicMaterial map={image} toneMapped={false} /></mesh>
-      {[-1,1].flatMap(a => [-1,1].map(b => <mesh key={`${a},${b}`} position={[a*1.41,b*2.14,.025]} rotation-x={Math.PI/2} material={trim}>
-        <cylinderGeometry args={[.035,.035,.03,6]} />
-      </mesh>))}
-      <mesh position={[0,2.24,0]} material={glow(i === 1 ? '#ff5b4f' : '#f3d43c',1.4)}><boxGeometry args={[2.95,.04,.08]} /></mesh>
-    </group>)}
     {/* Elevated service trunks join existing rooftops; no new ground obstacles. */}
     {[-8.1,-7.5].map((z,i) => <mesh key={z} position={[0,5.65+i*.28,z]} rotation-z={Math.PI/2} material={std(i ? '#a47135' : '#384b50',.38,.7)}>
       <cylinderGeometry args={[i ? .08 : .16,i ? .08 : .16,78,8]} />

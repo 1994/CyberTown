@@ -148,8 +148,8 @@ function ElevatorCore() {
   const cabLight = useRef<THREE.PointLight>(null);
   const DOOR_W = 1.5;
   const sign = neonText([
-    { text: '今天老板给我打工', color: '#ff4fb8', size: 104 },
-    { text: 'BOSS · WORKS · FOR · ME', color: '#3ef0ff', size: 46 },
+    { text: '赛博小镇', color: '#ff4fb8', size: 92 },
+    { text: 'CYBER · TOWN', color: '#3ef0ff', size: 46 },
   ]);
   const signMat = useMemo(() => new THREE.MeshBasicMaterial({ map: sign, transparent: true, toneMapped: false, depthWrite: false, color: new THREE.Color(1.9, 1.9, 1.9) }), [sign]);
   useFrame((st, dt) => {

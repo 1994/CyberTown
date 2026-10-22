@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useCinema } from '../scene/cinema.ts';
 import { useGame } from '../store.ts';
 
-const CHAPTERS = ['城市之上', '今天，换你当老板', '老板已就位', '你的快乐营业，开始'];
+const CHAPTERS = ['城市之上', '霓虹小镇', '街角奶茶', '自由探索，开始'];
 
 export function CinematicOverlay() {
   const playing = useGame((s) => s.introPlaying);
@@ -38,8 +38,8 @@ export function CinematicOverlay() {
     {playing ? <>
       <div className="cinema-title" style={{ animationPlayState: startedAt ? 'running' : 'paused' }}>
         <small>A LITTLE BREAK. A LOT OF FUN.</small>
-        <h1>今天<span>老板</span><br />给我打工</h1>
-        <p>现实中我向你汇报，游戏里你给我打工。</p>
+        <h1>赛博<span>小镇</span></h1>
+        <p>逛小镇，招伙伴，救活街角奶茶店。</p>
       </div>
       <div className="cinema-chapter"><i>0{chapter + 1} / 04</i><span>{CHAPTERS[chapter]}</span></div>
       <div className="cinema-progress"><i style={{ width: `${progress * 100}%` }} /></div>

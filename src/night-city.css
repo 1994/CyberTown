@@ -9,13 +9,11 @@
 .v3-hud .dock-play > small { color:#30391d; }
 .v3-hud .dock-play > svg { color:#172623; }
 .logo span,.cinema-title h1 span { color:#f1d23f; text-shadow:0 0 26px #f1d23f20; }
-.login-shell { display:grid; grid-template-columns:minmax(280px,380px) minmax(0,1fr); width:min(880px,100%); overflow:hidden; border:1px solid #94bcaf55; border-radius:20px; background:#0c1821ed; box-shadow:0 28px 100px #000a; }
-.login-art { align-self:stretch; min-height:0; background:#e3cd26; }
-.login-art img { display:block; width:100%; height:100%; object-fit:contain; object-position:center; }
+.login-shell { display:grid; grid-template-columns:minmax(0,1fr); width:min(460px,100%); overflow:hidden; border:1px solid #94bcaf55; border-radius:20px; background:#0c1821ed; box-shadow:0 28px 100px #000a; }
 .login-shell .login-card.panel { width:100%; max-width:none; border:0; border-radius:0; padding:28px 34px; box-shadow:none; background:linear-gradient(150deg,#182c32eb,#0a141df5); }
 .login-shell .logo.big { font-size:clamp(38px,4.6vw,64px); }
 .login-shell .login-kicker { color:#f2d448; }
 .login-shell .identity { background:#1a2b34; border-color:#678f8c45; }
 .login-shell .identity.on,.login-shell .identity:hover { border-color:#e4cd35; background:#2b342b; color:#fff3ad; }
-@media(max-width:760px) { .login-shell { display:block; max-width:450px; } .login-art { display:none; } .login-shell .login-card.panel { padding:26px 24px; } }
-@media(max-height:600px) and (min-width:761px) { .login-shell { max-width:730px; grid-template-columns:240px 1fr; } .login-shell .login-card.panel { padding:18px 26px; } .login-shell .logo.big { font-size:42px; } }
+@media(max-width:760px) { .login-shell { display:block; max-width:450px; } .login-shell .login-card.panel { padding:26px 24px; } }
+@media(max-height:600px) and (min-width:761px) { .login-shell { max-width:520px; max-height:calc(100dvh - 24px); overflow-y:auto; } .login-shell .login-card.panel { padding:18px 26px; } .login-shell .logo.big { font-size:42px; } }

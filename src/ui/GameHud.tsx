@@ -619,7 +619,7 @@ export function GameHud() {
     <div className={`hud v3-hud ${cinematic ? 'cinematic' : ''} ${touch ? 'touch-ui' : ''}`}>
       <div className="game-interface" inert={cinematic || phoneOpen} aria-hidden={cinematic || phoneOpen}>
       <div className="v3-brand">
-        今天<em>老板</em>给我打工
+        赛博<em>小镇</em>
       </div>
       <div className="v3-top">
         <WalletCard />

@@ -30,11 +30,10 @@ export function Login() {
   return (
     <div className="login-wrap">
       <div className="login-shell">
-      <aside className="login-art" aria-hidden="true"><img src={`${import.meta.env.BASE_URL}art/boss-bonus-poster.webp`} alt="" decoding="async" /></aside>
       <div className="login-card panel">
         <span className="login-kicker">
           <Sparkles size={15} />
-          今晚，老板替你打工
+          霓虹夜，街角见
         </span>
         <div className="logo big">
           赛博<span>小镇</span>
