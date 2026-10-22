@@ -336,7 +336,7 @@ export function TownGame() {
 
 
       {place==='map'&&!phone&&!map&&!introPlaying&&<>
-        {nearShopping&&!near&&<div className="town-interact"><button className="tea-btn primary" data-testid="town-enter-shopping" onClick={()=>setPlace('shopping')}><ShoppingBag size={18}/>逛购物街{!touch&&!ride.riding&&<kbd>E</kbd>}</button></div>}
+        {nearShopping&&!near&&<div className="town-interact"><button className="tea-btn primary" data-testid="town-enter-shopping" onClick={()=>setPlace('shopping')}><ShoppingBag size={18}/>{nearShopping==='shirt'?'买衣服':nearShopping==='accessory'?'买面具':'买载具'}{!touch&&!ride.riding&&<kbd>E</kbd>}</button></div>}
         {(ride.riding||(!near&&!nearShopping&&(nearBike||vehicles.length>0)))&&<div className="ride-controls" data-testid="ride-controls">
           {ride.riding?<>{!touch&&<small>WASD 骑行 · E 下车</small>}<button className="tea-btn" onClick={parkBike} data-testid="bike-dismount"><Bike size={18}/>下车{!touch&&<kbd>E</kbd>}</button></>:<>
             {nearBike&&<button className="tea-btn primary" onClick={()=>mountBike()} data-testid="bike-mount"><Bike size={18}/>上车 · 免费{!touch&&<kbd>E</kbd>}</button>}
