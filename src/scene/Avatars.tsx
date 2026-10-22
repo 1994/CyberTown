@@ -1,3 +1,6 @@
+import { useRide } from '../tea/rideState';
+import { Bicycle } from './Bicycle';
+import { RIDE_SPEED } from '../../shared/townActivities';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 import type { ThreeEvent } from '@react-three/fiber';
@@ -168,6 +171,7 @@ export function FootRing({ color, you }: { color: string; you?: boolean }) {
 // ───────────────────── 自己（可操控） ─────────────────────
 
 export function MePlayer({ myId }: { myId: string }) {
+  const riding=useRide(s=>s.riding), bikeColor=useRide(s=>s.color);
   const { look, name, rankName, aura } = useLookOf(myId);
   const entry = useWorldEntry(myId);
   const group = useRef<THREE.Group>(null);
@@ -195,6 +199,7 @@ export function MePlayer({ myId }: { myId: string }) {
   useFrame((state, dtRaw) => {
     const dt = Math.min(dtRaw, 0.05);
     const me = rt.me;
+    const speed = riding ? RIDE_SPEED : WALK_SPEED;
     let vx = 0;
     let vz = 0;
     const { right, fwd } = inputVector();
@@ -207,8 +212,8 @@ export function MePlayer({ myId }: { myId: string }) {
       const yaw = rt.camYaw;
       const fx = -Math.sin(yaw);
       const fz = -Math.cos(yaw);
-      vx = (fx * fwd + -fz * right) * WALK_SPEED;
-      vz = (fz * fwd + fx * right) * WALK_SPEED;
+      vx = (fx * fwd + -fz * right) * speed;
+      vz = (fz * fwd + fx * right) * speed;
       rt.path = null;
     } else if (rt.path && rt.path.length) {
       const [tx, tz] = rt.path[0];
@@ -219,7 +224,7 @@ export function MePlayer({ myId }: { myId: string }) {
         rt.path.shift();
         if (!rt.path.length) rt.path = null;
       } else {
-        const sp = Math.min(WALK_SPEED, d / dt);
+        const sp = Math.min(speed, d / dt);
         vx = (dx / d) * sp;
         vz = (dz / d) * sp;
       }
@@ -255,6 +260,15 @@ export function MePlayer({ myId }: { myId: string }) {
         dt,
         myId,
       );
+    if (riding && rig.current) {
+      const r=rig.current;
+      r.body.position.y=.5;
+      r.torso.rotation.x=.15;
+      r.legL.rotation.x=-.75+(moving?Math.sin(phase.current)*.35:0);
+      r.legR.rotation.x=-.75-(moving?Math.sin(phase.current)*.35:0);
+      r.armL.rotation.x=r.armR.rotation.x=-.95;
+      r.armL.rotation.z=r.armR.rotation.z=0;
+    } else if (rig.current) rig.current.torso.rotation.x=0;
     // 寻路终点标记
     if (marker.current) {
       const end = rt.path?.[rt.path.length - 1];
@@ -274,6 +288,7 @@ export function MePlayer({ myId }: { myId: string }) {
       <group ref={group} name="me">
         <FootRing color={aura || '#d7af51'} you />
         <Character ref={rig} look={look} scale={PLAYER_SCALE} />
+        {riding && <Bicycle color={bikeColor} riding/>}
         <WorldLabel
           position={[0, 2.45, 0]}
           center

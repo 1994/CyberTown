@@ -1,7 +1,7 @@
 /** These are unopened demo blocks, not purchasable unlocks. Streets and existing
  * exploration stops remain accessible; do not invent level/coin requirements. */
 export const TOWN_LOCKED_AREAS = [
- {id:'old-town',name:'商业街坊',x:-20,z:5,minX:-30,maxX:-9,minZ:5,maxZ:18,hint:'商铺后续开放 · 奶茶店可经营'},
+ {id:'old-town',name:'商业南坊',x:-24,z:18,minX:-30,maxX:-18,minZ:13.8,maxZ:18,hint:'南侧餐饮后续开放 · 衣橱、面具与车行已开业'},
  {id:'play-street',name:'娱乐街坊',x:26,z:5,minX:10,maxX:30,minZ:5,maxZ:20,hint:'商铺后续开放 · 小游戏大厅可进入'},
  {id:'civic',name:'社区中心',x:0,z:-7,minX:-8.5,maxX:8.5,minZ:-6,maxZ:6,hint:'公共服务后续开放'},
  {id:'night-market',name:'夜市街区',x:-37,z:-3,minX:-43,maxX:-35,minZ:-24,maxZ:20,hint:'夜市经营后续开放 · 街道可通行'},

@@ -3,7 +3,7 @@ import type { ProjectResult, Skill, TeamSkills } from './rules.ts';
 export type HairStyle =
   'short' | 'bob' | 'spiky' | 'bun' | 'bald' | 'long' | 'cap';
 export type Accessory =
-  'none' | 'glasses' | 'tie' | 'headset' | 'scarf' | 'sunglasses';
+  'none' | 'glasses' | 'tie' | 'headset' | 'scarf' | 'sunglasses' | 'neon-mask' | 'fox-mask';
 
 export interface Look {
   /** Face-mask image; empty or failed URLs use the generated identity portrait. */
@@ -230,7 +230,7 @@ export interface PlayerStyle {
 export interface ShopItem {
   id: string;
   name: string;
-  kind: 'shirt' | 'accessory' | 'aura';
+  kind: 'shirt' | 'accessory' | 'aura' | 'vehicle';
   price: number;
   value: string;
   description: string;

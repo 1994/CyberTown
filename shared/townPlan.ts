@@ -1,3 +1,4 @@
+import { SHOPPING, BIKE_STAND, BASKETBALL, SPORTS_POSTS } from './townActivities.ts';
 import arcade from '../gameplay/arcade.json' with { type: 'json' };
 import { TOWN_OPPORTUNITIES } from './townExplore.ts';
 // 赛博小镇规划：大区、街道、目的地与街屋。纯数据，渲染/小地图/导航/碰撞共用；不依赖 world.ts，避免循环引用。
@@ -29,11 +30,14 @@ export function districtAt(x: number, z: number): TownDistrict {
 }
 
 export type SiteId = 'west-market' | 'river-dock' | 'star-park' | 'river-walk';
-export type DestinationId = 'shop' | 'recruit' | 'arcade' | 'leisure' | 'plaza' | SiteId;
+export type DestinationId = 'shop' | 'recruit' | 'arcade' | 'shopping' | 'bicycle' | 'basketball' | 'leisure' | 'plaza' | SiteId;
 export const SITE_IDS = TOWN_OPPORTUNITIES.map(o => o.id) as SiteId[];
 export const isSite = (d: string): d is SiteId => (SITE_IDS as string[]).includes(d);
 /** 可站立的导航终点（不进入建筑、不触发任何玩法） */
 export const TOWN_DESTINATIONS: Record<DestinationId, { name: string; x: number; z: number; district: DistrictId }> = {
+  shopping: { name: '霓虹购物街', ...SHOPPING, district: 'commerce' },
+  bicycle: { name: '路边单车', ...BIKE_STAND, district: 'plaza' },
+  basketball: { name: '夜光篮球场', x: BASKETBALL.x-8.5, z: BASKETBALL.z-3, district: 'leisure' },
   arcade: { name: '小游戏大厅', x: arcade.x, z: arcade.z, district: 'leisure' },
   shop: { name: '奶茶店', x: -19.4, z: -1, district: 'commerce' },
   recruit: { name: '雇佣大厅', x: -5, z: 12, district: 'plaza' },
@@ -87,11 +91,11 @@ export const TOWN_SHOPHOUSES: Shophouse[] = [
   // 商业街南侧（门脸朝主街 -z）
   { x: -26, z: 15.6, w: 4.6, d: 3.6, h: 2.6, district: 'commerce', face: -1, sign: '杂货' },
   { x: -20.4, z: 15.6, w: 4.2, d: 3.6, h: 2.9, district: 'commerce', face: -1, sign: '面馆' },
-  { x: -15, z: 15.6, w: 4.2, d: 3.6, h: 2.5, district: 'commerce', face: -1, sign: '花店' },
+  { x: -15, z: 15.6, w: 4.2, d: 3.6, h: 2.5, district: 'commerce', face: -1, sign: '夜骑车行' },
   { x: -10.35, z: 15.6, w: 2.7, d: 3.6, h: 2.4, district: 'commerce', face: -1, sign: '烘焙' },
   // 商业街北侧（门脸朝主街 +z）
-  { x: -26.8, z: 7.2, w: 4.4, d: 2.8, h: 3.6, district: 'commerce', face: 1, sign: '旧书' },
-  { x: -21.6, z: 7.2, w: 3.6, d: 2.8, h: 3.0, district: 'commerce', face: 1, sign: '修理' },
+  { x: -26.8, z: 7.2, w: 4.4, d: 2.8, h: 3.6, district: 'commerce', face: 1, sign: '霓虹衣橱' },
+  { x: -21.6, z: 7.2, w: 3.6, d: 2.8, h: 3.0, district: 'commerce', face: 1, sign: '面具工坊' },
   // 娱乐街北侧
   { x: 22, z: 7.2, w: 3.0, d: 2.8, h: 3.4, district: 'leisure', face: 1, sign: '桌游' },
   { x: 26.3, z: 7.2, w: 3.0, d: 2.8, h: 4.0, district: 'leisure', face: 1, sign: '唱片' },
@@ -226,7 +230,7 @@ export const TOWN_TREES: [number, number][] = [
   ...[-80, -58, -45, -15, 15, 45, 58, 80].map(x => [x, 38] as [number, number]),
   ...[-70, -50, -30, -12, 12, 30, 50, 70].map(x => [x, 57] as [number, number]),
   ...[-60, -40, 40, 60].map(x => [x, 63] as [number, number]),
-  [-62, -2], [60, 2], [-40, 32], [40, 32], [-20, 34], [20, 34],
+  [-62, -2], [60, 2], [-40, 32], [40, 32], [-20, 34], [16, 34],
   // 口袋花园
   [-62.5, 23], [-63.5, 27], [-47.5, 22], [-46, 27], [47, 24], [48.5, 29], [66, 25], [64, 29.5],
 ];
@@ -236,6 +240,7 @@ export const EXPANSION_PLOTS: Rect[] = [R(-30, -10, -64, -55), R(-6, 6, -64, -55
 
 /** 细立柱（灯串杆、桥栏柱）：渲染与碰撞同源 */
 export const TOWN_POSTS: { x: number; z: number; r: number }[] = [
+  ...SPORTS_POSTS,
   { x: -71, z: -4.6, r: 0.08 }, { x: -57, z: -4.6, r: 0.08 }, // 西街集市灯串
   { x: 56, z: 36, r: 0.08 }, { x: 68, z: 36, r: 0.08 }, // 滨河灯笼串
   ...BRIDGES.flatMap(([a, b]) => [a + 0.06, b - 0.06].flatMap(x => [RIVER.minZ, (RIVER.minZ + RIVER.maxZ) / 2, RIVER.maxZ].map(z => ({ x, z, r: 0.06 })))),

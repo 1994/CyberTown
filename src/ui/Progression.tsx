@@ -490,7 +490,7 @@ function ShopPanel() {
           </b>
         </div>
         <div className="product-grid">
-          {snap.shop.map((i) => {
+          {snap.shop.filter(i=>i.kind!=='vehicle').map((i) => {
             const Icon =
               i.kind === 'shirt'
                 ? Shirt

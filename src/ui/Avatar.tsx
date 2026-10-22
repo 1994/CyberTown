@@ -59,6 +59,7 @@ export function Avatar({ look, size = 44, ring }: { look: Look; size?: number; r
       <ellipse cx="33" cy="56" rx="4" ry="2.4" fill="#ff8a8a" opacity="0.55" />
       <ellipse cx="67" cy="56" rx="4" ry="2.4" fill="#ff8a8a" opacity="0.55" />
       <path d="M45 58 q5 5 10 0" stroke="#7a2f2f" strokeWidth="2.2" fill="none" strokeLinecap="round" />
+      {(look.accessory === 'neon-mask' || look.accessory === 'fox-mask') && <g><path d="M27 30 L50 23 L73 30 L72 58 L50 72 L28 58Z" fill={look.accessory==='fox-mask'?'#efe1ca':'#1c2940'}/><path d="M32 43 L44 46 M56 46 L68 43" stroke={look.accessory==='fox-mask'?'#ff688e':'#59ede7'} strokeWidth="4"/></g>}
       {look.accessory === 'glasses' && (
         <g stroke="#222" strokeWidth="2" fill="none">
           <circle cx="40" cy="48" r="7" />

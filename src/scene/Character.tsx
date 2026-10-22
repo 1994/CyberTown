@@ -5,7 +5,7 @@ import { StaticBatch } from './StaticBatch.tsx';
 import { RoundedBox } from '@react-three/drei';
 import * as THREE from 'three';
 import type { Look } from '../../shared/types.ts';
-import { std } from './materials.ts';
+import { std, glow } from './materials.ts';
 import { FaceMask } from './FaceMask.tsx';
 
 /** 可被动画驱动的骨骼节点（程序化 Q 版人物，统一比例：头身比约 1:1.5） */
@@ -94,7 +94,14 @@ function Hair({ look }: { look: Look }) {
 function Face({ look }: { look: Look }) {
   return (
     <group>
-      <FaceMask look={look} />
+      {look.accessory === 'neon-mask' || look.accessory === 'fox-mask' ? <group position={[0,.3,.35]} name="purchased-mask">
+        <mesh rotation-x={Math.PI/2} material={std(look.accessory==='fox-mask'?'#efe1ca':'#1c2940',.4,.25)}><SharedGeometry kind="cylinder" args={[.33,.33,.09,6]}/></mesh>
+        {[-1,1].map(a=><group key={a}>
+          <mesh position={[a*.13,.05,.06]} rotation-z={a*.18} material={glow(look.accessory==='fox-mask'?'#ff688e':'#59ede7',1.7)}><SharedGeometry kind="box" args={[.16,.035,.025]}/></mesh>
+          {look.accessory==='fox-mask'&&<mesh position={[a*.23,.29,0]} rotation-z={-a*.25} material={std('#efe1ca')}><SharedGeometry kind="cone" args={[.11,.28,3]}/></mesh>}
+        </group>)}
+        <mesh position={[0,-.13,.06]} material={std('#788ca0')}><SharedGeometry kind="box" args={[.13,.025,.02]}/></mesh>
+      </group> : <FaceMask look={look} />}
       {look.accessory === 'glasses' && (
         <group position={[0, 0.3, 0.365]}>
           {[-0.105, 0.105].map((x) => (

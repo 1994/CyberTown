@@ -1,3 +1,5 @@
+import { BasketballCourt } from './BasketballCourt';
+import { TownShoppingScenery } from './TownShoppingScenery';
 import { TownSkyLogo } from './TownSkyLogo';
 import { NeonStreetLight } from './NeonStreetLight';
 import { TownAmbientLight } from './TownAtmosphere';
@@ -228,6 +230,8 @@ export function OfficeCanvas({ myId, covered: townCovered = false }: { myId: str
         <Campus onGround={onGround} />
         <UrbanDetails />
         <TownLife />
+        <BasketballCourt />
+        <TownShoppingScenery />
         <NeonStreetLight />
         {playing && !LOW_FX && <NightRain />}
         <Room />

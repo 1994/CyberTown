@@ -193,3 +193,48 @@ func TestShopRollbackAndRewardPersistence(t *testing.T) {
 		}
 	}
 }
+
+func TestTownShoppingMasksVehiclesAndReload(t *testing.T) {
+	e := setup(t)
+	before := e.snapshot(t, "wang").Me.Coins
+	for _, buy := range []struct {
+		id    string
+		price int
+	}{{"neon-mask", 90}, {"city-bike", 220}} {
+		if err := e.g.BuyItem("wang", buy.id, buy.price); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if err := e.g.EquipItem("wang", "neon-mask", "accessory", "player"); err != nil {
+		t.Fatal(err)
+	}
+	if err := e.g.EquipItem("wang", "city-bike", "vehicle", "player"); err == nil {
+		t.Fatal("vehicle must not overwrite clothing slots")
+	}
+	if err := e.g.BuyItem("wang", "city-bike", 220); err == nil {
+		t.Fatal("duplicate vehicle purchase")
+	}
+	if err := e.g.BuyItem("wang", "sunset-bike", 320); err == nil {
+		t.Fatal("overspending accepted")
+	}
+	s := e.snapshot(t, "wang")
+	if s.Me.Coins != before-310 || s.Me.Style.Accessory != "neon-mask" {
+		t.Fatal(s.Me)
+	}
+	found := false
+	for _, item := range s.Shop {
+		if item.ID == "city-bike" {
+			found = item.Owned && item.Kind == "vehicle"
+		}
+	}
+	if !found {
+		t.Fatal("owned vehicle missing from fresh snapshot")
+	}
+	if err := e.g.EquipItem("wang", "", "accessory", "player"); err != nil {
+		t.Fatal(err)
+	}
+	if e.snapshot(t, "wang").Me.Style.Accessory != "" {
+		t.Fatal("mask did not unequip")
+	}
+	checkAudit(t, e.g)
+}

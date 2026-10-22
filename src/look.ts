@@ -20,7 +20,7 @@ export function dressed(
   };
 }
 export function tryOn(base: Look, item: ShopItem | undefined): Look {
-  if (!item || item.kind === 'aura') return base;
+  if (!item || item.kind === 'aura' || item.kind === 'vehicle') return base;
   return { ...base, [item.kind]: item.value } as Look;
 }
 export const isBoss = (id: string) => id === 'c-zhang' || id === 'c-money';

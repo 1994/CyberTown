@@ -1,3 +1,7 @@
+import { ShoppingStreet } from './ShoppingStreet';
+import { useRide, mountBike, parkBike, resetRide } from './rideState';
+import { SHOPPING_STORES, BIKE_STAND } from '../../shared/townActivities';
+import { Bike, ShoppingBag } from 'lucide-react';
 import { GameLogo } from '../ui/GameLogo';
 import { useEffect, useRef, useState } from 'react';
 import { CinematicOverlay } from '../ui/CinematicOverlay.tsx';
@@ -27,24 +31,30 @@ import './tea.css';
 import './town.css';
 
 // 大地图主线：TownGame 唯一持有 useTeaChapter；地图位置/室内由这里管理，营业规则全在 controller 与服务端。
-type Place = 'map' | 'recruit' | 'shop' | 'arcade';
+type Place = 'map' | 'recruit' | 'shop' | 'arcade' | 'shopping';
 type Site = keyof typeof TEA_TOWN_SITES;
 const SITES = TEA_TOWN_SITES;
 const distTo = (s: Site) => Math.hypot(rt.me.x - SITES[s].x, rt.me.z - SITES[s].z);
 const DEST = TOWN_DESTINATIONS;
-const distDest = (d: DestinationId) => Math.hypot(rt.me.x - DEST[d].x, rt.me.z - DEST[d].z);
+const distDest = (d: DestinationId) => {const p=d==='bicycle'?useRide.getState().parked:DEST[d];return Math.hypot(rt.me.x-p.x,rt.me.z-p.z);};
 // 交互点沿用各自范围；街区目的地走到 2.2m 内即算到达
 const reach = (d: DestinationId) => d === 'shop' || d === 'recruit' || d === 'arcade' ? SITES[d].range : 2.2;
 /** 考察按钮出现距离（服务端校验 4.2m，前端更保守） */
 const SURVEY_RANGE = 2.8;
-const DEST_ORDER: DestinationId[] = ['shop', 'arcade', 'leisure', 'plaza', 'recruit'];
+const DEST_ORDER: DestinationId[] = ['shop', 'shopping', 'basketball', 'bicycle', 'arcade', 'plaza', 'recruit'];
 const DEST_LABEL: Record<DestinationId, string> = {
-  arcade: '小游戏大厅', shop: '商业街 · 奶茶店', leisure: '娱乐街', plaza: '回广场', recruit: '雇佣大厅',
+  shopping: '霓虹购物街', bicycle: '路边单车', basketball: '运动区 · 篮球场', arcade: '小游戏大厅', shop: '商业街 · 奶茶店', leisure: '娱乐街', plaza: '回广场', recruit: '雇佣大厅',
   ...Object.fromEntries(TOWN_OPPORTUNITIES.map(o => [o.id, o.name])) as Record<SiteId, string>,
 };
 
 export function TownGame() {
   const myId = useGame(s => s.snapshot!.me.id);
+  const ride = useRide();
+  const catalog = useGame(s=>s.snapshot?.shop);
+  const vehicles = catalog?.filter(i=>i.kind==='vehicle'&&i.owned) ?? [];
+  const [vehicleId,setVehicleId]=useState('');
+  const [nearShopping,setNearShopping]=useState<string|null>(null),[nearBike,setNearBike]=useState(false);
+  useEffect(()=>{resetRide();return resetRide;},[myId]);
   const introPlaying = useGame(s => s.introPlaying);
   const c = useTeaChapter();
   const { home } = c;
@@ -53,6 +63,7 @@ export function TownGame() {
   // 只记住“在店里”这一件事，刷新后回到同一处（营业 session 由 controller 从服务端恢复）
   const [place, setPlaceState] = useState<Place>(() => { if (useGame.getState().introPlaying) return 'map'; try { return localStorage.getItem(placeKey) === 'shop' ? 'shop' : 'map'; } catch { return 'map'; } });
   const setPlace = (p: Place) => {
+    if(p!=='map')parkBike();
     setPlaceState(p);
     try { if (p === 'shop') localStorage.setItem(placeKey, 'shop'); else localStorage.removeItem(placeKey); } catch { /* 仅为便利 */ }
   };
@@ -106,6 +117,8 @@ export function TownGame() {
     const id = setInterval(() => {
       const n: Site | null = distTo('shop') <= SITES.shop.range ? 'shop' : distTo('recruit') <= SITES.recruit.range ? 'recruit' : distTo('arcade') <= SITES.arcade.range ? 'arcade' : null;
       setNear(n);
+      setNearShopping(SHOPPING_STORES.find(s=>Math.hypot(rt.me.x-s.x,rt.me.z-s.z)<=s.range)?.category??null);
+      const bike=useRide.getState().parked;setNearBike(Math.hypot(rt.me.x-bike.x,rt.me.z-bike.z)<=BIKE_STAND.range);
       let site: SiteId | null = null;
       for (const id of SITE_IDS) if (distDest(id) <= SURVEY_RANGE) site = id;
       setNearSite(site);
@@ -169,8 +182,8 @@ export function TownGame() {
   };
   // E 键 / 手机互动：复用原世界的 world-interact 事件
   useEffect(() => {
-    if (place !== 'map' || !near) return;
-    const on = () => enter(near);
+    if (place !== 'map' || locked || arrival) return;
+    const on = () => {if(useRide.getState().riding)parkBike();else if(near)enter(near);else if(nearShopping)setPlace('shopping');else if(nearBike)mountBike();};
     window.addEventListener('world-interact', on);
     return () => window.removeEventListener('world-interact', on);
   });
@@ -182,7 +195,8 @@ export function TownGame() {
     setMap(false);
     useWorld.getState().setOverview(false);
     if (distDest(s) <= reach(s)) { rt.path = null; rt.npcNavigation = null; travelPath.current = null; setTravel(null); setArrived(s); setHint(s === 'shop' || s === 'recruit' ? `已在${DEST[s].name}，点下方按钮` : `已在${DEST[s].name}`); return; }
-    walkNear(DEST[s].x, DEST[s].z);
+    const destination=s==='bicycle'?useRide.getState().parked:DEST[s];
+    walkNear(destination.x, destination.z);
     if (!rt.path) { setHint('这里走不过去，换个位置再试'); return; }
     travelPath.current = rt.path;
     setArrived(null);
@@ -291,24 +305,34 @@ export function TownGame() {
 
       {live && <button className="town-resume" onClick={() => go('shop')}>营业已暂停 · 回店继续</button>}
 
-      {place === 'map' && near && <div className="town-interact">
+      {place === 'map' && !phone && !guided && !map && near && <div className="town-interact">
         {near === 'shop'
           ? <button className="tea-btn primary" onClick={() => enter('shop')} data-testid="town-enter-shop">
-            进{['街角奶茶', '霓虹奶茶', '夜城茶饮旗舰'][(home?.shop.level ?? 1) - 1] ?? '奶茶店'}{!touch && <kbd>E</kbd>}</button>
-          : near === 'arcade' ? <button className="tea-btn primary" onClick={() => enter('arcade')} data-testid="town-enter-arcade"><Gamepad2 size={18}/>进小游戏大厅{!touch && <kbd>E</kbd>}</button>
+            进{['街角奶茶', '霓虹奶茶', '夜城茶饮旗舰'][(home?.shop.level ?? 1) - 1] ?? '奶茶店'}{!touch && !ride.riding && <kbd>E</kbd>}</button>
+          : near === 'arcade' ? <button className="tea-btn primary" onClick={() => enter('arcade')} data-testid="town-enter-arcade"><Gamepad2 size={18}/>进小游戏大厅{!touch && !ride.riding && <kbd>E</kbd>}</button>
           : <button className="tea-btn" onClick={() => enter('recruit')} data-testid="town-recruit">
-            进雇佣大厅 <small>可选</small>{!touch && <kbd>E</kbd>}</button>}
+            进雇佣大厅 <small>可选</small>{!touch && !ride.riding && <kbd>E</kbd>}</button>}
       </div>}
 
       {place === 'map' && nearSite && !map && !phone && !guided && <SurveyCard id={nearSite} home={home} busy={survey.busy} error={survey.error} onSurvey={() => void doSurvey(nearSite)} />}
 
 
+      {place==='map'&&!phone&&!guided&&!map&&!introPlaying&&<>
+        {nearShopping&&!near&&<div className="town-interact"><button className="tea-btn primary" data-testid="town-enter-shopping" onClick={()=>setPlace('shopping')}><ShoppingBag size={18}/>逛购物街{!touch&&!ride.riding&&<kbd>E</kbd>}</button></div>}
+        {(ride.riding||nearBike||vehicles.length>0)&&<div className="ride-controls" data-testid="ride-controls">
+          {ride.riding?<><small>{touch?'摇杆骑行 · 点地面也能走':'WASD 骑行 · 点地面也能走'}</small><button className="tea-btn" onClick={parkBike} data-testid="bike-dismount"><Bike size={18}/>下车{!touch&&<kbd>E</kbd>}</button></>:<>
+            {nearBike&&<button className="tea-btn" onClick={()=>mountBike()} data-testid="bike-mount"><Bike size={18}/>骑共享单车 · 免费</button>}
+            {vehicles.length>0&&<><select aria-label="选择我的自行车" value={vehicles.some(v=>v.id===vehicleId)?vehicleId:vehicles[0].id} onChange={e=>setVehicleId(e.target.value)}>{vehicles.map(v=><option key={v.id} value={v.id}>{v.name}</option>)}</select><button className="tea-btn" onClick={()=>mountBike(vehicles.some(v=>v.id===vehicleId)?vehicleId:vehicles[0].id)} data-testid="bike-own-mount"><Bike size={18}/>骑我的车</button></>}
+          </>}
+        </div>}
+      </>}
       {touch && !locked && <Joystick />}
       {(hint || c.toast) && <div className="tea-toast" role="status">{hint || c.toast}</div>}
       {c.error && <div className="tea-banner">{c.error}<button onClick={() => void c.load()}>刷新</button></div>}
     </div>
     <CinematicOverlay />
     {phoneUi}
+    {place === 'shopping' && <ShoppingStreet initialCategory={nearShopping??'shirt'} onClose={()=>setPlace('map')} onChanged={()=>{syncTea();void useTownState.getState().refresh().catch(()=>undefined);}}/>}
     {place === 'arcade' && <ArcadeHall playerId={myId} coins={home?.wallet.balance ?? 0} onClose={() => setPlace('map')} onPaid={syncTea} />}
     {place === 'recruit' && <HiringHall initialTab={hallTab} onClose={() => setPlace('map')} onChanged={syncTea}
       onShop={id => {

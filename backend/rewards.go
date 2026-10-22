@@ -47,9 +47,13 @@ type ShopItem struct {
 }
 
 var shopItems = []ShopItem{
+	{ID: "neon-mask", Name: "霓虹面罩", Kind: "accessory", Price: 90, Value: "neon-mask", Description: "冷光眼线 · 夜行者"},
+	{ID: "fox-mask", Name: "白狐面具", Kind: "accessory", Price: 140, Value: "fox-mask", Description: "瓷白与玫红 · 小镇限定"},
+	{ID: "city-bike", Name: "薄荷巡游", Kind: "vehicle", Price: 220, Value: "#50dfd3", Description: "随时骑行 · 比步行快约 50%"},
+	{ID: "sunset-bike", Name: "落日疾风", Kind: "vehicle", Price: 320, Value: "#f2b94e", Description: "金色车架 · 与薄荷巡游同速"},
 	{ID: "sunset-shirt", Name: "落日橘衬衫", Kind: "shirt", Price: 160, Value: "#ec976a", Description: "今天，把快乐穿在身上"},
 	{ID: "mint-shirt", Name: "薄荷假日", Kind: "shirt", Price: 160, Value: "#7bbcac", Description: "自带周五的轻松气息"},
-	{ID: "sunglasses", Name: "准点下班墨镜", Kind: "accessory", Price: 120, Value: "sunglasses", Description: "给自己，或给正在打工的老板"},
+	{ID: "sunglasses", Name: "准点下班墨镜", Kind: "accessory", Price: 120, Value: "sunglasses", Description: "街头经典 · 深色镜片"},
 	{ID: "glasses", Name: "灵感圆框眼镜", Kind: "accessory", Price: 80, Value: "glasses", Description: "认真摸鱼，也要有型"},
 	{ID: "gold-aura", Name: "年终锦鲤", Kind: "aura", Price: 360, Value: "#e7b94f", Description: "走到哪里，幸运跟到哪里"},
 	{ID: "mint-aura", Name: "薄荷星光", Kind: "aura", Price: 260, Value: "#70c8b2", Description: "一圈属于你的柔和星光"},
@@ -192,7 +196,7 @@ func (g *Game) BuyItem(player, id string, price int) error {
 		}
 		n, _ := r.RowsAffected()
 		if n != 1 {
-			return fail(402, "INSUFFICIENT", "金币不够，再去玩一局吧")
+			return fail(402, "INSUFFICIENT", "金币不足，先去经营赚一些吧")
 		}
 		if _, err = tx.Exec("INSERT INTO player_items(player_id,item_id) VALUES(?,?)", player, id); err != nil {
 			return err
@@ -205,7 +209,7 @@ func (g *Game) BuyItem(player, id string, price int) error {
 		if err = ledger(tx, "system", price, "shop_purchase", ref, now); err != nil {
 			return err
 		}
-		if err = message(tx, ptr(player), "shop", "入手："+item.Name, "去背包里穿上试试", nil, now); err != nil {
+		if err = message(tx, ptr(player), "shop", "入手："+item.Name, "去购物街查看或使用", nil, now); err != nil {
 			return err
 		}
 		return bump(tx)

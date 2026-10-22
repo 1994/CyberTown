@@ -1,0 +1,43 @@
+{
+  "date": "2026-10-22",
+  "isolatedTestServer": "127.0.0.1:8905",
+  "productionPreview": "127.0.0.1:8897",
+  "preservedDatabase": ".run/tea-final.db",
+  "automated": [
+    "TypeScript typecheck",
+    "Vite production build",
+    "go test ./...",
+    "Go shop tests after final message edits",
+    "map 104 spawn routes and 324 landmark routes",
+    "traffic 2 tests",
+    "render 15 tests",
+    "collision 3 tests",
+    "player navigation contract",
+    "all 3 shop fronts/bicycle/basketball paths; continuous ball animation; bicycle collision"
+  ],
+  "desktop": [
+    "Login and skip intro",
+    "Map navigation to shopping street",
+    "Shirt purchase 2000→1840",
+    "Mask purchase 1840→1750 and equipped",
+    "Bicycle purchase 1750→1530",
+    "Owned bicycle mount and route to court",
+    "Court visible with 4 NPC players",
+    "Dismount and shared bicycle free mount; balance unchanged",
+    "E dismount",
+    "Reload retains 1530 coins, mask and bicycle ownership",
+    "Final build direct mask storefront opens accessory category",
+    "No browser error logs"
+  ],
+  "mobile": [
+    "390×640 same-origin iframe, not physical-device validation",
+    "Shopping fitting room and checkout visible",
+    "Bicycle purchase 2000→1780",
+    "Mount, joystick drag and dismount controls"
+  ],
+  "scope": [
+    "NPC basketball is ambient; no playable basketball minigame yet",
+    "Vehicles available in this version are 2 bicycle colors with identical speed",
+    "Purchased inventory and clothes use existing server storage SPI; shared bike parking and mounted state last for current town visit"
+  ]
+}
