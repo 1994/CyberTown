@@ -3,6 +3,7 @@ package backend
 import (
 	"database/sql"
 	"encoding/json"
+	"github.com/1994/boss-works-for-me/storage"
 	"strings"
 )
 
@@ -25,12 +26,12 @@ type TownEmployeeListing struct {
 	AvatarURL string    `json:"avatarUrl,omitempty"`
 }
 
-func townIsListed(tx *sql.Tx, owner, source string) bool {
+func townIsListed(tx storage.Tx, owner, source string) bool {
 	var n int
 	return tx.QueryRow("SELECT COUNT(*) FROM town_employee_market WHERE seller_id=? AND source_id=? AND status='active'", owner, source).Scan(&n) == nil && n > 0
 }
 
-func townMarketRead(tx *sql.Tx, viewer string) ([]TownEmployeeListing, []TownEmployeeListing, error) {
+func townMarketRead(tx storage.Tx, viewer string) ([]TownEmployeeListing, []TownEmployeeListing, error) {
 	market, history := []TownEmployeeListing{}, []TownEmployeeListing{}
 	for _, part := range []struct {
 		where string
@@ -84,7 +85,7 @@ func (g *Game) TownList(player, source string, price int, key string) (TownHome,
 	if len(strings.TrimSpace(key)) == 0 || len(key) > 100 {
 		return TownHome{}, fail(400, "TOWN_MARKET_KEY", "请重新确认挂牌")
 	}
-	err := g.transaction(func(tx *sql.Tx) error {
+	err := g.transaction(func(tx storage.Tx) error {
 		var previousSource string
 		var previousPrice int
 		e := tx.QueryRow("SELECT source_id,price FROM town_employee_market WHERE seller_id=? AND request_key=?", player, key).Scan(&previousSource, &previousPrice)
@@ -141,7 +142,7 @@ func (g *Game) TownList(player, source string, price int, key string) (TownHome,
 }
 
 func (g *Game) TownWithdraw(player, id string) (TownHome, error) {
-	err := g.transaction(func(tx *sql.Tx) error {
+	err := g.transaction(func(tx storage.Tx) error {
 		var seller, status string
 		if err := tx.QueryRow("SELECT seller_id,status FROM town_employee_market WHERE id=?", id).Scan(&seller, &status); err != nil {
 			return noRow(err, "TOWN_LISTING", "挂牌不存在")
@@ -167,7 +168,7 @@ func (g *Game) TownWithdraw(player, id string) (TownHome, error) {
 }
 
 func (g *Game) TownBuy(player, id string, expected int) (TownHome, error) {
-	err := g.transaction(func(tx *sql.Tx) error {
+	err := g.transaction(func(tx storage.Tx) error {
 		if err := townEnsure(tx, player, g.Now()); err != nil {
 			return err
 		}

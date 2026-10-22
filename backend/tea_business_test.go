@@ -1,7 +1,7 @@
 package backend
 
 import (
-	"database/sql"
+	"github.com/1994/boss-works-for-me/storage"
 	"path/filepath"
 	"testing"
 )
@@ -111,7 +111,7 @@ func TestTeaBusinessMigrationPreservesWalletAndOldSession(t *testing.T) {
 	}
 	_, _ = g.TeaAcceptMission("wang")
 	s := openBusiness(t, g, "wang", "practice")
-	err = g.transaction(func(tx *sql.Tx) error {
+	err = g.transaction(func(tx storage.Tx) error {
 		r, err := teaLiveRead(tx, "wang", s.ID)
 		if err != nil {
 			return err

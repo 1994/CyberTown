@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"github.com/1994/boss-works-for-me/storage"
 	"math"
 	"sort"
 )
@@ -91,7 +92,7 @@ func cloneLevel(xp int) int {
 	return 1
 }
 
-func townCloneInShop(tx *sql.Tx, owner, source string) (bool, error) {
+func townCloneInShop(tx storage.Tx, owner, source string) (bool, error) {
 	var raw string
 	err := tx.QueryRow("SELECT data FROM tea_sessions WHERE player_id=? AND status='active' LIMIT 1", owner).Scan(&raw)
 	if err == sql.ErrNoRows {
@@ -121,7 +122,7 @@ func townGrownWorker(w TeaWorker, xp int) TeaWorker {
 	w.Adaptability = min(99, w.Adaptability+boost)
 	return w
 }
-func townRecordService(tx *sql.Tx, player string, r TeaRun) error {
+func townRecordService(tx storage.Tx, player string, r TeaRun) error {
 	if r.Mode != "official" {
 		return nil
 	}
@@ -135,11 +136,11 @@ func townRecordService(tx *sql.Tx, player string, r TeaRun) error {
 	}
 	return nil
 }
-func townExists(tx *sql.Tx, player string) bool {
+func townExists(tx storage.Tx, player string) bool {
 	var n int
 	return tx.QueryRow("SELECT COUNT(*) FROM town_profiles WHERE player_id=?", player).Scan(&n) == nil && n > 0
 }
-func townEnsure(tx *sql.Tx, player string, now int64) error {
+func townEnsure(tx storage.Tx, player string, now int64) error {
 	if err := teaEnsure(tx, player, now); err != nil {
 		return err
 	}
@@ -149,7 +150,7 @@ func townEnsure(tx *sql.Tx, player string, now int64) error {
 
 // Legacy Tea APIs keep their frozen hire rules. Private-town players can staff
 // stores only with their own Lv2+ clones that are not currently on another job.
-func teaWorkers(tx *sql.Tx, player, day string) ([]TeaWorker, error) {
+func teaWorkers(tx storage.Tx, player, day string) ([]TeaWorker, error) {
 	ws, err := teaWorkerCatalog(tx, player, day)
 	if err != nil || !townExists(tx, player) {
 		return ws, err
@@ -179,7 +180,7 @@ func teaWorkers(tx *sql.Tx, player, day string) ([]TeaWorker, error) {
 // Lazy settlement uses server time and advances each job's deadline in the same
 // transaction as wallet, XP and ledger. Refresh/reconnect never pays a cycle twice.
 // Offline work is capped at eight hours per return.
-func townSettleJobs(tx *sql.Tx, owner string, now int64) error {
+func townSettleJobs(tx storage.Tx, owner string, now int64) error {
 	type due struct {
 		id, source         string
 		ends, duration     int64
@@ -230,7 +231,7 @@ func townSettleJobs(tx *sql.Tx, owner string, now int64) error {
 	return nil
 }
 
-func townEarned(tx *sql.Tx, owner string) (int, error) {
+func townEarned(tx storage.Tx, owner string) (int, error) {
 	var earned int
 	if err := tx.QueryRow("SELECT COALESCE(SUM(delta),0) FROM ledger WHERE account=? AND reason='town_job'", "player:"+owner).Scan(&earned); err != nil {
 		return 0, err
@@ -254,7 +255,7 @@ func townEarned(tx *sql.Tx, owner string) (int, error) {
 	return earned, rows.Err()
 }
 
-func townRead(tx *sql.Tx, viewer, owner string, now int64) (TownHome, error) {
+func townRead(tx storage.Tx, viewer, owner string, now int64) (TownHome, error) {
 	h := TownHome{Visitor: viewer != owner, ServerTime: now, Clones: []TownClone{}, Candidates: []TownCandidate{}, Jobs: []TownJob{}, Visitable: []TownListing{}, Market: []TownEmployeeListing{}, Trades: []TownEmployeeListing{}}
 	if !townExists(tx, owner) {
 		return h, fail(404, "TOWN_NOT_READY", "这位同事还没有创建小镇")
@@ -385,7 +386,7 @@ func townRead(tx *sql.Tx, viewer, owner string, now int64) (TownHome, error) {
 
 func (g *Game) TownHome(viewer, owner string) (TownHome, error) {
 	var h TownHome
-	err := g.transaction(func(tx *sql.Tx) error { var e error; h, e = townRead(tx, viewer, owner, g.Now()); return e })
+	err := g.transaction(func(tx storage.Tx) error { var e error; h, e = townRead(tx, viewer, owner, g.Now()); return e })
 	return h, err
 }
 func (g *Game) TownEnter(player, owner string) (TownHome, error) {
@@ -393,7 +394,7 @@ func (g *Game) TownEnter(player, owner string) (TownHome, error) {
 		owner = player
 	}
 	var h TownHome
-	err := g.transaction(func(tx *sql.Tx) error {
+	err := g.transaction(func(tx storage.Tx) error {
 		if owner == player {
 			if e := townEnsure(tx, player, g.Now()); e != nil {
 				return e
@@ -407,7 +408,7 @@ func (g *Game) TownEnter(player, owner string) (TownHome, error) {
 }
 
 func (g *Game) TownHire(player, source string, expected int) (TownHome, error) {
-	err := g.transaction(func(tx *sql.Tx) error {
+	err := g.transaction(func(tx storage.Tx) error {
 		if err := townEnsure(tx, player, g.Now()); err != nil {
 			return err
 		}
@@ -470,7 +471,7 @@ func (g *Game) TownHire(player, source string, expected int) (TownHome, error) {
 }
 
 func (g *Game) TownStartJob(player, source, kind string) (TownHome, error) {
-	err := g.transaction(func(tx *sql.Tx) error {
+	err := g.transaction(func(tx storage.Tx) error {
 		if kind != "clean" && kind != "stock" && kind != "manage" && kind != "rest" {
 			return fail(400, "TOWN_JOB", "请选择有效的工作")
 		}
@@ -530,7 +531,7 @@ func (g *Game) TownUpgrade(player string, expected int) (TownHome, error) {
 	if expected < 1 || expected > 4 {
 		return TownHome{}, fail(400, "TOWN_LEVEL", "建设等级无效")
 	}
-	err := g.transaction(func(tx *sql.Tx) error {
+	err := g.transaction(func(tx storage.Tx) error {
 		h, err := townRead(tx, player, player, g.Now())
 		if err != nil {
 			return err

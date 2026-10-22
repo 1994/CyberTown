@@ -1,0 +1,15 @@
+{
+  "id": "tea-team-v1",
+  "players": [
+    {
+      "playerId": "wang",
+      "coinsGrant": 3000,
+      "shopLevel": 2,
+      "clones": [
+        {"sourceId": "system-a", "xp": 60},
+        {"sourceId": "system-b", "xp": 180}
+      ]
+    },
+    {"playerId": "li", "coinsGrant": 2000}
+  ]
+}

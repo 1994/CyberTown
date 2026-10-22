@@ -15,9 +15,15 @@ import (
 
 	"github.com/1994/boss-works-for-me/backend"
 	"github.com/1994/boss-works-for-me/identity"
+	"github.com/1994/boss-works-for-me/storage"
 )
 
 type Config struct {
+	// Storage overrides DatabasePath. New takes ownership after validation;
+	// on validation failure the caller still owns it. Nil uses local SQLite.
+	Storage      storage.Store
+	MockDataFile string // explicit test-only scenario; never accepted in production
+
 	Environment      string // test or production; never inferred from a missing provider
 	Host             string
 	Port             string
@@ -43,7 +49,7 @@ func ConfigFromEnv() Config {
 			origins = append(origins, v)
 		}
 	}
-	return Config{Environment: get("APP_ENV", "test"), Host: get("HOST", "0.0.0.0"), Port: get("PORT", "8787"), DatabasePath: get("DB_PATH", "data/boss.db"), StaticDir: os.Getenv("STATIC_DIR"), AllowedOrigins: origins, LoginCallbackURL: os.Getenv("LOGIN_CALLBACK_URL"), AllowReset: os.Getenv("ALLOW_DEMO_RESET") == "1"}
+	return Config{Environment: get("APP_ENV", "test"), Host: get("HOST", "0.0.0.0"), Port: get("PORT", "8787"), DatabasePath: get("DB_PATH", "data/boss.db"), MockDataFile: os.Getenv("MOCK_DATA_FILE"), StaticDir: os.Getenv("STATIC_DIR"), AllowedOrigins: origins, LoginCallbackURL: os.Getenv("LOGIN_CALLBACK_URL"), AllowReset: os.Getenv("ALLOW_DEMO_RESET") == "1"}
 }
 
 func (c Config) Validate(provider identity.Provider) error {
@@ -53,10 +59,13 @@ func (c Config) Validate(provider identity.Provider) error {
 	if c.Environment != "test" && c.Environment != "production" {
 		return fmt.Errorf("APP_ENV must be test or production")
 	}
-	if c.DatabasePath == "" {
+	if c.DatabasePath == "" && c.Storage == nil {
 		return fmt.Errorf("DB_PATH is required")
 	}
 	if c.Environment == "production" {
+		if c.MockDataFile != "" {
+			return fmt.Errorf("production refuses MOCK_DATA_FILE")
+		}
 		if provider == nil || provider.ID() == "demo" || provider.ID() == "mock" {
 			return fmt.Errorf("production requires an explicit company identity.Provider; demo/mock are test-only")
 		}
@@ -92,9 +101,32 @@ func New(c Config, provider identity.Provider) (*Runtime, error) {
 	if err := c.Validate(provider); err != nil {
 		return nil, err
 	}
-	g, err := backend.OpenWithOptions(c.DatabasePath, nil, backend.DatabaseOptions{DemoData: c.Environment == "test"})
+	var g *backend.Game
+	var err error
+	opts := backend.DatabaseOptions{DemoData: c.Environment == "test"}
+	if c.Storage != nil {
+		g, err = backend.OpenWithStorage(c.Storage, nil, opts)
+	} else {
+		g, err = backend.OpenWithOptions(c.DatabasePath, nil, opts)
+	}
 	if err != nil {
 		return nil, err
+	}
+	if c.MockDataFile != "" {
+		f, e := os.Open(c.MockDataFile)
+		if e != nil {
+			g.Close()
+			return nil, e
+		}
+		scenario, e := backend.DecodeMockScenario(f)
+		f.Close()
+		if e == nil {
+			e = g.ApplyMockScenario(scenario)
+		}
+		if e != nil {
+			g.Close()
+			return nil, e
+		}
 	}
 	app := backend.NewApp(g, backend.Options{StaticDir: c.StaticDir, AllowReset: c.AllowReset, IdentityProvider: provider, LoginCallbackURL: c.LoginCallbackURL})
 	return &Runtime{Config: c, Game: g, App: app, Handler: cors(app, c.AllowedOrigins)}, nil

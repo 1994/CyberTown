@@ -1,8 +1,8 @@
 package backend
 
 import (
-	"database/sql"
 	"fmt"
+	"github.com/1994/boss-works-for-me/storage"
 )
 
 // Career progress is earned from verified project actions, never from wallet income.
@@ -87,7 +87,7 @@ func (g *Game) Promote(player string, expectedRank int) (Promotion, Career, erro
 		return ev, out, fail(400, "BAD_RANK", "请提交当前职级")
 	}
 	now := g.Now()
-	err := g.transaction(func(tx *sql.Tx) error {
+	err := g.transaction(func(tx storage.Tx) error {
 		c, err := readCareer(tx, player)
 		if err != nil {
 			return err

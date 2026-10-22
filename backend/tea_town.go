@@ -1,6 +1,9 @@
 package backend
 
-import "database/sql"
+import (
+	"database/sql"
+	"github.com/1994/boss-works-for-me/storage"
+)
 
 type TeaMission struct {
 	Status      string  `json:"status"`
@@ -21,7 +24,7 @@ type TeaWallet struct {
 	Entries []TeaLedgerEntry `json:"entries"`
 }
 
-func teaMission(tx *sql.Tx, player string) (TeaMission, error) {
+func teaMission(tx storage.Tx, player string) (TeaMission, error) {
 	m := TeaMission{Status: "offered"}
 	var run sql.NullString
 	err := tx.QueryRow("SELECT accepted_at,completed_at,income,run_id FROM tea_missions WHERE player_id=?", player).Scan(&m.AcceptedAt, &m.CompletedAt, &m.Income, &run)
@@ -41,7 +44,7 @@ func teaMission(tx *sql.Tx, player string) (TeaMission, error) {
 	return m, nil
 }
 
-func teaWallet(tx *sql.Tx, player string) (TeaWallet, error) {
+func teaWallet(tx storage.Tx, player string) (TeaWallet, error) {
 	w := TeaWallet{Entries: []TeaLedgerEntry{}}
 	if err := tx.QueryRow("SELECT coins FROM players WHERE id=?", player).Scan(&w.Balance); err != nil {
 		return w, err
@@ -62,7 +65,7 @@ func teaWallet(tx *sql.Tx, player string) (TeaWallet, error) {
 }
 
 func (g *Game) TeaAcceptMission(player string) (TeaHome, error) {
-	err := g.transaction(func(tx *sql.Tx) error {
+	err := g.transaction(func(tx storage.Tx) error {
 		if err := teaEnsure(tx, player, g.Now()); err != nil {
 			return err
 		}

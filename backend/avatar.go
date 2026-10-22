@@ -3,6 +3,7 @@ package backend
 import (
 	"database/sql"
 	"encoding/json"
+	"github.com/1994/boss-works-for-me/storage"
 	"net/url"
 	"strings"
 )
@@ -12,7 +13,7 @@ func (g *Game) SetAvatar(player, avatarURL string) error {
 	if err := validateAvatarURL(avatarURL); err != nil {
 		return err
 	}
-	return g.transaction(func(tx *sql.Tx) error {
+	return g.transaction(func(tx storage.Tx) error {
 		c, err := scanCol(tx.QueryRow("SELECT "+colleagueColumns+" FROM colleagues WHERE self_player_id=?", player))
 		if err == sql.ErrNoRows {
 			return fail(404, "NO_AVATAR", "未找到玩家分身")

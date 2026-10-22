@@ -1,8 +1,8 @@
 package backend
 
 import (
-	"database/sql"
 	"fmt"
+	"github.com/1994/boss-works-for-me/storage"
 	"path/filepath"
 	"testing"
 )
@@ -16,7 +16,7 @@ func performanceGame(b testing.TB, count int) *Game {
 		b.Fatal(err)
 	}
 	b.Cleanup(func() { g.Close() })
-	err = g.transaction(func(tx *sql.Tx) error {
+	err = g.transaction(func(tx storage.Tx) error {
 		for i := 0; i < count; i++ {
 			id := fmt.Sprintf("load-%04d", i)
 			if _, err := tx.Exec("INSERT INTO players(id,name,title,color,coins,created_at) VALUES(?,?,?,'#55ddcc',600,0)", id, "假玩家"+id, "测试"); err != nil {

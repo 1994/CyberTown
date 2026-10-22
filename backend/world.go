@@ -3,6 +3,7 @@ package backend
 import (
 	"database/sql"
 	"encoding/json"
+	"github.com/1994/boss-works-for-me/storage"
 	"hash/fnv"
 	"math"
 	"net/http"
@@ -139,7 +140,7 @@ func (g *Game) highfiveReward(first, second string) (int64, error) {
 	sort.Strings(ids)
 	pair := strings.Join(ids, ":")
 	now := g.Now()
-	err := g.transaction(func(tx *sql.Tx) error {
+	err := g.transaction(func(tx storage.Tx) error {
 		var last int64
 		err := tx.QueryRow("SELECT claimed_at FROM social_rewards WHERE pair_key=?", pair).Scan(&last)
 		if err != nil && err != sql.ErrNoRows {

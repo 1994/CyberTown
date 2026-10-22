@@ -1,36 +1,27 @@
 package backend
 
 import (
+	"context"
 	"crypto/rand"
 	"database/sql"
 	_ "embed"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	_ "modernc.org/sqlite"
-	"net/url"
-	"os"
-	"path/filepath"
-	"runtime"
+	"github.com/1994/boss-works-for-me/storage"
+	"github.com/1994/boss-works-for-me/storage/sqlite"
 	"time"
 )
-
-//go:embed schema.sql
-var schema string
 
 //go:embed seed.json
 var seedJSON []byte
 
-type queryer interface {
-	Exec(string, ...any) (sql.Result, error)
-	Query(string, ...any) (*sql.Rows, error)
-	QueryRow(string, ...any) *sql.Row
-}
+type queryer = storage.Queryer
 type Game struct {
-	DB       *sql.DB
+	DB       storage.Pool
 	Now      func() int64
 	demoData bool
-	reader   *sql.DB
+	store    storage.Store
 }
 
 func randomID() string {
@@ -51,71 +42,40 @@ func Open(path string, clock func() int64) (*Game, error) {
 type DatabaseOptions struct{ DemoData bool }
 
 func OpenWithOptions(path string, clock func() int64, opts DatabaseOptions) (*Game, error) {
-	if clock == nil {
-		clock = func() int64 { return time.Now().UnixMilli() }
-	}
-	var uri string
-	if path == ":memory:" {
-		uri = "file:boss-" + randomID() + "?mode=memory&cache=shared&"
-	} else {
-		abs, err := filepath.Abs(path)
-		if err != nil {
-			return nil, err
-		}
-		if err = os.MkdirAll(filepath.Dir(abs), 0755); err != nil {
-			return nil, err
-		}
-		u := url.URL{Scheme: "file", Path: abs}
-		uri = u.String() + "?"
-	}
-	db, err := sql.Open("sqlite", uri+"_pragma=foreign_keys(1)&_pragma=busy_timeout(5000)&_txlock=immediate")
+	st, err := sqlite.Open(path)
 	if err != nil {
 		return nil, err
 	}
-	// Keep writes serialized and transactional; read snapshots use a separate
-	// deferred, query-only WAL pool and never acquire an IMMEDIATE write lock.
-	db.SetMaxOpenConns(1)
-	db.SetMaxIdleConns(1)
-	g := &Game{DB: db, Now: clock, demoData: opts.DemoData}
-	if _, err = db.Exec("PRAGMA journal_mode=WAL; PRAGMA synchronous=NORMAL;" + schema); err != nil {
-		db.Close()
+	return OpenWithStorage(st, clock, opts)
+}
+
+// OpenWithStorage takes ownership of st, closing it on initialization failure or
+// Game.Close. It does not open any fallback database.
+func OpenWithStorage(st storage.Store, clock func() int64, opts DatabaseOptions) (*Game, error) {
+	if st == nil {
+		return nil, fmt.Errorf("storage is required")
+	}
+	if clock == nil {
+		clock = func() int64 { return time.Now().UnixMilli() }
+	}
+	if err := st.Initialize(context.Background()); err != nil {
+		st.Close()
 		return nil, err
 	}
-	if err = g.seed(false, opts.DemoData); err != nil {
-		db.Close()
-		return nil, err
+	if st.Writer() == nil || st.Reader() == nil {
+		st.Close()
+		return nil, fmt.Errorf("storage pools are required")
 	}
-	if path != ":memory:" {
-		reader, err := sql.Open("sqlite", uri+"mode=ro&_pragma=busy_timeout(5000)&_query_only=1&_txlock=deferred")
-		if err != nil {
-			db.Close()
-			return nil, err
-		}
-		readers := min(16, max(2, runtime.GOMAXPROCS(0)))
-		reader.SetMaxOpenConns(readers)
-		reader.SetMaxIdleConns(readers)
-		if err := reader.Ping(); err != nil {
-			reader.Close()
-			db.Close()
-			return nil, err
-		}
-		g.reader = reader
+	g := &Game{DB: st.Writer(), store: st, Now: clock, demoData: opts.DemoData}
+	if err := g.seed(false, opts.DemoData); err != nil {
+		st.Close()
+		return nil, err
 	}
 	return g, nil
 }
-func (g *Game) readDB() *sql.DB {
-	if g.reader != nil {
-		return g.reader
-	}
-	return g.DB // In-memory fixtures have no WAL; keep their single connection.
-}
-func (g *Game) Close() error {
-	if g.reader != nil {
-		_ = g.reader.Close()
-	}
-	return g.DB.Close()
-}
-func (g *Game) readTransaction(fn func(*sql.Tx) error) error {
+func (g *Game) readDB() storage.Pool { return g.store.Reader() }
+func (g *Game) Close() error         { return g.store.Close() }
+func (g *Game) readTransaction(fn func(storage.Tx) error) error {
 	tx, err := g.readDB().Begin()
 	if err != nil {
 		return err
@@ -126,7 +86,7 @@ func (g *Game) readTransaction(fn func(*sql.Tx) error) error {
 	}
 	return tx.Commit()
 }
-func (g *Game) transaction(fn func(*sql.Tx) error) error {
+func (g *Game) transaction(fn func(storage.Tx) error) error {
 	tx, err := g.DB.Begin()
 	if err != nil {
 		return err
@@ -144,7 +104,7 @@ func (g *Game) Reset() error {
 	return g.seed(true, true)
 }
 func (g *Game) seed(reset, demo bool) error {
-	return g.transaction(func(tx *sql.Tx) error {
+	return g.transaction(func(tx storage.Tx) error {
 		var initialized int
 		if err := tx.QueryRow("SELECT COUNT(*) FROM meta WHERE key='version'").Scan(&initialized); err != nil {
 			return err
@@ -413,7 +373,7 @@ func (g *Game) Identities() ([]Identity, error) {
 }
 func (g *Game) Snapshot(id string, online map[string]bool) (Snapshot, error) {
 	var snap Snapshot
-	err := g.readTransaction(func(tx *sql.Tx) error {
+	err := g.readTransaction(func(tx storage.Tx) error {
 		snap.ServerTime = g.Now()
 		var err error
 		snap.Version, err = version(tx)

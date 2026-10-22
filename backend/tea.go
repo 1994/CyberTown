@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"github.com/1994/boss-works-for-me/storage"
 	"hash/fnv"
 	"strings"
 	"time"
@@ -51,7 +52,7 @@ func teaChallenge(day string) TeaChallenge {
 	_, _ = h.Write([]byte(day + teaVersion))
 	return TeaChallenge{ID: "lunch-" + day, Seed: h.Sum32(), RuleVersion: teaVersion, Name: "午间奶茶高峰", Duration: 240, Arrivals: 80, Target: 72, Budget: 1100, Price: 20, MaterialCost: 6, OperatingCost: 120}
 }
-func teaEnsure(tx *sql.Tx, player string, now int64) error {
+func teaEnsure(tx storage.Tx, player string, now int64) error {
 	res, err := tx.Exec("INSERT OR IGNORE INTO tea_shops(player_id) VALUES(?)", player)
 	if err != nil {
 		return err
@@ -86,7 +87,7 @@ func teaAvatar(id, name, color string) TeaWorker {
 	w.Demo = false
 	return w
 }
-func teaWorkerCatalog(tx *sql.Tx, player, day string) ([]TeaWorker, error) {
+func teaWorkerCatalog(tx storage.Tx, player, day string) ([]TeaWorker, error) {
 	out := teaFixtures()
 	rows, err := tx.Query(`SELECT p.id,p.name,p.color,a.enabled,((SELECT COUNT(*) FROM tea_jobs j WHERE j.employee_id=p.id AND j.day=?)+(SELECT COUNT(*) FROM tea_live_jobs l WHERE l.employee_id=p.id AND l.day=?)) FROM tea_avatars a JOIN players p ON p.id=a.player_id WHERE p.id<>? AND (a.enabled=1 OR EXISTS(SELECT 1 FROM town_clones c WHERE c.owner_id=? AND c.source_id='employee:'||p.id)) ORDER BY p.id`, day, day, player, player)
 	if err != nil {
@@ -118,7 +119,7 @@ func (g *Game) TeaHome(player string) (TeaHome, error) {
 	now := g.Now()
 	day := teaDay(now)
 	h.Challenge = teaChallenge(day)
-	err := g.transaction(func(tx *sql.Tx) error {
+	err := g.transaction(func(tx storage.Tx) error {
 		if err := teaEnsure(tx, player, now); err != nil {
 			return err
 		}
@@ -213,7 +214,7 @@ func (g *Game) TeaHome(player string) (TeaHome, error) {
 	})
 	return h, err
 }
-func teaResolve(tx *sql.Tx, player, day string, plan TeaPlan) ([]TeaWorker, error) {
+func teaResolve(tx storage.Tx, player, day string, plan TeaPlan) ([]TeaWorker, error) {
 	if len(plan.Assignments) != 3 {
 		return nil, fail(400, "TEA_TEAM", "需要自己和两位员工，共三人")
 	}
@@ -282,7 +283,7 @@ func (g *Game) TeaRun(player string, plan TeaPlan, mode, key string) (TeaRun, er
 	request := string(raw)
 	now := g.Now()
 	day := teaDay(now)
-	err := g.transaction(func(tx *sql.Tx) error {
+	err := g.transaction(func(tx storage.Tx) error {
 		var prev, prevBody string
 		err := tx.QueryRow("SELECT result,request_body FROM tea_runs WHERE player_id=? AND request_key=?", player, key).Scan(&prev, &prevBody)
 		if err == nil {
@@ -390,7 +391,7 @@ func (g *Game) TeaGetRun(player, id string) (TeaRun, error) {
 	return run, err
 }
 func (g *Game) TeaHireSettings(player string, enabled bool) (TeaHome, error) {
-	err := g.transaction(func(tx *sql.Tx) error {
+	err := g.transaction(func(tx storage.Tx) error {
 		if err := teaEnsure(tx, player, g.Now()); err != nil {
 			return err
 		}
@@ -406,7 +407,7 @@ func (g *Game) TeaUpgrade(player string, expected int) (TeaHome, error) {
 	if expected < 1 || expected > 2 {
 		return TeaHome{}, fail(400, "TEA_LEVEL", "升级前等级必须为1或2")
 	}
-	err := g.transaction(func(tx *sql.Tx) error {
+	err := g.transaction(func(tx storage.Tx) error {
 		now := g.Now()
 		if err := teaEnsure(tx, player, now); err != nil {
 			return err

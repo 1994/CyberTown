@@ -34,7 +34,7 @@ make lan       # 开放局域网访问
 make dev       # API 8787 + Vite 5173，适合开发
 ```
 
-前后端可以独立构建和部署，生产身份通过现有SPI接入，静态前端用 `runtime-config.json` 切换API。详见 [前后端解耦](docs/DECOUPLED-DEVELOPMENT.md)、[身份SPI](docs/IDENTITY-SPI.md) 和 [服务端文档](docs/BACKEND.md)。本次主线不替换身份体系，不重置原钱包或旧数据；旧游戏API继续保留，但不再作为新版主线入口。
+前后端可以独立构建和部署，生产身份通过现有SPI接入，静态前端用 `runtime-config.json` 切换API。详见 [前后端解耦](docs/DECOUPLED-DEVELOPMENT.md)、[身份SPI](docs/IDENTITY-SPI.md)、[存储SPI与mock数据](docs/STORAGE-SPI.md) 和 [服务端文档](docs/BACKEND.md)。本次主线不替换身份体系，不重置原钱包或旧数据；旧游戏API继续保留，但不再作为新版主线入口。
 
 ## 验证
 

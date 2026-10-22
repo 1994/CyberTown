@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"github.com/1994/boss-works-for-me/storage"
 	"strings"
 )
 
@@ -85,7 +86,7 @@ func (s *teaLiveRecord) snapshot() TeaSession {
 	run.Result = result
 	return TeaSession{ID: s.ID, Lesson: s.Lesson, Status: s.Status, Revision: s.Revision, T: s.T, Run: run, Frame: frame, Commands: s.Commands, Hold: s.Hold}
 }
-func teaLiveRead(tx *sql.Tx, player, id string) (teaLiveRecord, error) {
+func teaLiveRead(tx storage.Tx, player, id string) (teaLiveRecord, error) {
 	var s teaLiveRecord
 	var raw string
 	err := tx.QueryRow("SELECT data FROM tea_sessions WHERE id=? AND player_id=?", id, player).Scan(&raw)
@@ -95,7 +96,7 @@ func teaLiveRead(tx *sql.Tx, player, id string) (teaLiveRecord, error) {
 	err = json.Unmarshal([]byte(raw), &s)
 	return s, err
 }
-func teaLiveSave(tx *sql.Tx, s *teaLiveRecord) error {
+func teaLiveSave(tx storage.Tx, s *teaLiveRecord) error {
 	raw, err := json.Marshal(s)
 	if err != nil {
 		return err
@@ -103,7 +104,7 @@ func teaLiveSave(tx *sql.Tx, s *teaLiveRecord) error {
 	_, err = tx.Exec("UPDATE tea_sessions SET status=?,data=? WHERE id=?", s.Status, string(raw), s.ID)
 	return err
 }
-func teaChapter(tx *sql.Tx, player string) (TeaChapter, error) {
+func teaChapter(tx storage.Tx, player string) (TeaChapter, error) {
 	c := TeaChapter{}
 	var stage int
 	err := tx.QueryRow("SELECT stage,solo_best,duo_best FROM tea_chapters WHERE player_id=?", player).Scan(&stage, &c.SoloBest, &c.DuoBest)
@@ -120,7 +121,7 @@ func teaChapter(tx *sql.Tx, player string) (TeaChapter, error) {
 	}
 	return c, nil
 }
-func teaResolveLive(tx *sql.Tx, player, day, lesson string, plan TeaPlan) ([]TeaWorker, error) {
+func teaResolveLive(tx storage.Tx, player, day, lesson string, plan TeaPlan) ([]TeaWorker, error) {
 	n := len(plan.Assignments)
 	expected := map[string]int{"solo": 1, "duo": 2, "rush": 3}[lesson]
 	if n < 1 || n > 3 || plan.Assignments[0].WorkerID != "self" || (expected > 0 && n != expected) {
@@ -200,7 +201,7 @@ func (g *Game) TeaOpen(player string, input TeaOpenSession) (TeaSession, error) 
 	request := string(raw)
 	now := g.Now()
 	day := teaDay(now)
-	err := g.transaction(func(tx *sql.Tx) error {
+	err := g.transaction(func(tx storage.Tx) error {
 		var id, body string
 		err := tx.QueryRow("SELECT id,request_body FROM tea_sessions WHERE player_id=? AND request_key=?", player, input.Key).Scan(&id, &body)
 		if err == nil {
@@ -323,7 +324,7 @@ func (g *Game) TeaOpen(player string, input TeaOpenSession) (TeaSession, error) 
 }
 func (g *Game) TeaGetSession(player, id string) (TeaSession, error) {
 	var out TeaSession
-	err := g.transaction(func(tx *sql.Tx) error {
+	err := g.transaction(func(tx storage.Tx) error {
 		s, err := teaLiveRead(tx, player, id)
 		if err != nil {
 			return err
@@ -343,7 +344,7 @@ func (g *Game) TeaStepSession(player, id string, input TeaStep) (TeaSession, err
 	}
 	raw, _ := json.Marshal(input)
 	request := string(raw)
-	err := g.transaction(func(tx *sql.Tx) error {
+	err := g.transaction(func(tx storage.Tx) error {
 		s, err := teaLiveRead(tx, player, id)
 		if err != nil {
 			return err
@@ -404,7 +405,7 @@ func (g *Game) TeaStepSession(player, id string, input TeaStep) (TeaSession, err
 	})
 	return out, err
 }
-func (g *Game) teaFinishLive(tx *sql.Tx, player string, s *teaLiveRecord) error {
+func (g *Game) teaFinishLive(tx storage.Tx, player string, s *teaLiveRecord) error {
 	now := g.Now()
 	r := &s.Run
 	var coins int

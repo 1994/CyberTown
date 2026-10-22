@@ -1,8 +1,8 @@
 package backend
 
 import (
-	"database/sql"
 	"fmt"
+	"github.com/1994/boss-works-for-me/storage"
 )
 
 type TeaBusiness struct {
@@ -44,7 +44,7 @@ func teaBusinessStocks(level int) []int {
 	}
 }
 
-func teaBusiness(tx *sql.Tx, player, day string, shop TeaShop, mission TeaMission, coins int) (TeaBusiness, error) {
+func teaBusiness(tx storage.Tx, player, day string, shop TeaShop, mission TeaMission, coins int) (TeaBusiness, error) {
 	var regular, flagship int
 	if err := tx.QueryRow("SELECT regular_best,flagship_best FROM tea_business_progress WHERE player_id=?", player).Scan(&regular, &flagship); err != nil {
 		return TeaBusiness{}, err
@@ -84,7 +84,7 @@ func teaBusiness(tx *sql.Tx, player, day string, shop TeaShop, mission TeaMissio
 	return b, nil
 }
 
-func teaBusinessRecord(tx *sql.Tx, player string, r TeaRun) error {
+func teaBusinessRecord(tx storage.Tx, player string, r TeaRun) error {
 	if err := townRecordService(tx, player, r); err != nil {
 		return err
 	}

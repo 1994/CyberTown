@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"github.com/1994/boss-works-for-me/storage"
 )
 
 var yearBases = [...]int{300, 450, 650, 900, 1200}
@@ -177,7 +178,7 @@ func (g *Game) BuyItem(player, id string, price int) error {
 	if price != item.Price {
 		return fail(409, "PRICE_CHANGED", "价格已更新，请刷新")
 	}
-	return g.transaction(func(tx *sql.Tx) error {
+	return g.transaction(func(tx storage.Tx) error {
 		var count int
 		if err := tx.QueryRow("SELECT COUNT(*) FROM player_items WHERE player_id=? AND item_id=?", player, id).Scan(&count); err != nil {
 			return err
@@ -222,7 +223,7 @@ func (g *Game) EquipItem(player, id, kind, target string) error {
 	if target == "boss" {
 		column = "boss_" + column
 	}
-	return g.transaction(func(tx *sql.Tx) error {
+	return g.transaction(func(tx storage.Tx) error {
 		value := ""
 		if id != "" {
 			found := false

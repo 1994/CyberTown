@@ -51,12 +51,14 @@ func main() {
 	seedOnly := flag.Bool("seed", false, "initialize demo data if absent and exit")
 	authMode := flag.String("auth", env("AUTH_MODE", "demo"), "test identity: demo or mock; intranet uses a private server.Run entry")
 	mockFile := flag.String("mock-identities", env("MOCK_IDENTITIES_FILE", ""), "mock token-to-user JSON fixture file")
+	mockData := flag.String("mock-data", env("MOCK_DATA_FILE", ""), "test-only game scenario JSON (coins, shop, staff); applied once")
 	flag.Parse()
 	provider, err := identityProvider(*authMode, *mockFile)
 	if err != nil {
 		log.Fatal(err)
 	}
 	config := server.ConfigFromEnv()
+	config.MockDataFile = *mockData
 	config.Host, config.Port, config.DatabasePath, config.StaticDir = *host, *port, *db, *static
 	if config.Environment == "production" && (*reset || *seedOnly) {
 		log.Fatal("production refuses demo reset/seed commands")

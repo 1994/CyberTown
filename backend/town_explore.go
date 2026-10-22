@@ -2,6 +2,7 @@ package backend
 
 import (
 	"database/sql"
+	"github.com/1994/boss-works-for-me/storage"
 	"math"
 
 	"github.com/1994/boss-works-for-me/gameplay"
@@ -20,7 +21,7 @@ type TownExploration struct {
 	Opportunities     []TownOpportunityState `json:"opportunities"`
 }
 
-func townExploration(tx *sql.Tx, player string, business TeaBusiness) (TownExploration, error) {
+func townExploration(tx storage.Tx, player string, business TeaBusiness) (TownExploration, error) {
 	e := TownExploration{FirstShopComplete: business.Stage == "complete", Opportunities: []TownOpportunityState{}}
 	rows, err := tx.Query("SELECT site_id,visited_at FROM town_explorations WHERE player_id=?", player)
 	if err != nil {
@@ -68,7 +69,7 @@ func (g *Game) TownExplore(player, id string, x, z float64) (TeaHome, error) {
 	if target == nil {
 		return TeaHome{}, fail(400, "TOWN_SITE", "未知的考察据点")
 	}
-	err := g.transaction(func(tx *sql.Tx) error {
+	err := g.transaction(func(tx storage.Tx) error {
 		var at int64
 		err := tx.QueryRow("SELECT visited_at FROM town_explorations WHERE player_id=? AND site_id=?", player, id).Scan(&at)
 		if err == nil {

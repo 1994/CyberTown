@@ -6,6 +6,7 @@ import (
 	"encoding/binary"
 	"encoding/json"
 	"fmt"
+	"github.com/1994/boss-works-for-me/storage"
 	"sort"
 )
 
@@ -27,7 +28,7 @@ func (g *Game) Sign(buyer, id string, expected int) (Trade, error) {
 		return ev, fail(400, "BAD_PRICE", "请提交当前显示的整数报价")
 	}
 	now := g.Now()
-	err := g.transaction(func(tx *sql.Tx) error {
+	err := g.transaction(func(tx storage.Tx) error {
 		c, err := scanCol(tx.QueryRow("SELECT "+colleagueColumns+" FROM colleagues WHERE id=?", id))
 		if err != nil {
 			return noRow(err, "NO_COLLEAGUE", "该同事不存在")
@@ -152,7 +153,7 @@ func (g *Game) Sign(buyer, id string, expected int) (Trade, error) {
 func (g *Game) StartProject(player string) (Run, error) {
 	var run Run
 	now := g.Now()
-	err := g.transaction(func(tx *sql.Tx) error {
+	err := g.transaction(func(tx storage.Tx) error {
 		existing, err := scanRun(tx.QueryRow("SELECT "+runColumns+" FROM project_runs WHERE player_id=? AND status='active' ORDER BY started_at DESC LIMIT 1", player))
 		if err != nil && err != sql.ErrNoRows {
 			return err
@@ -199,7 +200,7 @@ func (g *Game) FinishProject(player, id string, actions []Action) (Finish, error
 	}
 	now := g.Now()
 	expired := false
-	err := g.transaction(func(tx *sql.Tx) error {
+	err := g.transaction(func(tx storage.Tx) error {
 		r, err := scanRun(tx.QueryRow("SELECT "+runColumns+" FROM project_runs WHERE id=? AND player_id=?", id, player))
 		if err != nil {
 			return noRow(err, "NO_RUN", "项目不存在（或不属于你）")
@@ -265,7 +266,7 @@ func (g *Game) FinishProject(player, id string, actions []Action) (Finish, error
 }
 func (g *Game) Audit() (Audit, error) {
 	out := Audit{Mismatches: []string{}}
-	err := g.transaction(func(tx *sql.Tx) error {
+	err := g.transaction(func(tx storage.Tx) error {
 		rows, err := tx.Query("SELECT p.id,p.coins,COALESCE(SUM(l.delta),0) FROM players p LEFT JOIN ledger l ON l.account='player:'||p.id GROUP BY p.id")
 		if err != nil {
 			return err
