@@ -1,0 +1,9 @@
+{
+  "expandedListPeerLeaves": true,
+  "guideRestored": true,
+  "disconnectShowsRetry": true,
+  "reconnectRestores": true,
+  "realWalkToShop": true,
+  "regionChanges": true,
+  "errors": []
+}

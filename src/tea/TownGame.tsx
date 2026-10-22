@@ -10,6 +10,7 @@ import { walkNear } from '../world/navigation.ts';
 import { rt, useWorld } from '../world/runtime.ts';
 import { TeaGame, WorkerCard } from './TeaGame.tsx';
 import { TownPhone, type PhoneTab } from './TownPhone.tsx';
+import { TownArrival, TownPresence, arrivalSeen, markArrival, useWorldReady } from './TownArrival.tsx';
 import { useTownLook } from './TownLandmarks.tsx';
 import { useTeaChapter } from './useTeaChapter.ts';
 import '../sound.css';
@@ -41,6 +42,13 @@ export function TownGame() {
   const closePhone = () => useGame.getState().closePhone();
   const phone = phoneOpen ? tab : null;
   const [notice, setNotice] = useState(true);
+  const worldReady = useWorldReady(myId);
+  const conn = useGame(s => s.conn);
+  const ready = worldReady && conn === 'live';
+  // 到达引导：每个会话+玩家只出现一次；已接任务/在店的老玩家直接视为看过
+  const [arrival, setArrival] = useState(() => !arrivalSeen(myId) && place === 'map');
+  const [listOpen, setListOpen] = useState(false);
+  const closeArrival = () => { markArrival(myId); setArrival(false); };
   const [map, setMap] = useState(false);
   const [near, setNear] = useState<Site | null>(null);
   const [travel, setTravel] = useState<Site | null>(null);
@@ -48,6 +56,7 @@ export function TownGame() {
   const [hint, setHint] = useState('');
 
   const mission = home?.mission.status ?? null;
+  useEffect(() => { if (arrival && (place === 'shop' || phoneOpen || (mission && mission !== 'offered'))) closeArrival(); });
   const hires = c.team.filter(w => w.id !== home?.self.id).length;
   const live = c.view === 'play' && c.session?.status === 'active';
 
@@ -170,7 +179,12 @@ export function TownGame() {
         </div>
       </div>}
 
-      {home && notice && offered && !phone && <div className="town-notice" role="status">
+      <TownPresence myId={myId} ready={worldReady} onOpenChange={setListOpen} />
+
+      {ready && home && arrival && place === 'map' && !phone && !map && !listOpen &&
+        <TownArrival myId={myId} touch={touch} onClose={closeArrival} onPhone={() => { closeArrival(); setNotice(false); openPhone('mission'); }} />}
+
+      {ready && !arrival && home && notice && offered && !phone && place === 'map' && <div className="town-notice" role="status">
         <button className="town-notice-main" onClick={() => { setNotice(false); openPhone('mission'); }}>
           <b>📱 街角奶茶</b><span>快倒闭了，来帮个忙</span>
         </button>

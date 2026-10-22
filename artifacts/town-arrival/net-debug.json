@@ -1,0 +1,39 @@
+{
+  "ui": "offline",
+  "health": 200,
+  "events": [
+    {
+      "at": 1792642136690,
+      "type": "open",
+      "state": 1
+    },
+    {
+      "at": 1792642136690,
+      "type": "hello",
+      "state": 1
+    },
+    {
+      "at": 1792642138003,
+      "type": "world",
+      "state": 1
+    },
+    {
+      "at": 1792642138003,
+      "type": "sync",
+      "state": 1
+    },
+    {
+      "at": 1792642139163,
+      "type": "world",
+      "state": 1
+    },
+    {
+      "at": 1792642144161,
+      "type": "world",
+      "state": 1
+    }
+  ],
+  "states": [
+    1
+  ]
+}

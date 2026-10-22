@@ -1,0 +1,12 @@
+
+Running 5 tests using 1 worker
+
+(node:82010) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 tests/e2e/login-entry.spec.ts:9:1 › demo 身份先确认姓名与头像，进入小镇前不挂载世界，刷新可恢复 (7.4s)
+  ✓  2 tests/e2e/login-entry.spec.ts:33:1 › 企业 SPI 假 fixture：SSO 姓名与坏头像回退，不显示 demo 身份列表 (4.9s)
+  ✓  3 tests/e2e/town-arrival.spec.ts:103:1 › 演示账号双端到达：真实名牌/SSE移动/离开与首次引导 (1.1m)
+  ✓  4 tests/e2e/town-arrival.spec.ts:201:1 › welcome 未确认入镇时不会建立 world SSE (4.6s)
+  ✓  5 tests/e2e/town-arrival.spec.ts:218:1 › 断网恢复：offline 提示真实、恢复后仍在小镇且不扣费 (12.6s)
+
+  5 passed (1.6m)

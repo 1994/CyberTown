@@ -148,3 +148,46 @@
   .tea-top .tea-shopname, .tea-top .tea-wallet span { display: none; }
   .tea-top .tea-exit { padding: 6px 10px; }
 }
+
+/* 位置/连接/附近玩家：左上第二行，克制小条 */
+.town-presence { position: absolute; z-index: 11; top: calc(var(--st) + 56px); left: 14px; max-width: min(260px, calc(100vw - 28px)); }
+.town-presence-main {
+  display: grid; grid-template-columns: auto 1fr; column-gap: 8px; align-items: center; text-align: left;
+  min-height: 40px; padding: 4px 12px 4px 10px; border: 1px solid rgba(255, 255, 255, 0.12); border-left: 2px solid var(--tea-cyan);
+  background: rgba(8, 10, 18, 0.72); backdrop-filter: blur(6px);
+}
+.town .town-presence-main:disabled { opacity: 1; cursor: default; }
+.town-presence-main span { display: flex; gap: 6px; align-items: baseline; min-width: 0; white-space: nowrap; overflow: hidden; }
+.town-presence-main span b { font-size: 13px; }
+.town-presence-main span em { font-style: normal; font-size: 12px; color: var(--tea-dim); overflow: hidden; text-overflow: ellipsis; }
+.town-presence-main small { grid-column: 2; font-size: 11px; color: var(--tea-dim); }
+.town-conn { grid-row: span 2; width: 8px; height: 8px; border-radius: 50%; background: var(--tea-yellow); animation: town-pulse 1.4s ease-in-out infinite; }
+.town-conn.on { background: #7dffb0; animation: none; box-shadow: 0 0 6px #7dffb0; }
+.town-conn.off { background: var(--tea-red); }
+.town-nearby { margin: 4px 0 0; padding: 6px; list-style: none; display: grid; gap: 4px; max-height: 40vh; overflow-y: auto; background: var(--tea-bg); border: 1px solid var(--tea-line); }
+.town-nearby li { display: flex; align-items: center; gap: 8px; font-size: 13px; }
+.town-nearby li.more { color: var(--tea-dim); font-size: 12px; }
+.town-face { flex: none; display: grid; place-items: center; border-radius: 50%; background: #2c3566; color: #0a141d; font-weight: 800; font-size: 12px; }
+
+/* 首次到达引导 */
+.town-arrival {
+  position: absolute; z-index: 12; top: calc(var(--st) + 104px); left: 50%; transform: translateX(-50%);
+  width: min(340px, calc(100vw - 28px)); display: grid; gap: 10px; padding: 14px 16px;
+  background: var(--tea-bg); border: 1px solid var(--tea-line); border-top: 2px solid var(--tea-yellow); backdrop-filter: blur(8px);
+  animation: town-drop 0.35s ease-out;
+}
+.town-arrival > .town-x { position: absolute; top: 2px; right: 2px; }
+.town-arrival-me { display: flex; align-items: center; gap: 12px; }
+.town-arrival-me div { display: grid; }
+.town-arrival-me small { font-size: 11px; color: var(--tea-dim); }
+.town-arrival-me b { font-size: 18px; color: var(--tea-yellow); }
+.town-arrival-me em { font-style: normal; font-size: 12px; color: var(--tea-dim); }
+.town-arrival p { margin: 0; font-size: 13px; color: var(--tea-text); }
+/* 通知与带路条让出位置条 */
+.town-notice, .town-travel { top: calc(var(--st) + 104px); }
+@media (max-width: 600px) { .town-notice { top: calc(var(--st) + 104px); } }
+@media (max-height: 500px) {
+  .town-arrival { top: calc(var(--st) + 56px); left: auto; right: 14px; transform: none; }
+  .town-notice, .town-travel { top: calc(var(--st) + 100px); }
+}
+@media (prefers-reduced-motion: reduce) { .town-arrival, .town-conn { animation: none; } }

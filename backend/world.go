@@ -41,7 +41,9 @@ func (a *App) ensureWorldLocked(id string) WorldPlayer {
 		_, _ = h.Write([]byte(id))
 		n := h.Sum32()
 		x = float64(int(n%7)-3) * 2
-		z = 9.5 + float64((n/7)%3)
+		// Keep every corporate identity north of the fountain and clear of
+		// the benches along z=9; only new world entries use this spawn.
+		z = 10.5 + float64((n/7)%3)
 	}
 	p := WorldPlayer{ID: id, X: x, Z: z, UpdatedAt: a.Game.Now()}
 	a.world[id] = p

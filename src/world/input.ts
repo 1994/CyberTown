@@ -13,7 +13,7 @@ export function isTypingTarget(t: EventTarget | null): boolean {
 /** 抽屉、确认框、项目小游戏等打开时锁定移动 */
 export function movementLocked(): boolean {
   const g = useGame.getState();
-  return useWorld.getState().locks.length > 0 || g.drawer !== null || g.projectActive || g.introPlaying || g.phoneOpen;
+  return !rt.worldInitialized || useWorld.getState().locks.length > 0 || g.drawer !== null || g.projectActive || g.introPlaying || g.phoneOpen;
 }
 
 export function clearKeys() {

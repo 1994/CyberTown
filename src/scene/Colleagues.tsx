@@ -39,7 +39,12 @@ type Assign =
 const SCALE = 1.12;
 const TRAVEL_SPEED = 4.4;
 
+// 小镇模式：迎宾张总原 booth0 与新玩家出生点重叠，挪到广场招募旁空地，面向广场
+const TOWN_GREETER = 'c-zhang';
+const inTown = () => useGame.getState().phase === 'game';
+
 function desired(a: Assign, id: string): { x: number; z: number; yaw: number | null; moving?: boolean } {
+  if (a.mode === 'booth' && id === TOWN_GREETER && inTown()) return { x: -7.6, z: 13, yaw: Math.atan2(7.6, -1) };
   if (a.mode === 'booth') {
     const stroll = npcWalkAt(id, worldNow());
     if (stroll) return stroll;
@@ -317,7 +322,9 @@ function ColleagueActor({
       else if (!moving && Math.sin(t * 0.65) > 0.75) pose.cup = 1;
       if (bossTalk.current) {
         const lines =
-          a.mode === 'booth'
+          a.mode === 'booth' && c.id === TOWN_GREETER && inTown()
+            ? ['招帮手？去广场。']
+            : a.mode === 'booth'
             ? [
                 '今天，我向你汇报。',
                 '老板待命，随时上岗。',

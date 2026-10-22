@@ -1,0 +1,35 @@
+{
+  "scope": "Polish confirmed login -> shared plaza arrival -> self/nearby player identification -> optional phone mission.",
+  "entry": {
+    "spawn": "Shared plaza north of the fountain; corporate IDs use 21 walkable cells clear of benches. Existing in-memory positions are reused.",
+    "guide": "One short movement hint and an optional phone CTA; dismiss persists per environment/player/browser. No automatic mission acceptance.",
+    "presence": "Only confirmed entrants establish SSE. Nearby counts exclude self and NPCs; names/avatars map to authenticated profile snapshots.",
+    "shop": "Shop service remains an individual operation, not shared multiplayer management."
+  },
+  "fixes": [
+    "Corporate spawn no longer intersects two bench cells",
+    "Movement waits for authoritative initial coordinates",
+    "Greeter moved clear of the player spawn and speech shortened",
+    "Location follows real coordinates, including retained positions",
+    "Expanded list closes effectively on departure/disconnect",
+    "Healthy world packets restore online state after a failed REST refresh while SSE stays open"
+  ],
+  "validation": {
+    "typecheck": "passed",
+    "productionBuild": "passed",
+    "backend": "2000 fictional corporate IDs, 21 distinct cells, 42 reachable shop/recruit routes; existing world tests passed",
+    "browser": "5 tests passed, including isolated dual-player visible nameplates, remote SSE movement, departure removal, profile confirmation, and offline recovery without fees or relogin",
+    "visual": "Desktop 1440x900, mobile 390x844, landscape 844x390 reviewed",
+    "recovery": "Additional peer-departure/guide restoration and actual walk to shop/region update passed"
+  },
+  "fixtures": "All acceptance uses isolated local demo databases or synthetic identity fixtures; no live employee directory was contacted. net-debug.json records the pre-fix connection failure.",
+  "delegation": {
+    "ui": "Claude reused session",
+    "tests": "dsh reused session",
+    "coreAndAcceptance": "Codex"
+  },
+  "preview": {
+    "url": "http://127.0.0.1:8897/",
+    "publication": "Frontend assets updated; existing demo server and database preserved. Backend spawn fix is in source and the separately built QA binary."
+  }
+}

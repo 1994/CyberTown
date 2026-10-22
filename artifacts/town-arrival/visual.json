@@ -1,0 +1,32 @@
+{
+  "errors": [],
+  "viewports": [
+    {
+      "name": "04-desktop-arrival",
+      "width": 1440,
+      "height": 900,
+      "touch": false,
+      "firstArrival": true,
+      "phoneOffered": true,
+      "freeMovement": true
+    },
+    {
+      "name": "05-mobile-arrival",
+      "width": 390,
+      "height": 844,
+      "touch": true,
+      "firstArrival": true,
+      "phoneOffered": true,
+      "freeMovement": true
+    },
+    {
+      "name": "06-landscape-arrival",
+      "width": 844,
+      "height": 390,
+      "touch": true,
+      "firstArrival": true,
+      "phoneOffered": true,
+      "freeMovement": true
+    }
+  ]
+}
