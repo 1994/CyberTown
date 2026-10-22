@@ -198,13 +198,26 @@ export function useTeaChapter() {
 
   const upgrade = async () => {
     if (!home || locked.current || active || home.shop.level >= 3) return;
-    locked.current = true; setBusy(true);
-    try {
-      const h = await teaApi.upgrade(home.shop.level) as TeaLiveHome;
+    const previousLevel = home.shop.level;
+    const showUpgrade = (h: TeaLiveHome) => {
       setHome(h); updateStock(h.business?.recommendedStock ?? (h.shop.level >= 3 ? 60 : 40));
       setView('ending'); setToast('门店焕新完成');
+    };
+    locked.current = true; setBusy(true);
+    try {
+      showUpgrade(await teaApi.upgrade(previousLevel) as TeaLiveHome);
     }
-    catch (e) { setToast(message(e)); }
+    catch (e) {
+      // A lost reply can hide a committed upgrade. Read the authoritative level
+      // before offering a retry; never repeat the charge to discover the result.
+      if (!(e instanceof ApiError) || e.status === 0 || e.status >= 500) {
+        try {
+          const h = await refresh();
+          if (h.shop.level > previousLevel) { showUpgrade(h); return; }
+        } catch { /* Keep the saved game and allow the same level-guarded retry. */ }
+      }
+      setToast(message(e));
+    }
     finally { locked.current = false; setBusy(false); }
   };
   const openRun = async (id: string) => {

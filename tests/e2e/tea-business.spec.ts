@@ -2,6 +2,10 @@ import { test, expect, type Page } from '@playwright/test';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import type { TeaSession, TeaLiveHome } from '../../shared/teaLive.ts';
 
+test.beforeEach(async ({ request }) => {
+  expect((await request.post('/api/demo/reset')).ok()).toBeTruthy();
+});
+
 const dir = 'artifacts/tea-business';
 mkdirSync(dir, { recursive: true });
 

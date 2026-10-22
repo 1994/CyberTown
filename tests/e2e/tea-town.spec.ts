@@ -2,6 +2,10 @@ import { test, expect, type Page } from '@playwright/test';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import type { TeaSession, TeaLiveHome } from '../../shared/teaLive.ts';
 
+test.beforeEach(async ({ request }) => {
+  expect((await request.post('/api/demo/reset')).ok()).toBeTruthy();
+});
+
 const dir='artifacts/tea-town';mkdirSync(dir,{recursive:true});
 async function headers(page:Page){return {authorization:`Bearer ${await page.evaluate(()=>sessionStorage.getItem('boss.session'))}`};}
 async function home(page:Page):Promise<TeaLiveHome>{const r=await page.request.get('/api/tea/home',{headers:await headers(page)});expect(r.status()).toBe(200);return r.json();}

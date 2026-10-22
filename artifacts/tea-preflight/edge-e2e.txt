@@ -1,0 +1,10 @@
+
+Running 3 tests using 1 worker
+
+(node:27626) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 tests/e2e/tea-business.spec.ts:95:1 › 经营强化：确认开班/真实报表/免费试营/升级业务挑战 (45.1s)
+  ✓  2 tests/e2e/tea-preflight.spec.ts:145:1 › 三段真实经营：20/32/48 客、升级、次数耗尽与主线完成 (13.2s)
+  ✓  3 tests/e2e/tea-preflight.spec.ts:234:1 › 网络故障回归：开门回包丢失、双击防重、step 两次失败后恢复 (12.2s)
+
+  3 passed (1.2m)

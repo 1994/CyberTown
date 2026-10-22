@@ -12,11 +12,12 @@ const when = (at: number) => new Date(at < 1e12 ? at * 1000 : at).toLocaleString
 
 export type PhoneTab = 'mission' | 'wallet';
 
-export function TownPhone({ home, tab, onTab, onClose, onAccept, onGo, busy, hires }: {
+export function TownPhone({ home, tab, onTab, onClose, onAccept, onGo, busy, hires, toast }: {
   home: TeaLiveHome; tab: PhoneTab; onTab: (t: PhoneTab) => void; onClose: () => void;
-  onAccept: () => Promise<void>; onGo: (site: 'shop' | 'recruit') => void; busy: boolean; hires: number;
+  onAccept: () => Promise<void>; onGo: (site: 'shop' | 'recruit') => void; busy: boolean; hires: number; toast?: string;
 }) {
   const m = home.mission;
+  const biz = home.business;
   const [err, setErr] = useState('');
   const box = useRef<HTMLElement>(null);
   useDialogFocus(box, true);
@@ -51,6 +52,13 @@ export function TownPhone({ home, tab, onTab, onClose, onAccept, onGo, busy, hir
           <li className={m.status === 'completed' ? 'done' : ''}>到店正式营业，赚到钱</li>
         </ol>
         {m.status === 'completed' && <p className="town-income">本次净赚 <b>+{m.income}</b> 金币</p>}
+        {m.status === 'completed' && biz && (biz.stage === 'complete'
+          ? <div className="town-next done" data-testid="town-business-goal" data-stage={biz.stage}><b>主线已完成</b><span>夜城旗舰开张，自由经营刷新纪录</span></div>
+          : <div className="town-next" data-testid="town-business-goal" data-stage={biz.stage}>
+            <small>下一阶段</small><b>{biz.title}</b><span>{biz.goal}</span>
+            <div className="tea-progress"><i style={{ width: `${Math.min(100, biz.target ? (biz.progress / biz.target) * 100 : 0)}%` }} /><span>{biz.progress} / {biz.target} {biz.unit}</span></div>
+            {biz.reward && <em>回报 · {biz.reward}</em>}
+          </div>)}
         {m.status === 'offered'
           ? <div className="town-row">
             <button className="tea-btn primary" disabled={busy} onClick={() => void accept()} data-testid="town-accept-mission">接下任务</button>
@@ -58,9 +66,9 @@ export function TownPhone({ home, tab, onTab, onClose, onAccept, onGo, busy, hir
           </div>
           : <div className="town-row">
             <button className="tea-btn" onClick={() => onGo('recruit')} data-testid="town-go-recruit">去广场找帮手<small>可选</small></button>
-            <button className="tea-btn primary" onClick={() => onGo('shop')} data-testid="town-go-shop">带路去奶茶店</button>
+            <button className="tea-btn primary" onClick={() => onGo('shop')} data-testid="town-go-shop">{m.status === 'completed' ? '回店继续经营' : '带路去奶茶店'}</button>
           </div>}
-        {err && <p className="tea-hint bad">{err}</p>}
+        {err ? <p className="tea-hint bad" role="alert">{err}</p> : toast ? <p className="tea-hint town-phone-toast" role="status">{toast}</p> : null}
       </div>}
 
       {tab === 'wallet' && <div className="town-wallet" data-testid="town-wallet">

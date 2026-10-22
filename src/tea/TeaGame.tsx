@@ -188,6 +188,9 @@ export function TeaGame({ controller: c, onExit, onPhone }: { controller: TeaCha
           ? <button className="tea-btn ghost" disabled={c.busy || home.wallet.balance < home.shop.nextUpgradeCost} onClick={() => void c.upgrade()}>升级 {home.shop.nextUpgradeCost} 金币</button>
           : <span className="tea-lock"><button className="tea-btn ghost" disabled>升级 {home.shop.nextUpgradeCost} 金币</button><small>{biz?.upgradeReason || (rescue ? '救店成功后解锁' : '正式达标后解锁')}</small></span>}
       </div>}
+      {official && !c.problems.length && (home.attemptsRemaining <= 0 || home.wallet.balance < c.totalCost) &&
+        <p className="tea-hint bad tea-official-why" data-testid="tea-official-blocked">
+          {home.attemptsRemaining <= 0 ? '今日正式次数已用完' : `金币不足：预付 ${c.totalCost}，余额 ${home.wallet.balance}`}，可先免费试营业</p>}
       <div className="tea-row tea-cta">
         <button className={`tea-btn ${official ? '' : 'primary'}`} disabled={!!c.problems.length || c.busy} onClick={() => setConfirm('practice')}>免费试营业</button>
         {official && <button className="tea-btn primary" disabled={!!c.problems.length || c.busy || home.attemptsRemaining <= 0 || home.wallet.balance < c.totalCost}
@@ -273,13 +276,13 @@ export function TeaGame({ controller: c, onExit, onPhone }: { controller: TeaCha
       <h3>{drawer === 'history' ? '历史报告' : '受雇通知'}<button onClick={() => setDrawer('none')} aria-label="关闭">×</button></h3>
       {drawer === 'history' && (home.recentRuns.length ? home.recentRuns.map(r => <button key={r.id} className="tea-hist" onClick={() => { setDrawer('none'); void c.openRun(r.id); }}>
         <b className={r.result.passed ? 'ok' : 'bad'}>{r.result.completed}杯</b><span>{new Date(r.settledAt < 1e12 ? r.settledAt * 1000 : r.settledAt).toLocaleString('zh-CN', { hour12: false })}</span>
-        <em className={r.result.profit >= 0 ? 'ok' : 'bad'}>{r.result.profit >= 0 ? '+' : '−'}{Math.abs(r.result.profit)}</em></button>) : <p className="tea-empty">还没有正式营业记录</p>)}
+        <em className={r.result.profit + r.result.bonus >= 0 ? 'ok' : 'bad'}>{r.result.profit + r.result.bonus >= 0 ? '+' : '−'}{Math.abs(r.result.profit + r.result.bonus)}</em></button>) : <p className="tea-empty">还没有正式营业记录</p>)}
       {drawer === 'notices' && (home.notices.length ? home.notices.map(n => <div key={n.id} className="tea-notice">
         <b>{n.employer}</b> 雇了「{n.worker}」做{ROLE[n.role]}<span>出杯 {n.completed} · 工资 +{n.salary} 金币</span>
       </div>) : <p className="tea-empty">暂无受雇通知</p>)}
     </aside>}
 
     {c.error && <div className="tea-banner">{c.error}<button onClick={() => void c.load()}>刷新</button></div>}
-    {c.toast && <div className="tea-toast" role="status">{c.toast}</div>}
+    {c.toast && <div className="tea-toast" role="alert">{c.toast}</div>}
   </div>;
 }

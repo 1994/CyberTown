@@ -1,0 +1,9 @@
+{
+  "workers": 3,
+  "commands": 0,
+  "completed": 20,
+  "net": 240,
+  "phone": true,
+  "realWalk": true,
+  "errors": []
+}

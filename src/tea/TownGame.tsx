@@ -141,7 +141,7 @@ export function TownGame() {
   };
 
   const phoneUi = phone && home && <TownPhone home={home} tab={phone} onTab={setTab} onClose={closePhone} busy={c.busy}
-    hires={hires} onAccept={c.acceptMission} onGo={s => { if (place === 'shop') exitShop(); go(s); }} />;
+    hires={hires} toast={c.toast} onAccept={c.acceptMission} onGo={s => { if (place === 'shop') exitShop(); go(s); }} />;
 
   if (place === 'shop') return <>
     <TeaGame controller={c} onExit={exitShop} onPhone={() => openPhone('mission')} />

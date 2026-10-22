@@ -1,5 +1,9 @@
 import { test, expect } from '@playwright/test';
 
+test.beforeEach(async ({ request }) => {
+  expect((await request.post('/api/demo/reset')).ok()).toBeTruthy();
+});
+
 type PlainSnapshot = {
   me: { name: string; avatarUrl?: string; avatarColleagueId: string | null; [key: string]: unknown };
   colleagues: Array<{ id: string; [key: string]: unknown }>;

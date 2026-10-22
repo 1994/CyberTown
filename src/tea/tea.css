@@ -469,3 +469,8 @@
   .tea-net-big b { font-size: 36px; }
 }
 @media (prefers-reduced-motion: reduce) { .tea-sheet { animation: none; } .tea-progress i { transition: none; } }
+/* 错误/提示需压在开班确认与报表弹窗之上 */
+.tea-root > .tea-toast { z-index: 45; }
+.tea-official-why { margin-top: -4px; }
+.tea-hist em.ok { color: #7dffb0; }
+.tea-hist em.bad { color: var(--tea-red); }

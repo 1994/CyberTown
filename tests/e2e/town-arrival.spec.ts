@@ -3,6 +3,10 @@ import { mkdirSync, writeFileSync } from 'node:fs';
 import type { WorldPlayer } from '../../shared/types.ts';
 import type { TeaLiveHome } from '../../shared/teaLive.ts';
 
+test.beforeEach(async ({ request }) => {
+  expect((await request.post('/api/demo/reset')).ok()).toBeTruthy();
+});
+
 const dir = 'artifacts/town-arrival';
 mkdirSync(dir, { recursive: true });
 

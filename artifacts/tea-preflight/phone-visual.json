@@ -1,0 +1,29 @@
+{
+  "views": [
+    {
+      "name": "desktop",
+      "width": 1440,
+      "height": 900,
+      "goal": "renovate",
+      "actionInViewport": true,
+      "closeInViewportAfterScroll": true
+    },
+    {
+      "name": "mobile",
+      "width": 390,
+      "height": 844,
+      "goal": "renovate",
+      "actionInViewport": true,
+      "closeInViewportAfterScroll": true
+    },
+    {
+      "name": "landscape",
+      "width": 844,
+      "height": 390,
+      "goal": "renovate",
+      "actionInViewport": true,
+      "closeInViewportAfterScroll": true
+    }
+  ],
+  "errors": []
+}

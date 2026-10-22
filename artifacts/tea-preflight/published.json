@@ -1,0 +1,15 @@
+{
+  "preview": "http://127.0.0.1:8897",
+  "exactValidatedBuild": true,
+  "backendRestarted": false,
+  "assets": [
+    {
+      "path": "/assets/index-Do5btppx.js",
+      "sha256": "629cc8be2963334dc8d4b64114eb5ab12bb28f2d1d8f30a8c78ef255ac3b53ac"
+    },
+    {
+      "path": "/assets/index-C4ICFWab.css",
+      "sha256": "8405f3a58507d2f3311ea90fc440c591008873ad4909ce00d9b4aafd9dbf4de3"
+    }
+  ]
+}

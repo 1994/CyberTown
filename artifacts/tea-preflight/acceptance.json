@@ -1,0 +1,56 @@
+{
+  "game": "赛博小镇",
+  "status": "accepted",
+  "preview": "http://127.0.0.1:8897",
+  "fixed": [
+    "手机继续显示后续经营目标与完成状态",
+    "正式次数耗尽和金币不足说明",
+    "历史净赚计入奖金并与报表一致",
+    "确认框/报表及手机内错误提示可见",
+    "横屏手机页签及关闭按钮吸顶",
+    "升级回包丢失后读取实际店级恢复界面"
+  ],
+  "verification": {
+    "e2ePassed": 11,
+    "webChecksPassed": true,
+    "actualCustomers": [
+      20,
+      32,
+      48
+    ],
+    "actualNet": [
+      240,
+      224,
+      552
+    ],
+    "lostOpenReplyRecovered": true,
+    "lostUpgradeReplyRecovered": true,
+    "stepFailuresRecovered": 2,
+    "doubleClickPosts": 1,
+    "settledOnce": true,
+    "desktopMobileLandscape": true,
+    "oldPreviewDataPreserved": true
+  },
+  "manualEntry": {
+    "suggestedDemo": "大刘",
+    "useFreshBrowserSession": true,
+    "route": [
+      "确认身份",
+      "共享广场手机接任务",
+      "可选招募",
+      "步行入店筹备",
+      "最终确认开门",
+      "营业与报表",
+      "金币升级至旗舰"
+    ]
+  },
+  "limits": [
+    "正式营业每天3班，免费试营不消耗有酬次数",
+    "本机为演示环境；企业SPI资料/头像链路使用fixture验证，真实内网认证未在本机实测"
+  ],
+  "delegation": {
+    "ui": "Claude reused session",
+    "testCode": "dsh reused cached session",
+    "independentAcceptance": "Codex"
+  }
+}
