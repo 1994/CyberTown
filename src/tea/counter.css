@@ -20,3 +20,34 @@
 
 .counter-tools .counter-phone{color:#ffe17c;border-color:#ffe17c80;display:inline-flex;align-items:center;gap:5px;white-space:nowrap}
 @media(max-width:650px) and (orientation:portrait){.counter-header{flex-wrap:wrap}.counter-title{flex:1}.counter-tools{margin-left:auto}.counter-tools .counter-phone{padding:7px 10px}.counter-header .counter-tools{width:100%;justify-content:flex-end}.counter-guide{top:125px}.counter-prep~.counter-guide{top:125px}}
+
+/* Short, contextual instructions remain next to the thumb controls. */
+.counter-coach{border-left:3px solid #ffe06e;background:#111e2c;padding:9px 12px;display:grid;gap:6px}
+.counter-coach header{display:flex;align-items:center;justify-content:space-between;font-size:12px;color:#ffe06e}
+.counter-coach header button{min-height:32px;padding:4px 12px;font-size:11px}
+.counter-coach-steps{display:flex;align-items:center;gap:12px;color:#8d9bb0;font-size:12px}
+.counter-coach-steps .current{color:#ffe06e}.counter-coach-steps .done{color:#75edce}
+.counter-coach small{font-size:11px;line-height:1.5;color:#bbcbd7}
+.counter-hint{line-height:1.5!important;min-height:20px;color:#f2e6b0}
+.counter-tap{display:inline-block;font-size:10px;font-style:normal;margin-left:10px;padding:3px 5px;border:1px solid currentColor;vertical-align:middle}
+.counter-action{touch-action:manipulation}
+.counter-action.needs-you{outline:2px solid #ffe06e;outline-offset:2px}
+.counter-legend{position:absolute;left:12px;bottom:10px;display:flex;gap:10px;background:#0a152bd9;padding:6px 9px;pointer-events:none;font-size:10px;border:1px solid #ffffff20}
+.legend-self{color:#ffe06e}.legend-staff{color:#63ecdf}.legend-guest{color:#abb8c9}
+.counter-guide p{font-size:14px;color:#ffe06e;margin:12px 0 8px}.counter-guide>small{font-size:11px;color:#becdd4}
+@media(max-width:650px) and (orientation:portrait){
+ .counter-play .counter-scene{min-height:120px}
+ .counter-coach{padding:6px 10px;gap:4px}
+ .counter-coach-steps{font-size:11px;gap:8px}
+ .counter-dock{gap:7px}
+ .counter-tap{font-size:9px;margin-left:6px}
+ .counter-root .counter-action{min-height:66px}
+ .counter-legend{font-size:9px;left:6px;bottom:6px;padding:4px 6px}
+}
+@media(max-height:550px) and (orientation:landscape){
+ .counter-play{grid-template-rows:48px 36px minmax(80px,1fr) auto}
+ .counter-coach{grid-template-columns:auto 1fr;align-items:center;padding:4px 9px;gap:4px 12px}
+ .counter-coach header{gap:12px}.counter-coach small{grid-column:2;font-size:10px}
+ .counter-coach-steps{grid-column:2;grid-row:1;font-size:11px}
+ .counter-dock{gap:3px}.counter-hint{font-size:11px;min-height:16px}
+}

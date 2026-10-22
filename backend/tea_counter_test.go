@@ -183,3 +183,65 @@ func TestCounterBeginnerHasTimeToFinish(t *testing.T) {
 		t.Fatalf("beginner cannot pass: %d/%d", r.Completed, ch.Target)
 	}
 }
+
+func TestCounterUnattendedQueueIsBounded(t *testing.T) {
+	ch := counterChallenge("2026-10-22", 1, 1)
+	// Stress arrivals beyond normal demo traffic to exercise the doorway cap.
+	ch.Arrivals = 100
+	p, ws := counterPlan(false)
+	firstLost := -1
+	for sec := 0; sec <= ch.Duration; sec++ {
+		r, f := simulateCounter(ch, p, ws, sec, nil)
+		waiting, seated := 0, 0
+		for _, c := range f.CustomersState {
+			if c.State == "waiting" {
+				waiting++
+				if float64(sec)-c.At >= 10 {
+					t.Fatal("door queue never expires", sec, c)
+				}
+			}
+			if c.State == "maker" {
+				seated++
+				if float64(sec)-float64(2+(c.ID-1)*(ch.Duration-20)/(ch.Arrivals-1)) > 37 {
+					t.Fatal("order deadline exceeded", sec, c)
+				}
+			}
+		}
+		if waiting > 2 || seated > 8 {
+			t.Fatalf("unbounded crowd at %d: seated=%d waiting=%d", sec, seated, waiting)
+		}
+		if firstLost < 0 && r.Lost > 0 {
+			firstLost = sec
+		}
+		if r.Revenue != 0 {
+			t.Fatal("unserved customers paid")
+		}
+		if sec == ch.Duration && r.Lost != ch.Arrivals {
+			t.Fatal("customers missing from settlement", r.Lost, ch.Arrivals)
+		}
+	}
+	if firstLost < 0 || firstLost > 38 {
+		t.Fatal("unattended customers do not leave promptly", firstLost)
+	}
+}
+
+func TestCounterPatienceDoesNotResetAtPickup(t *testing.T) {
+	ch := counterChallenge("2026-10-22", 1, 1)
+	ch.Arrivals = 1
+	p, ws := counterPlan(false)
+	commands := []TeaCommand{{T: 25, Role: "maker"}}
+	_, f := simulateCounter(ch, p, ws, 31, commands)
+	if f.CustomersState[0].State != "ready" || f.CustomersState[0].Patience > .25 {
+		t.Fatal("making reset patience", f.CustomersState)
+	}
+	r, _ := simulateCounter(ch, p, ws, 38, commands)
+	if r.Lost != 1 || r.LostCashier != 1 {
+		t.Fatal("ready cup did not expire", r.Lost, r.LostCashier)
+	}
+	// Saved counter.1 runs keep their original timing and replay deterministically.
+	ch.Flow = "counter.1"
+	r, _ = simulateTeaUntil(ch, p, ws, 38, commands, true, "")
+	if r.Lost != 0 {
+		t.Fatal("legacy replay timing changed")
+	}
+}

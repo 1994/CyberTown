@@ -170,7 +170,7 @@ export function useTeaChapter() {
     if (view !== 'play' || !active || paused || outside || phoneOpen) return;
     // Counter days run at real time. Older frozen lessons retain their original rate.
     // The request lock skips overlapping ticks during slow connections.
-    const delay = (session?.run.challenge.flow === 'counter.1' ? 1000 : lesson === 'solo' || lesson === 'duo' ? 500 : 250) / speed;
+    const delay = (session?.run.challenge.flow?.startsWith('counter.') ? 1000 : lesson === 'solo' || lesson === 'duo' ? 500 : 250) / speed;
     const t = setInterval(() => { void step(1); }, delay);
     return () => clearInterval(t);
   }, [view, active, paused, outside, phoneOpen, lesson, speed, session?.run.challenge.flow, step]);

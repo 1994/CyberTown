@@ -26,9 +26,11 @@ func counterSelf(w TeaWorker, p TeaCounterProgress) TeaWorker {
 	w.Service = min(95, w.Service+min(5, p.ServiceXP/10)*5)
 	return w
 }
+func isCounterFlow(flow string) bool { return flow == "counter.1" || flow == "counter.2" }
+
 func counterChallenge(day string, level, businessDay int) TeaChallenge {
 	c := teaBusinessChallenge(day, level)
-	c.Flow = "counter.1"
+	c.Flow = "counter.2"
 	c.BusinessDay = businessDay
 	c.ID = fmt.Sprintf("counter-%d-lv%d", businessDay, level)
 	c.Duration = []int{120, 160, 200}[min(3, max(1, level))-1]
@@ -56,14 +58,19 @@ func (g *Game) TeaDismissGuide(player string) (TeaHome, error) {
 // after a completed delivery. A single actor cannot work two stations at once.
 func simulateCounter(ch TeaChallenge, plan TeaPlan, workers []TeaWorker, until int, commands []TeaCommand) (TeaResult, TeaLiveFrame) {
 	until = min(ch.Duration, max(0, until))
+	bounded := ch.Flow == "counter.2"
 	r := TeaResult{Arrivals: ch.Arrivals, MaterialCost: plan.Stock * ch.MaterialCost, OperatingCost: ch.OperatingCost, SkillCounts: map[string]int{}, Frames: []TeaFrame{}, Events: []TeaEvent{}}
 	for _, w := range workers {
 		r.Wages += w.Salary
 	}
 	r.TotalCost = r.MaterialCost + r.OperatingCost + r.Wages
+	arrivalWindow := ch.Duration - 40
+	if bounded {
+		arrivalWindow = ch.Duration - 20
+	}
 	cs := make([]teaCustomer, ch.Arrivals)
 	for i := range cs {
-		cs[i] = teaCustomer{id: i + 1, arrival: 2 + float64(i)*float64(ch.Duration-40)/float64(max(1, ch.Arrivals-1)), patience: 55, state: "pending", seat: -1}
+		cs[i] = teaCustomer{id: i + 1, arrival: 2 + float64(i)*float64(arrivalWindow)/float64(max(1, ch.Arrivals-1)), patience: 55, state: "pending", seat: -1}
 	}
 	ss := make([]teaStation, len(workers))
 	self := -1
@@ -131,6 +138,26 @@ func simulateCounter(ch TeaChallenge, plan TeaPlan, workers []TeaWorker, until i
 		for i := range cs {
 			c := &cs[i]
 			if c.state == "pending" && c.arrival <= t {
+				if bounded {
+					active, waiting := 0, 0
+					for _, other := range cs {
+						if other.state == "waiting" {
+							waiting++
+						}
+						if other.state != "pending" && other.state != "lost" && other.state != "served" {
+							active++
+						}
+					}
+					if active >= 10 || waiting >= 2 {
+						c.state = "lost"
+						c.at = t
+						arrived++
+						lost++
+						r.LostMaker++
+						emit(t, "customer_lost", i, "", "", "full")
+						continue
+					}
+				}
 				c.state = "waiting"
 				c.at = t
 				c.queued = t
@@ -138,8 +165,12 @@ func simulateCounter(ch TeaChallenge, plan TeaPlan, workers []TeaWorker, until i
 				r.Accepted++
 				emit(t, "customer_arrived", i, "", "", "")
 			}
-			if c.state == "maker" || c.state == "ready" {
-				if t-c.queued >= c.patience {
+			if c.state == "maker" || c.state == "ready" || (bounded && c.state == "waiting") {
+				expired := t-c.queued >= c.patience
+				if bounded {
+					expired = t-c.arrival >= 36 || (c.state == "waiting" && t-c.queued >= 10)
+				}
+				if expired {
 					reason := "maker"
 					if c.state == "ready" {
 						reason = "cashier"
@@ -157,7 +188,7 @@ func simulateCounter(ch TeaChallenge, plan TeaPlan, workers []TeaWorker, until i
 
 		occupied := map[int]bool{}
 		for _, c := range cs {
-			if c.seat >= 0 && ((c.state != "served" && c.state != "lost") || t-c.at < 5) {
+			if c.seat >= 0 && ((c.state != "served" && c.state != "lost") || t-c.at < counterSeatRelease(bounded)) {
 				occupied[c.seat] = true
 			}
 		}
@@ -337,8 +368,14 @@ func simulateCounter(ch TeaChallenge, plan TeaPlan, workers []TeaWorker, until i
 	for _, c := range cs {
 		if c.state != "pending" {
 			patience := 1.0
-			if c.state == "maker" || c.state == "ready" {
+			if c.state == "maker" || c.state == "ready" || c.state == "waiting" || c.state == "making" || c.state == "delivering" {
 				patience = max(0, 1-(float64(until)-c.queued)/c.patience)
+				if bounded {
+					patience = max(0, 1-(float64(until)-c.arrival)/36)
+					if c.state == "waiting" {
+						patience = min(patience, max(0, 1-(float64(until)-c.queued)/10))
+					}
+				}
 			}
 			f.CustomersState = append(f.CustomersState, TeaLiveCustomer{ID: c.id, State: c.state, At: c.at, WorkerID: c.workerID, Patience: patience, Seat: c.seat})
 		}
@@ -362,4 +399,11 @@ func simulateCounter(ch TeaChallenge, plan TeaPlan, workers []TeaWorker, until i
 		f.SelfTask.QueuedRole = &q
 	}
 	return r, f
+}
+
+func counterSeatRelease(bounded bool) float64 {
+	if bounded {
+		return 1.5
+	}
+	return 5
 }

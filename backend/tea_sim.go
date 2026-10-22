@@ -133,7 +133,7 @@ func simulateTea(ch TeaChallenge, plan TeaPlan, workers []TeaWorker) TeaResult {
 // Both legacy replays and live play use this core. Live requests reveal only
 // the prefix reached by the server-owned clock and accepted command timeline.
 func simulateTeaUntil(ch TeaChallenge, plan TeaPlan, workers []TeaWorker, until int, commands []TeaCommand, manual bool, lesson string) (TeaResult, TeaLiveFrame) {
-	if ch.Flow == "counter.1" {
+	if isCounterFlow(ch.Flow) {
 		return simulateCounter(ch, plan, workers, until, commands)
 	}
 	r := TeaResult{Arrivals: ch.Arrivals, MaterialCost: plan.Stock * ch.MaterialCost, OperatingCost: ch.OperatingCost, SkillCounts: map[string]int{}, Frames: []TeaFrame{}, Events: []TeaEvent{}}

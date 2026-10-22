@@ -295,7 +295,7 @@ func (g *Game) TeaOpen(player string, input TeaOpenSession) (TeaSession, error) 
 			if err = tx.QueryRow("SELECT (SELECT COUNT(*) FROM tea_runs WHERE player_id=? AND day=? AND mode='official')+(SELECT COUNT(*) FROM tea_sessions WHERE player_id=? AND day=? AND mode='official' AND status='active')", player, day, player, day).Scan(&used); err != nil {
 				return err
 			}
-			if used >= 3 && ch.Flow != "counter.1" {
+			if used >= 3 && !isCounterFlow(ch.Flow) {
 				return fail(409, "TEA_DAILY_LIMIT", "今天正式营业机会已用完，可继续免费试营")
 			}
 			for _, w := range workers {
@@ -476,7 +476,7 @@ func (g *Game) teaFinishLive(tx storage.Tx, player string, s *teaLiveRecord) err
 		if _, err := tx.Exec("UPDATE tea_shops SET runs=runs+1,best=MAX(best,?) WHERE player_id=?", r.Result.Completed, player); err != nil {
 			return err
 		}
-		if r.Challenge.Flow == "counter.1" {
+		if isCounterFlow(r.Challenge.Flow) {
 			if _, err := tx.Exec("UPDATE tea_counter_progress SET day=day+1,maker_xp=maker_xp+?,service_xp=service_xp+? WHERE player_id=?", r.Result.SelfMade, r.Result.SelfServed, player); err != nil {
 				return err
 			}

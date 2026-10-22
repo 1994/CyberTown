@@ -22,8 +22,8 @@ test.beforeEach(async({request})=>{expect((await request.post('/api/demo/reset')
 test('solo player learns make then deliver, pauses and finishes real two-minute day',async({page})=>{
  test.setTimeout(240_000);const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));
  await login(page);await page.waitForTimeout(1800);await page.screenshot({path:`${dir}/01-prep.png`});
- await expect(page.getByTestId('counter-guide')).toContainText('制作饮品');
- const opened=await open(page);expect(opened.run.challenge.flow).toBe('counter.1');expect(opened.run.challenge.duration).toBe(120);
+ await expect(page.getByTestId('counter-guide')).toContainText('角色自动跑位');
+ const opened=await open(page);expect(opened.run.challenge.flow).toBe('counter.2');expect(opened.run.challenge.duration).toBe(120);
  let latest=opened;page.on('response',async r=>{if(r.url().includes(`/api/tea/sessions/${opened.id}/step`)&&r.status()===200){latest=await r.json()}});
  const start=Date.now();let sawReady=false,sawDelivery=false,snapped=false,paused=false;
  while(latest.status==='active'&&Date.now()-start<180_000){
@@ -35,7 +35,7 @@ test('solo player learns make then deliver, pauses and finishes real two-minute 
    if(await action.isEnabled())await action.click();
   }
   if(latest.t>35&&!snapped){await page.screenshot({path:`${dir}/02-service.png`});snapped=true}
-  const understood=page.getByRole('button',{name:'会了，继续经营',exact:true});if(await understood.isVisible())await understood.click();
+  const understood=page.getByRole('button',{name:'完成引导',exact:true});if(await understood.isVisible())await understood.click();
   await page.waitForTimeout(280);
  }
  expect(latest.status).toBe('finished');expect(Date.now()-start).toBeGreaterThan(115_000);

@@ -53,15 +53,20 @@ function labelTexture(text: string, tone: LabelTone) {
 }
 
 /** 场景文字。float=true 时从挂载起上浮淡出约 1.1 秒（用于技能、出杯、流失浮字）。 */
-export function Label3D({ text, tone = 'tag', position, height = 0.3, float = false }: {
-  text: string; tone?: LabelTone; position: [number, number, number]; height?: number; float?: boolean;
+export function Label3D({ text, tone = 'tag', position, height = 0.3, float = false, minPixels = 0 }: {
+  text: string; tone?: LabelTone; position: [number, number, number]; height?: number; float?: boolean; minPixels?: number;
 }) {
   const { tex, aspect } = labelTexture(text, tone);
   const mat = useMemo(() => new THREE.SpriteMaterial({ map: tex, transparent: true, depthTest: false, depthWrite: false, toneMapped: false }), [tex]);
   useEffect(() => () => mat.dispose(), [mat]);
   const s = useRef<THREE.Sprite>(null);
   const t0 = useRef(-1);
-  useFrame(({ clock }) => {
+  useFrame(({ clock, camera, size }) => {
+    if (minPixels && s.current && camera instanceof THREE.OrthographicCamera) {
+      const unitsPerPixel = (camera.top-camera.bottom)/(camera.zoom*size.height);
+      const shownHeight = Math.max(height,minPixels*unitsPerPixel);
+      s.current.scale.set(shownHeight*aspect,shownHeight,1);
+    }
     if (!float || !s.current) return;
     if (t0.current < 0) t0.current = clock.elapsedTime;
     const k = (clock.elapsedTime - t0.current) / 1.1;

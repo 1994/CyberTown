@@ -241,10 +241,10 @@ function PickStation({ ready }: { ready: number }) {
 
 // ───────── 人物 ─────────
 /** 平滑走向目标；移动时摆腿，坐下时屈腿；carry=手上拿杯 */
-function Actor({ look, target, sit = false, act = false, carry = false, fade = false, dots, patience = null, pop, spawn, frozen = false, staff = false }: {
+function Actor({ look, target, sit = false, act = false, carry = false, fade = false, dots, patience = null, pop, spawn, frozen = false, staff = false, identity = 'guest' }: {
   look: ReturnType<typeof lookOf>; target: Spot; sit?: boolean; act?: boolean; carry?: boolean;
   fade?: boolean; dots?: { done: number; total: number } | null; patience?: number | null; pop?: string;
-  /** 首次出现的位置（顾客从门口进来）；frozen=暂停时原地定格 */ spawn?: P3; frozen?: boolean; staff?: boolean;
+  /** 首次出现的位置（顾客从门口进来）；frozen=暂停时原地定格 */ spawn?: P3; frozen?: boolean; staff?: boolean; identity?: 'self' | 'staff' | 'guest';
 }) {
   const g = useRef<THREE.Group>(null);
   const rig = useRef<Rig>(null);
@@ -276,7 +276,7 @@ function Actor({ look, target, sit = false, act = false, carry = false, fade = f
     const dist = o.position.distanceTo(v);
     const moving = dist > 0.06;
     if (moving) {
-      const step = Math.min(dist, dt * (staff ? 5.5 : 2.6));
+      const step = Math.min(dist, dt * (staff ? 5.5 : fade ? 5 : 3.2));
       o.position.lerp(v, step / dist);
       o.rotation.y = Math.atan2(v.x - o.position.x, v.z - o.position.z);
     } else o.rotation.y += (target.rot - o.rotation.y) * Math.min(1, dt * 8);
@@ -294,7 +294,12 @@ function Actor({ look, target, sit = false, act = false, carry = false, fade = f
     o.visible = !fade || moving;
   });
   return <group ref={g}>
-    <Character ref={rig} look={look} scale={1.03} />
+    <Character ref={rig} look={look} scale={identity==='guest'?.95:1.03} />
+    <mesh rotation-x={-Math.PI/2} position-y={.025} material={glow(identity==='self'?'#ffd400':identity==='staff'?'#3ef0ff':'#8794a8',identity==='guest'?.35:1.3)}>
+      <ringGeometry args={identity==='self'?[.43,.52,4]:identity==='staff'?[.37,.43,24]:[.3,.32,20]}/>
+    </mesh>
+    {!fade&&<Label3D text={identity==='self'?'◆ 你':identity==='staff'?'员工':'NPC'} tone={identity==='self'?'self':identity==='staff'?'on':'off'} position={[0,1.98,0]} height={identity==='guest'?.26:.38} minPixels={identity==='guest'?12:17}/>}
+
     {carry && <group position={[0, 0.95, 0.42]}><mesh material={std('#2a313d', 0.4, 0.4)}><boxGeometry args={[0.46, 0.03, 0.32]} /></mesh><Cup position={[0, 0.02, 0]} scale={1.35} /></group>}
     {/* 耐心：头顶短条，绿→黄→红 */}
     {patience != null && <group position={[0, 2.26, 0]}>
@@ -314,13 +319,13 @@ const serveSpot = (c: TeaLiveCustomer): Spot => {
   const s = seatOf(c);
   return s ? { pos: [s.pos[0] + (s.rot > 0 ? 0.35 : -0.35), 0, s.pos[2] + 0.7], rot: Math.PI } : { pos: [PICK_COUNTER.x, 0, PICK_COUNTER.z + 0.9], rot: 0 };
 };
-const guestLook = (id: number) => lookOf('guest-' + id, '顾客', ['#5ab8ff', '#ff6b4a', '#7dffa8', '#b18bff', '#ffd166', '#e8f4ff'][id % 6]);
-const SERVED_STAY = 2; // 收到杯后坐约 2 秒再走向门口
+const guestLook = (id: number) => lookOf('guest-' + id, '顾客', ['#8296ac', '#b58676', '#819c8a', '#9589a8', '#af9d7d', '#b4bdc6'][id % 6]);
+const SERVED_STAY = .75; // 收到杯后坐约 0.75 秒再走向门口
 
 function Customers({ frame, frozen }: { frame: TeaLiveFrame; frozen: boolean }) {
   // 一个 id 一个演员，跨所有状态不重挂载：门口进场 → 等位/点单 → 座位 → 收杯付款 → 走向门口消失；流失从当前位置走出
   const restoredAt = useRef(frame.t).current;
-  const list = frame.customersState.filter(c => !(c.state === 'served' && frame.t - c.at > 8) && !(c.state === 'lost' && frame.t - c.at > 6));
+  const list = frame.customersState.filter(c => !(c.state === 'served' && frame.t - c.at > 4) && !(c.state === 'lost' && frame.t - c.at > 3));
   const queued = list.filter(c => !seatOf(c) && c.state !== 'served' && c.state !== 'lost');
   const qIndex = new Map(queued.slice(0, QUEUE.length).map((c, i) => [c.id, i]));
   const overflow = queued.length - qIndex.size;
@@ -337,8 +342,8 @@ function Customers({ frame, frozen }: { frame: TeaLiveFrame; frozen: boolean }) 
       const sitting = !!seat && !leaving;
       return <group key={c.id}>
         <Actor look={guestLook(c.id)} target={target} spawn={restoredAt > 0 && c.at <= restoredAt ? target.pos : DOOR} sit={sitting} fade={leaving} frozen={frozen}
-          patience={leaving || c.state === 'served' || (c.patience ?? 1) > .5 ? null : c.patience ?? null}
-          pop={c.state === 'served' && !leaving ? '✓' : undefined} />
+          patience={leaving || c.state === 'served' ? null : c.patience ?? null}
+          pop={c.state === 'served' && !leaving ? '+金币' : c.state==='lost' ? '离开' : undefined} />
         {c.state === 'served' && seat && !leaving && <Cup position={[seat.pos[0] + (seat.rot > 0 ? 0.42 : -0.42), 0.77, seat.pos[2]]} />}
       </group>;
     })}
@@ -363,7 +368,7 @@ function Staff({ team, roles, frame, selfId, selfAvatar, frozen }: { team: TeaWo
       else spot = SUPPORT_SPOT;
       const working = !!frame && (role === 'maker' || role === 'cashier') && (ws ? ws.progress > 0 || ws.customerId != null : true);
       const st = isSelf && frame ? frame.selfTask : null;
-      return <Actor key={w.id} look={lookOf(w.id, w.name, w.color, isSelf ? selfAvatar : undefined)} target={spot}
+      return <Actor key={w.id} look={isSelf?lookOf(w.id,w.name,w.color,selfAvatar):{...lookOf(w.id,w.name,'#38a7b5'),hairStyle:'cap',accessory:'none'}} identity={isSelf?'self':'staff'} target={spot}
         staff act={working && !delivering && !frozen} carry={delivering} frozen={frozen}
         dots={st && st.role !== 'idle' ? { done: st.done, total: Math.min(3, st.done + st.remaining) } : null} />;
     })}

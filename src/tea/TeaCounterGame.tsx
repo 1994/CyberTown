@@ -9,12 +9,14 @@ import { Face } from './HiringHall.tsx';
 import { useGame } from '../store.ts';
 import { SoundMenu } from '../ui/SoundControl.tsx';
 import './counter.css';
+import { useTouchUi } from '../ui/useTouchUi.ts';
 
 const time = (n:number) => `${Math.floor(n/60)}:${String(n%60).padStart(2,'0')}`;
 const roleName = (r:string) => r === 'maker' ? '制作' : r === 'cashier' ? '端送' : '忙时补位';
 export function TeaCounterGame({controller:c,onExit,onPhone,onHall}:{controller:TeaChapterController;onExit:()=>void;onPhone:()=>void;onHall:()=>void}) {
  const [confirm,setConfirm]=useState<'practice'|'official'|null>(null);
  const [help,setHelp]=useState(false);
+ const touch=useTouchUi();
  const me=useGame(s=>s.snapshot?.me);
  const home=c.home;
  const view=c.view==='ending'||c.view==='street'?'prep':c.view;
@@ -26,7 +28,7 @@ export function TeaCounterGame({controller:c,onExit,onPhone,onHall}:{controller:
  const team=currentRun?.workers??c.team;
  const roles=currentRun?Object.fromEntries(currentRun.plan.assignments.map(a=>[a.workerId,a.role])):c.roles;
  const ready=frame?.cashierQueue??0,orders=frame?.makerQueue??0;
- const can=(r:TeaWorkRole)=>playing&&!c.paused&&!modal&&!c.frame?.selfTask.queuedRole&&(r==='maker'?orders>0:ready>0);
+ const can=(r:TeaWorkRole)=>playing&&!c.paused&&!modal&&!c.frame?.selfTask.queuedRole&&c.frame?.selfTask.role!==r&&(r==='maker'?orders>0:ready>0);
  const assign=(r:TeaWorkRole)=>{if(can(r))void c.assign(r)};
  useEffect(()=>{
   if(!playing||modal)return;
@@ -43,12 +45,16 @@ export function TeaCounterGame({controller:c,onExit,onPhone,onHall}:{controller:
  const taskActive=!!selfTask&&selfTask.role!=='idle';
  const phase=!playing?'准备开店':(frame?.t??0)>=ch.duration-30?'收尾中':'营业中';
  const guide=!home.counter?.guideSeen||help;
- const made=currentRun?.result.selfMade??0,served=currentRun?.result.selfServed??0;
- const hint=c.paused?'营业已暂停，顾客会等你回来':taskActive?`你正在${roleName(selfTask.role)} · 自动完成这批，最多 3 杯`
-   :ready>0&&!cover('cashier').length?'饮品做好了，点右下「端送」送到客人手里'
-   :orders>0&&!cover('maker').length?'客人已下单，点左下「制作」开始出杯'
-   :fullyAuto?'两位员工正在自动营业，你可以看着，也可以帮忙'
-   :orders+ready===0?'客人正在进店，下单后会出现在订单栏':'员工正在处理订单，你可以帮忙加快速度';
+ const made=(currentRun?.result.selfMade??0)+(frame?.customersState.filter(x=>['ready','delivering','served'].includes(x.state)).length??0),served=frame?.served??0;
+ const recommended = !c.paused && !selfTask?.queuedRole ? ready>0 && selfTask?.role!=='cashier' ? 'cashier' : !taskActive && orders>0 ? 'maker' : null : null;
+ const hint=c.paused?'已暂停 · 点继续恢复营业':selfTask?.queuedRole?`已安排${roleName(selfTask.queuedRole)} · 当前这批完成后自动换岗`
+   :recommended==='cashier'?'杯子好了 → 点「端送」收钱'
+   :taskActive?`${roleName(selfTask.role)}中 · 自动完成，无需连点`
+   :recommended==='maker'?'有新订单 → 点「制作」'
+   :fullyAuto?'员工自动营业 · 你可随时帮忙':'等待顾客下单';
+ const tutorialStep=served>0?3:made>0?2:1;
+ const occupants=frame?.customersState.filter(x=>!['served','lost','pending'].includes(x.state)).length??0;
+ const waiting=frame?.customersState.filter(x=>x.state==='waiting').length??0;
  const finishGuide=()=>{setHelp(false);void c.dismissGuide()};
  return <main className={`counter-root ${view==='prep'?'counter-planning':`counter-${view}`}`} data-testid="tea-counter" data-phase={view}>
   <header className="counter-header" inert={modal}>
@@ -65,6 +71,7 @@ export function TeaCounterGame({controller:c,onExit,onPhone,onHall}:{controller:
   </div>}
   <section className="counter-scene" aria-label="奶茶店：左边制作台，右边取餐台，前方客人座位" inert={modal}>
    <TeaCounterScene level={home.shop.level} team={team} roles={roles} frame={frame} liveFrame={frame} stockMax={currentRun?.plan.stock??c.stock} events={c.events} supportAt={c.supportAt} selfAvatar={me?.avatarUrl} selfId="self" live={playing&&!c.paused} canAssign={playing&&!c.paused&&!modal&&!selfTask?.queuedRole} onAssign={assign}/>
+   <div className="counter-legend" aria-label="人物标识"><span className="legend-self">◆ 你</span><span className="legend-staff">▰ 员工</span><span className="legend-guest">● 顾客 NPC</span></div>
    {playing&&help&&<div className="counter-orders" aria-label="当前订单" data-testid="counter-orders">
     <div><b>订单</b><span>{orders} 待做 · {ready} 待送</span></div>
     <ul>{frame?.customersState.filter(x=>['maker','making','ready','delivering'].includes(x.state)).slice(0,6).map(x=><li key={x.id} className={`order-${x.state}`}>
@@ -93,21 +100,21 @@ export function TeaCounterGame({controller:c,onExit,onPhone,onHall}:{controller:
    {home.business?.upgradeReady&&home.shop.level<3&&<button className="counter-upgrade" disabled={c.busy||home.wallet.balance<home.shop.nextUpgradeCost} onClick={()=>void c.upgrade()}>升级门店 · {home.shop.nextUpgradeCost} 金币</button>}
   </aside>}
   {playing&&<footer className="counter-dock" inert={modal}>
-   <div className="counter-hint" role="status">
-    <span className="counter-sr-only">{hint}</span>
-    {c.paused?'已暂停':taskActive?`${roleName(selfTask.role)} ${selfTask.done}/3`:fullyAuto?'自动营业':null}
-    {selfTask?.queuedRole&&<span>下一批 · {roleName(selfTask.queuedRole)}</span>}
-   </div>
+   {guide&&<section className="counter-coach" data-testid="counter-guide" aria-label="第一杯引导">
+    <header><b>{fullyAuto?'员工已接手':`第一杯 · ${tutorialStep}/3`}</b><button onClick={finishGuide}>{served>0?'完成引导':'跳过'}</button></header>
+    <div className="counter-coach-steps"><span className={tutorialStep===1?'current':made>0?'done':''}>① 制作</span><ChevronRight size={12}/><span className={tutorialStep===2?'current':served>0?'done':''}>② 端送</span><ChevronRight size={12}/><span className={tutorialStep===3?'current':''}>③ 收钱</span></div>
+    <small>{served>0?'首杯已收款！继续营业，结束后查看日报':fullyAuto?'制作、端送都由员工自动完成':touch?'轻点下方按钮 · 角色自动走位，每批最多 3 杯':'点击按钮或按 1 / 2 · 角色自动走位，每批最多 3 杯'}</small>
+   </section>}
+   <div className="counter-hint" role="status" data-testid="counter-next-action">{hint}</div>
    <div className="counter-action-row">
-    {(['maker','cashier'] as const).map(r=><button key={r} data-testid={`counter-${r}`} className={`counter-action action-${r} ${(r==='cashier'?ready:orders)>0&&!cover(r).length?'needs-you':''}`} disabled={!can(r)} onClick={()=>assign(r)}>
-     {r==='maker'?<CupSoda size={26}/>:<HandPlatter size={26}/>}<span><b>{r==='maker'?'制作':'端送'}</b><small>{r==='maker'?`${orders} 单`:`${ready} 杯`}{cover(r).length?' · 自动':''}</small></span><kbd>{r==='maker'?'1':'2'}</kbd>
+    {(['maker','cashier'] as const).map(r=><button key={r} data-testid={`counter-${r}`} className={`counter-action action-${r} ${recommended===r?'needs-you':''}`} disabled={!can(r)} onClick={()=>assign(r)}>
+     {r==='maker'?<CupSoda size={26}/>:<HandPlatter size={26}/>}<span><b>{r==='maker'?'制作':'端送'}{recommended===r&&<em className="counter-tap">{touch?'点这里':'下一步'}</em>}</b><small>{r==='maker'?`${orders} 单`:`${ready} 杯`}{cover(r).length?' · 自动':''}</small></span>{!touch&&<kbd>{r==='maker'?'1':'2'}</kbd>}
     </button>)}
    </div>
-   <div className="counter-jobline"><span aria-label={`剩余原料 ${Math.floor(frame?.stock??0)}份`} title="剩余原料"><Package size={13} aria-hidden="true"/>{Math.floor(frame?.stock??0)}</span></div>
+   <div className="counter-jobline"><span data-testid="counter-occupancy">店内 {occupants-waiting}/8 · 等位 {waiting}/2</span><span aria-label={`剩余原料 ${Math.floor(frame?.stock??0)}份`} title="剩余原料"><Package size={13} aria-hidden="true"/>{Math.floor(frame?.stock??0)}</span></div>
   </footer>}
-  {guide&&!modal&&<section className="counter-guide" data-testid="counter-guide"><header><b>{playing?'第一杯':'开店指南'}</b><button onClick={finishGuide} aria-label="跳过店内引导">跳过</button></header>
-   <ol><li className={made>0?'done':''}><b>1</b>有订单 → 点「制作」</li><li className={served>0?'done':''}><b>2</b>杯子做好 → 点「端送」</li><li className={served>0?'done':''}><b>3</b>送达收钱 · 员工自动工作</li></ol>
-   {served>0&&<button className="tea-btn primary" onClick={finishGuide}>会了，继续经营</button>}
+  {guide&&!modal&&view==='prep'&&<section className="counter-guide" data-testid="counter-guide"><header><b>你来指挥，角色自动跑位</b><button onClick={finishGuide} aria-label="跳过店内引导">跳过</button></header>
+   <p>{touch?'轻点':'点击'}「制作」→「端送」→ 收钱</p><small>先备料开店 · 雇员会自动工作</small>
   </section>}
   {c.toast&&<div className="counter-toast" role="status">{c.toast}</div>}
   {confirm&&view==='prep'&&<OpenConfirm mode={confirm} challenge={ch} team={team} roles={roles} stock={c.stock} strategy={c.strategy} cost={{material:c.stock*ch.materialCost,wages:staff.reduce((n,w)=>n+w.salary,0),operating:ch.operatingCost,total:c.totalCost}} balance={home.wallet.balance} busy={c.busy} blocked={c.problems[0]??(confirm==='official'&&home.wallet.balance<c.totalCost?'金币不足':'')} onCancel={()=>setConfirm(null)} onStart={()=>void c.start(confirm).then(()=>setConfirm(null))}/>}

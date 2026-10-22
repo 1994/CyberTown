@@ -5,6 +5,8 @@ import { TOWN_CRATES, TOWN_VEHICLES, TOWN_WALKERS } from '../../shared/townLife.
 import type { Look } from '../../shared/types.ts';
 import { Character, type Rig } from './Character.tsx';
 import { StaticBatch } from './StaticBatch.tsx';
+import { Label3D } from '../tea/Label3D.tsx';
+import { rt } from '../world/runtime.ts';
 import { std, glow } from './materials.ts';
 
 function Vehicle({x,z,color,van}: typeof TOWN_VEHICLES[number]) {
@@ -23,6 +25,7 @@ const shirts=['#dbab6e','#79cbb9','#ba91d0','#769ed1','#d68190','#8fb56e','#d1c4
 function Resident({index}:{index:number}) {
   const root=useRef<THREE.Group>(null),rig=useRef<Rig>(null);
   const route=TOWN_WALKERS[index];
+  const tag=useRef<THREE.Group>(null);
   const reduced=useMemo(()=>matchMedia('(prefers-reduced-motion: reduce)').matches,[]);
   const look:Look={skin:index%2?'#d7a27e':'#f0c7a5',hair:'#323345',hairStyle:index%3===0?'cap':index%3===1?'bob':'short',shirt:shirts[index%shirts.length],pants:'#354456',accessory:index%4===0?'glasses':'none'};
   useFrame(({clock,camera})=>{
@@ -31,11 +34,12 @@ function Resident({index}:{index:number}) {
     const forward=phase<route.b-route.a;
     const x=reduced?route.a+index:forward?route.a+phase:route.b-(phase-(route.b-route.a));
     root.current.position.set(x,0,route.z);
+    if(tag.current)tag.current.visible=Math.hypot(rt.me.x-x,rt.me.z-route.z)<12;
     root.current.rotation.y=forward?Math.PI/2:-Math.PI/2;
     root.current.visible=root.current.position.distanceTo(camera.position)<90;
     if(rig.current&&!reduced){const step=Math.sin(clock.elapsedTime*5+index);rig.current.legL.rotation.x=step*.34;rig.current.legR.rotation.x=-step*.34;rig.current.armL.rotation.x=-step*.22;rig.current.armR.rotation.x=step*.22;}
   });
-  return <group ref={root} position={[route.a,0,route.z]}><Character ref={rig} look={look} scale={1.05}/></group>;
+  return <group ref={root} position={[route.a,0,route.z]}><Character ref={rig} look={look} scale={1.05}/><group ref={tag}><Label3D text="NPC" tone="off" position={[0,2.05,0]} height={.28}/></group></group>;
 }
 /** 环境居民仅营造生活气息，无同事姓名/雇佣标记，不参与多人或经营状态。 */
 export function TownLife(){return <>

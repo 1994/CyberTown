@@ -1,0 +1,22 @@
+{
+  "checks": {
+    "typecheck": "pass",
+    "productionBuild": "pass",
+    "goTestAll": "pass",
+    "renderTests": "15 passed",
+    "soloSimulation": "16/20 delivered; target 12",
+    "beginnerAndAutomaticStaff": "pass",
+    "unattendedQueueStress": "100 arrivals; max 8 seats and 2 waiting; no revenue without delivery",
+    "pickupDeadlineAndLegacyReplay": "pass",
+    "desktopFirstCup": "made, queued delivery, collected 20 coins",
+    "mobileLayout": "390x640 iframe viewport; visible buttons; taps made 3 deliveries and 60 revenue",
+    "unattendedBrowserReport": "2 served,18 lost, report displayed at close",
+    "refresh": "paused progress restored; completed guide stays dismissed"
+  },
+  "version": "New counter.2 sessions; historical counter.1 rules retained",
+  "notes": [
+    "Mobile testing used a narrow browser viewport, not a physical device",
+    "One MutationObserver error observed during iframe reload; subsequent gameplay and reload checks passed"
+  ],
+  "preview": "8897; existing database preserved and backed up"
+}

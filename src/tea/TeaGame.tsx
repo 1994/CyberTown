@@ -310,6 +310,6 @@ function LegacyTeaGame({ controller: c, onExit, onPhone, onHall }: { controller:
 
 export function TeaGame(props: Parameters<typeof LegacyTeaGame>[0]) {
  const c=props.controller;
- const oldSession=c.session && c.session.status==='active' && c.session.run.challenge.flow!=='counter.1';
+ const oldSession=c.session && c.session.status==='active' && !c.session.run.challenge.flow?.startsWith('counter.');
  return c.lesson==='rescue'&&!oldSession ? <TeaCounterGame {...props}/> : <LegacyTeaGame {...props}/>;
 }
