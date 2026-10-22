@@ -8,6 +8,7 @@ import './hall.css';
 // 雇佣大厅：候选分身 / 人物详情 / 我的员工。所有金币、报价、职级、派工都来自服务端 TownHome，本地不记账。
 
 const MAX_STAFF = 12;
+const CANDIDATES_PER_PAGE = 4;
 const LEVEL_TITLE = ['学徒', '学徒', '店员', '经理'];
 const JOB: Record<TownJobKind, { name: string; cycle: number; reward: number; need: 1 | 3 }> = {
   clean: { name: '街坊保洁', cycle: 20, reward: 12, need: 1 },
@@ -101,6 +102,9 @@ export function HiringHall({ onClose, onChanged, onShop, canAssign = true, assig
   const [buyQuoted, setBuyQuoted] = useState(0);
   const [filter, setFilter] = useState<Filter>('all');
   const [sort, setSort] = useState<Sort>('price');
+  const [search, setSearch] = useState('');
+  const [pages, setPages] = useState({ colleague: 1, npc: 1 });
+  const resetPages = () => setPages({ colleague: 1, npc: 1 });
   const [confirmId, setConfirmId] = useState<string | null>(null);
   const [quoted, setQuoted] = useState(0);
   const [err, setErr] = useState('');
@@ -128,7 +132,7 @@ export function HiringHall({ onClose, onChanged, onShop, canAssign = true, assig
   const confirm: TownCandidate | null = home.candidates.find(c => c.id === confirmId) ?? null;
   const full = home.clones.length >= MAX_STAFF;
   const shown = home.candidates
-    .filter(c => filter === 'all' || best(c) === filter)
+    .filter(c => (filter === 'all' || best(c) === filter) && c.name.toLocaleLowerCase().includes(search.trim().toLocaleLowerCase()))
     .sort((a, b) => sort === 'price' ? a.price - b.price : potentialScore(b) - potentialScore(a));
 
   const submit = async (placeNow = false) => {
@@ -226,17 +230,32 @@ export function HiringHall({ onClose, onChanged, onShop, canAssign = true, assig
       <div className={`hall-body tab-${tab}`}>
         <section className="hall-candidates" aria-label="招员工">
           <div className="hall-mission-strip"><span>制作 <b>＋</b> 端送</span><strong>两岗有人，你就轻松了</strong><small>学徒即刻上岗 · 营业中自动成长</small></div>
+          <div className="hall-search">
+            <label htmlFor="hire-search">找员工</label>
+            <input id="hire-search" type="search" placeholder="输入同事或 NPC 的名字" value={search} maxLength={80} onChange={e=>{setSearch(e.target.value);resetPages();}} />
+            {search && <button onClick={()=>{setSearch('');resetPages();}} aria-label="清空员工搜索">清空</button>}
+          </div>
           <div className="hall-tools" aria-label="按岗位找人">
-            {(Object.keys(FILTER_LABEL) as Filter[]).map(f => <button key={f} className={filter===f?'on':''} onClick={()=>setFilter(f)} data-testid="hire-filter" data-filter={f}>{FILTER_LABEL[f]}</button>)}
-            <select value={sort} onChange={e=>setSort(e.target.value as Sort)} aria-label="排序"><option value="price">价格优先</option><option value="potential">能力优先</option></select>
+            {(Object.keys(FILTER_LABEL) as Filter[]).map(f => <button key={f} className={filter===f?'on':''} onClick={()=>{setFilter(f);resetPages();}} data-testid="hire-filter" data-filter={f}>{FILTER_LABEL[f]}</button>)}
+            <select value={sort} onChange={e=>{setSort(e.target.value as Sort);resetPages();}} aria-label="排序"><option value="price">价格优先</option><option value="potential">能力优先</option></select>
           </div>
           <div className="hall-recruit-columns">
           {(['colleague','npc'] as const).map(kind=>{
            const candidates=shown.filter(c=>kind==='colleague'?!!c.playerId:!c.playerId);
+           const totalPages=Math.max(1,Math.ceil(candidates.length/CANDIDATES_PER_PAGE));
+           const page=Math.min(pages[kind],totalPages);
+           const visible=candidates.slice((page-1)*CANDIDATES_PER_PAGE,page*CANDIDATES_PER_PAGE);
+           const hasSource=home.candidates.some(c=>kind==='colleague'?!!c.playerId:!c.playerId);
            return <section key={kind} className={`hall-recruit-column source-${kind}`} aria-label={kind==='colleague'?'同事分身':'NPC 员工'} data-testid={`hire-group-${kind}`}>
-           <h3>{kind==='colleague'?'同事分身':'NPC 员工'}<span>{candidates.length}</span></h3>
+           <h3>{kind==='colleague'?'同事分身':'NPC 员工'}<span>{candidates.length} 位</span></h3>
+           {kind==='colleague'&&hasSource&&<p className="hall-source-note">更多同事加入小镇后，会出现在这里。</p>}
+          {totalPages>1&&<nav className="hall-pagination" aria-label={`${kind==='colleague'?'同事':'NPC'}列表分页`}>
+            <button disabled={page===1} aria-label={`${kind==='colleague'?'同事':'NPC'}上一页`} onClick={()=>setPages(p=>({...p,[kind]:page-1}))}>上一页</button>
+            <span role="status" aria-live="polite">{page} / {totalPages}</span>
+            <button disabled={page===totalPages} aria-label={`${kind==='colleague'?'同事':'NPC'}下一页`} onClick={()=>setPages(p=>({...p,[kind]:page+1}))}>下一页</button>
+          </nav>}
            <ul className="hall-list hall-recruit-grid">
-            {candidates.map(c => <li key={c.id}>
+            {visible.map(c => <li key={c.id}>
               <button className={`hall-cand ${c.owned ? 'owned' : ''}`} disabled={busy || full || c.owned || !c.enabled || home.coins<c.price} onClick={() => {setErr('');setQuoted(c.price);setConfirmId(c.id);}}
                 data-testid={`hire-candidate-${c.id}`} data-owned={c.owned ? 'true' : undefined}>
                 <Face w={c} size={64} />
@@ -245,8 +264,14 @@ export function HiringHall({ onClose, onChanged, onShop, canAssign = true, assig
                 <span className="hall-recruit-cta">{c.owned?'已雇佣':!c.enabled?'暂不可雇佣':home.coins<c.price?'金币不足':full?'员工已满':busy?'处理中…':'雇佣这位员工 →'}</span>
               </button>
             </li>)}
-            {!candidates.length && <li className="tea-empty">{kind==='colleague'&&!home.candidates.some(c=>!!c.playerId)?'暂无同事分身':'没有符合的候选'}</li>}
-          </ul></section>;
+            {!candidates.length && <li className="hall-recruit-empty">
+              <strong>{!hasSource ? kind==='colleague'?'等待同事加入':'暂无 NPC 员工':'没有找到合适的人选'}</strong>
+              <p>{!hasSource ? kind==='colleague'?'同事加入小镇后，这里就会展示可雇佣的分身。现在可以先雇 NPC 帮忙。':'稍后再来看看吧。':'换个名字搜搜，或清除岗位筛选。'}</p>
+              {hasSource&&<button className="tea-btn" onClick={()=>{setSearch('');setFilter('all');resetPages();}}>清除搜索与筛选</button>}
+            </li>}
+          </ul>
+
+          </section>;
           })}</div>
         </section>
         <section className="hall-staff" aria-label="我的员工">

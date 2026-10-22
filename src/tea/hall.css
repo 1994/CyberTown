@@ -224,3 +224,21 @@
  .hall-recruit-grid .hall-cand .hall-recruit-cost b { font-size: 27px; }
  .hall-recruit-grid .hall-cand .hall-recruit-wage b { font-size: 14px; }
 }
+
+/* Search and independently paged recruitment columns. */
+.hall-search{display:flex;align-items:center;gap:10px;margin-bottom:12px;padding:10px 12px;background:#102a38;border:1px solid #61ded75c;border-left:3px solid #63ecdf}
+.hall-search label{white-space:nowrap;color:#9df9ee;font-size:13px;font-weight:700}
+.hall-search input{flex:1;min-width:0;min-height:40px;border:0;border-bottom:1px solid #658697;background:#10202e;color:#edfaff;padding:8px 10px;font:inherit;font-size:16px}
+.hall-search input::placeholder{color:#a1b8c8;font-size:13px}
+.hall-search button,.hall-pagination button{min-height:40px;padding:6px 12px;border:1px solid #638995;background:#203c4c;color:#d4fff7;font-weight:700}
+.hall-search input:focus-visible,.hall-search button:focus-visible,.hall-pagination button:focus-visible{outline:2px solid #ffe179;outline-offset:2px}
+.hall-source-note{margin:-4px 0 12px;color:#abc6d2;font-size:12px;line-height:1.6}
+.hall-recruit-empty{grid-column:1/-1;padding:24px 16px;border:1px dashed #4d8b94;background:linear-gradient(140deg,#1b3e4b80,#162438);list-style:none}
+.hall-recruit-empty strong{display:block;color:#a5fff1;font-size:17px;line-height:1.5}
+.hall-recruit-empty p{margin:10px 0 0;color:#bfd0df;font-size:14px;line-height:1.8}
+.hall-recruit-empty button{margin-top:12px}
+.hall-pagination{display:flex;align-items:center;justify-content:space-between;gap:6px;margin-top:12px;padding-top:12px;border-top:1px solid #496773}
+.hall-pagination span{color:#b8d5e0;font-size:13px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.hall-pagination button:disabled{opacity:.4;cursor:default}
+@media(max-width:540px){.hall-search{gap:6px;padding:8px}.hall-search label{display:none}.hall-pagination{flex-wrap:wrap;justify-content:center}.hall-pagination span{order:-1;width:100%;text-align:center}.hall-pagination button{padding:6px 8px;font-size:12px}.hall-recruit-empty{padding:18px 10px}.hall-recruit-empty strong{font-size:15px}.hall-recruit-empty p{font-size:13px}}
+.hall-recruit-column>.hall-pagination{margin:0 0 12px;padding:0;border:0}
