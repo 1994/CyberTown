@@ -182,8 +182,8 @@ export function TownGame() {
   };
   // E 键 / 手机互动：复用原世界的 world-interact 事件
   useEffect(() => {
-    if (place !== 'map' || locked || arrival) return;
-    const on = () => {if(useRide.getState().riding)parkBike();else if(near)enter(near);else if(nearShopping)setPlace('shopping');else if(nearBike)mountBike();};
+    if (place !== 'map' || locked || map) return;
+    const on = () => {if(useRide.getState().riding)parkBike();else if(near)enter(near);else if(nearShopping)setPlace('shopping');else if(nearBike)mountBike();else if(vehicles.length)mountBike(vehicles.some(v=>v.id===vehicleId)?vehicleId:vehicles[0].id);};
     window.addEventListener('world-interact', on);
     return () => window.removeEventListener('world-interact', on);
   });
@@ -309,7 +309,8 @@ export function TownGame() {
 
       {live && <button className="town-resume" onClick={() => go('shop')}>营业已暂停 · 回店继续</button>}
 
-      {place === 'map' && !phone && !guided && !map && near && <div className="town-interact">
+      <div className="town-action-dock" data-testid="town-action-dock">
+      {place === 'map' && !phone && !introPlaying && !map && near && <div className="town-interact">
         {near === 'shop'
           ? <button className="tea-btn primary" onClick={() => enter('shop')} data-testid="town-enter-shop">
             进{['街角奶茶', '霓虹奶茶', '夜城茶饮旗舰'][(home?.shop.level ?? 1) - 1] ?? '奶茶店'}{!touch && !ride.riding && <kbd>E</kbd>}</button>
@@ -318,18 +319,19 @@ export function TownGame() {
             进雇佣大厅 <small>可选</small>{!touch && !ride.riding && <kbd>E</kbd>}</button>}
       </div>}
 
-      {place === 'map' && nearSite && !map && !phone && !guided && <SurveyCard id={nearSite} home={home} busy={survey.busy} error={survey.error} onSurvey={() => void doSurvey(nearSite)} />}
+      {place === 'map' && nearSite && !map && !phone && !introPlaying && <SurveyCard id={nearSite} home={home} busy={survey.busy} error={survey.error} onSurvey={() => void doSurvey(nearSite)} />}
 
 
-      {place==='map'&&!phone&&!guided&&!map&&!introPlaying&&<>
+      {place==='map'&&!phone&&!map&&!introPlaying&&<>
         {nearShopping&&!near&&<div className="town-interact"><button className="tea-btn primary" data-testid="town-enter-shopping" onClick={()=>setPlace('shopping')}><ShoppingBag size={18}/>逛购物街{!touch&&!ride.riding&&<kbd>E</kbd>}</button></div>}
-        {(ride.riding||nearBike||vehicles.length>0)&&<div className="ride-controls" data-testid="ride-controls">
-          {ride.riding?<><small>{touch?'摇杆骑行 · 点地面也能走':'WASD 骑行 · 点地面也能走'}</small><button className="tea-btn" onClick={parkBike} data-testid="bike-dismount"><Bike size={18}/>下车{!touch&&<kbd>E</kbd>}</button></>:<>
-            {nearBike&&<button className="tea-btn" onClick={()=>mountBike()} data-testid="bike-mount"><Bike size={18}/>骑共享单车 · 免费</button>}
-            {vehicles.length>0&&<><select aria-label="选择我的自行车" value={vehicles.some(v=>v.id===vehicleId)?vehicleId:vehicles[0].id} onChange={e=>setVehicleId(e.target.value)}>{vehicles.map(v=><option key={v.id} value={v.id}>{v.name}</option>)}</select><button className="tea-btn" onClick={()=>mountBike(vehicles.some(v=>v.id===vehicleId)?vehicleId:vehicles[0].id)} data-testid="bike-own-mount"><Bike size={18}/>骑我的车</button></>}
+        {(ride.riding||(!near&&!nearShopping&&(nearBike||vehicles.length>0)))&&<div className="ride-controls" data-testid="ride-controls">
+          {ride.riding?<>{!touch&&<small>WASD 骑行 · E 下车</small>}<button className="tea-btn" onClick={parkBike} data-testid="bike-dismount"><Bike size={18}/>下车{!touch&&<kbd>E</kbd>}</button></>:<>
+            {nearBike&&<button className="tea-btn primary" onClick={()=>mountBike()} data-testid="bike-mount"><Bike size={18}/>上车 · 免费{!touch&&<kbd>E</kbd>}</button>}
+            {vehicles.length>0&&!nearBike&&<><select aria-label="选择我的自行车" value={vehicles.some(v=>v.id===vehicleId)?vehicleId:vehicles[0].id} onChange={e=>setVehicleId(e.target.value)}>{vehicles.map(v=><option key={v.id} value={v.id}>{v.name}</option>)}</select><button className="tea-btn" onClick={()=>mountBike(vehicles.some(v=>v.id===vehicleId)?vehicleId:vehicles[0].id)} data-testid="bike-own-mount"><Bike size={18}/>骑我的车{!touch&&<kbd>E</kbd>}</button></>}
           </>}
         </div>}
       </>}
+      </div>
       {touch && !locked && <Joystick />}
       {(hint || c.toast) && <div className="tea-toast" role="status">{hint || c.toast}</div>}
       {c.error && <div className="tea-banner">{c.error}<button onClick={() => void c.load()}>刷新</button></div>}

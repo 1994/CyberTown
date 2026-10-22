@@ -86,6 +86,7 @@ export function TownArrival({ myId, touch, onPhone, onClose }: { myId: string; t
     </div>
     {touch ? <p className="town-arrival-short" id="town-guide-phone">黄色「你」是自己 · 拖动左下摇杆走路</p> : <ul className="town-guide">
       <li><b>移动</b><span>{touch ? '左下摇杆，或点地面' : '点地面，或 WASD'}</span></li>
+      <li><b>互动</b><span>靠近后点按钮，或按 <kbd>E</kbd> 进店 / 上下车</span></li>
       <li><b>开始</b><span>手机接任务 → 去奶茶店；雇员工可选</span></li>
       <li id="town-guide-phone"><b>手机</b><span>右上角「手机」看任务和钱包{!touch && <>，或按 <kbd>P</kbd></>}</span></li>
     </ul>}

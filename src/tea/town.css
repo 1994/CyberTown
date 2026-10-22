@@ -346,3 +346,13 @@
   .town-tools .town-help { min-width:28px; }
   .town-phone-btn { gap:3px; }
 }
+
+/* One flow layout for contextual actions: never stack independently anchored panels. */
+.town-action-dock{position:absolute;z-index:12;left:50%;bottom:calc(var(--sb) + 28px);transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:8px;max-width:calc(100vw - 32px);pointer-events:none}
+.town-action-dock .town-interact,.town-action-dock .ride-controls,.town-action-dock .town-survey{position:static;inset:auto;transform:none;animation:none;pointer-events:auto;margin:0}
+.town-action-dock .ride-controls{align-items:center}
+.town-action-dock kbd{margin-left:8px;padding:1px 6px;border:1px solid currentColor;font:600 12px system-ui}
+.touch-ui .town-action-dock{left:auto;right:calc(env(safe-area-inset-right,0px) + 14px);bottom:calc(var(--sb) + 24px);transform:none;align-items:flex-end;max-width:calc(100vw - 150px)}
+.touch-ui .town-action-dock .town-interact .tea-btn{min-height:52px;padding:10px 14px;font-size:14px;white-space:normal}
+.touch-ui .town-action-dock .ride-controls{align-items:flex-end;max-width:100%}
+.touch-ui .town-action-dock .town-survey{width:100%;box-sizing:border-box;max-height:38dvh;overflow:auto}
