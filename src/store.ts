@@ -205,7 +205,8 @@ export const useGame = create<GameStore>((set, get) => ({
   enterTown() {
     if (get().phase !== 'welcome' || !get().snapshot || !session.get()) return;
     session.confirmEntry();
-    set({ phase: 'game' });
+    useCinema.getState().prepareIntro();
+    set((s) => ({ phase: 'game', introPlaying: true, introNonce: s.introNonce + 1 }));
   },
 
   async logout() {

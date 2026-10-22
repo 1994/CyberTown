@@ -4,7 +4,6 @@ import {
   CIVIC_POSTS, EXPANSION_FENCE, GATE_POST_Z, TOWN_GATES, TOWN_SHOPHOUSES, TOWN_STREETS, type DistrictId, type Shophouse,
 } from '../../shared/townPlan.ts';
 import { WORLD_BOUNDS } from '../../shared/world.ts';
-import { useGame } from '../store.ts';
 import { glow, std } from './materials.ts';
 import { StaticBatch } from './StaticBatch.tsx';
 import { neonText } from './textures.ts';
@@ -13,8 +12,8 @@ import { TownExpansion } from './TownExpansion.tsx';
 // 小镇街区美术：街屋围合、区界门楼、街面色调、社区中心凉棚、北区围挡、外围低层屋顶。
 // 全部静态合批，不加实时灯；占地与 shared/townPlan.ts 一致（碰撞在 world.ts）。
 
-/** 当前是否小镇游戏（登录背景保持旧园区）。 */
-export const useTownMode = () => useGame(s => s.phase === 'game');
+/** 登录预览与正式进入使用同一座小镇，避免切换成旧园区。 */
+export const useTownMode = () => true;
 
 export const PALETTE: Record<DistrictId, { walls: string[]; awning: [string, string]; window: string; sign: string; trim: string }> = {
   commerce: { walls: ['#3a2f36', '#33333f', '#3b3130', '#2f3442'], awning: ['#ffb347', '#ff5f8f'], window: '#ffcf8a', sign: '#ffd08a', trim: '#ff9f43' },

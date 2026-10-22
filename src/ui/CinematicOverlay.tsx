@@ -37,9 +37,9 @@ export function CinematicOverlay() {
     {!playing && shot?.kind !== 'arrival' && <div className="cinema-wipe" aria-hidden="true" />}
     {playing ? <>
       <div className="cinema-title" style={{ animationPlayState: startedAt ? 'running' : 'paused' }}>
-        <small>A LITTLE BREAK. A LOT OF FUN.</small>
+        <small>CYBER TOWN</small>
         <h1>赛博<span>小镇</span></h1>
-        <p>逛小镇，招伙伴，救活街角奶茶店。</p>
+
       </div>
       <div className="cinema-chapter"><i>0{chapter + 1} / 04</i><span>{CHAPTERS[chapter]}</span></div>
       <div className="cinema-progress"><i style={{ width: `${progress * 100}%` }} /></div>

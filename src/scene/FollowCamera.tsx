@@ -14,7 +14,7 @@ const FOLLOW_DIST = 17;
 // Overview fits the whole 90×66 district; scale stays in step with WORLD_BOUNDS.
 const SPAN = Math.max(WORLD_BOUNDS.maxX - WORLD_BOUNDS.minX, (WORLD_BOUNDS.maxZ - WORLD_BOUNDS.minZ) * 60 / 44);
 const OVERVIEW_DIST = Math.round(SPAN * 1.5);
-const IDLE_SCALE = SPAN / 60;
+const IDLE_SCALE = 0.85;
 const HOME_DIRECTION = new THREE.Vector3(0.46, 0.62, 0.64).normalize();
 const INTRO_DOOR = 'cinematic-intro';
 const smooth = (t: number) => t * t * (3 - 2 * t);
@@ -33,6 +33,8 @@ interface Intro {
 export function FollowCamera({ active }: { active: boolean }) {
   const controls = useRef<OrbitImpl>(null);
   const { camera, size, scene } = useThree();
+  const myId = useGame(s => s.snapshot?.me.id);
+  const worldReady = useWorld(s => s.players.some(p => p.id === myId));
   const introNonce = useGame((s) => s.introNonce);
   const introPlaying = useGame((s) => s.introPlaying);
   const setIntroPlaying = useGame((s) => s.setIntroPlaying);
@@ -60,7 +62,7 @@ export function FollowCamera({ active }: { active: boolean }) {
   }, [active, overview, scene]);
 
   useEffect(() => {
-    if (!active || !introNonce || !useGame.getState().introPlaying) return;
+    if (!active || !worldReady || !introNonce || !useGame.getState().introPlaying) return;
     useCinema.getState().clear();
     useWorld.getState().setOverview(false);
     clearKeys();
@@ -121,7 +123,7 @@ export function FollowCamera({ active }: { active: boolean }) {
       window.removeEventListener('world-skip-intro', finish);
       window.removeEventListener('keydown', onKey);
     };
-  }, [introNonce, active, camera, followDist, setIntroPlaying]);
+  }, [introNonce, active, worldReady, camera, followDist, setIntroPlaying]);
 
   useEffect(() => {
     if (active) zoomGoal.current = overview ? overviewDist : followDist;

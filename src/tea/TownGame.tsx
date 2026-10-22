@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { CinematicOverlay } from '../ui/CinematicOverlay.tsx';
 import { Smartphone } from 'lucide-react';
 import { TEA_TOWN_SITES } from '../../shared/teaTown.ts';
 import { SITE_IDS, TOWN_DESTINATIONS, type DestinationId, type SiteId } from '../../shared/townPlan.ts';
@@ -42,16 +43,20 @@ const DEST_LABEL: Record<DestinationId, string> = {
 
 export function TownGame() {
   const myId = useGame(s => s.snapshot!.me.id);
+  const introPlaying = useGame(s => s.introPlaying);
   const c = useTeaChapter();
   const { home } = c;
   const touch = useTouchUi();
   const placeKey = `town-place:${myId}`;
   // 只记住“在店里”这一件事，刷新后回到同一处（营业 session 由 controller 从服务端恢复）
-  const [place, setPlaceState] = useState<Place>(() => { try { return localStorage.getItem(placeKey) === 'shop' ? 'shop' : 'map'; } catch { return 'map'; } });
+  const [place, setPlaceState] = useState<Place>(() => { if (useGame.getState().introPlaying) return 'map'; try { return localStorage.getItem(placeKey) === 'shop' ? 'shop' : 'map'; } catch { return 'map'; } });
   const setPlace = (p: Place) => {
     setPlaceState(p);
     try { if (p === 'shop') localStorage.setItem(placeKey, 'shop'); else localStorage.removeItem(placeKey); } catch { /* 仅为便利 */ }
   };
+  useEffect(() => {
+    if (useGame.getState().introPlaying) { try { localStorage.removeItem(placeKey); } catch { /* 不影响入场 */ } }
+  }, [placeKey]);
   // 手机开关与原世界共用 useGame.phoneOpen（P 键 / Esc 同一套），这里只记当前页签
   const phoneOpen = useGame(s => s.phoneOpen);
   const [tab, setTab] = useState<PhoneTab>('mission');
@@ -62,8 +67,8 @@ export function TownGame() {
   const worldReady = useWorldReady(myId);
   const conn = useGame(s => s.conn);
   const ready = worldReady && conn === 'live';
-  // 操作指引 v2：每个会话+玩家首次进地图显示（含已接/已完成任务的老玩家），关闭或打开手机后记 seen，右上「?」可重开
-  const [arrival, setArrival] = useState(() => !arrivalSeen(myId) && place === 'map');
+  // 明确点击进入时在片头后显示简短指引；刷新沿用 seen，不反复打断。右上「?」可重开。
+  const [arrival, setArrival] = useState(() => (useGame.getState().introPlaying || !arrivalSeen(myId)) && place === 'map');
   const closeArrival = () => { markArrival(myId); setArrival(false); };
   const [map, setMap] = useState(false);
   const [near, setNear] = useState<Site | null>(null);
@@ -134,7 +139,7 @@ export function TownGame() {
     useWorld.getState().lock('town');
     return () => useWorld.getState().unlock('town');
   }, [away]);
-  const locked = away || phoneOpen;
+  const locked = away || phoneOpen || introPlaying;
 
   // 小镇模式不挂旧抽屉/小游戏/庆祝弹窗：旧世界对象若把它们置位，会变成看不见又关不掉的输入锁，这里直接复位
   useEffect(() => {
@@ -217,11 +222,11 @@ export function TownGame() {
 
   const offered = mission === 'offered';
   // 操作指引卡：服务端世界里有自己即可显示（短暂断线也能重开）；手机/小地图打开时让位
-  const guided = worldReady && !!home && arrival && place === 'map' && !phone && !map;
+  const guided = !introPlaying && worldReady && !!home && arrival && place === 'map' && !phone && !map;
 
   return <div className="town" data-testid="town-world">
     <OfficeCanvas myId={myId} covered={!!phone || place === 'recruit'} />
-    <div className={`hud town-hud ${touch ? 'touch-ui' : ''}`}>
+    <div inert={introPlaying} aria-hidden={introPlaying} style={introPlaying ? { visibility: 'hidden' } : undefined} className={`hud town-hud ${touch ? 'touch-ui' : ''}`}>
       <header className="town-top">
         <div className="tea-brand">赛博<b>小镇</b></div>
         <button className="town-coins" onClick={() => openPhone('wallet')} aria-label="钱包">
@@ -297,6 +302,7 @@ export function TownGame() {
       {(hint || c.toast) && <div className="tea-toast" role="status">{hint || c.toast}</div>}
       {c.error && <div className="tea-banner">{c.error}<button onClick={() => void c.load()}>刷新</button></div>}
     </div>
+    <CinematicOverlay />
     {phoneUi}
     {place === 'recruit' && <HiringHall initialTab={hallTab} onClose={() => setPlace('map')} onChanged={syncTea}
       onShop={id => {

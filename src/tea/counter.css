@@ -17,3 +17,6 @@
 .counter-jobline>span{display:inline-flex;align-items:center;gap:5px}
 .counter-hint{min-height:0}
 .counter-hint:has(>.counter-sr-only:only-child){line-height:0}
+
+.counter-tools .counter-phone{color:#ffe17c;border-color:#ffe17c80;display:inline-flex;align-items:center;gap:5px;white-space:nowrap}
+@media(max-width:650px) and (orientation:portrait){.counter-header{flex-wrap:wrap}.counter-title{flex:1}.counter-tools{margin-left:auto}.counter-tools .counter-phone{padding:7px 10px}.counter-header .counter-tools{width:100%;justify-content:flex-end}.counter-guide{top:125px}.counter-prep~.counter-guide{top:125px}}
