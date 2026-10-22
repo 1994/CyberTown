@@ -3,7 +3,7 @@ import { ArrowLeft, CupSoda, HandPlatter, Pause, Play, Users, Coins, HelpCircle,
 import type { TeaRole } from '../../shared/tea.ts';
 import type { TeaWorkRole } from '../../shared/teaLive.ts';
 import type { TeaChapterController } from './useTeaChapter.ts';
-import { TeaCounterScene } from './TeaCounterScene.tsx';
+import { TeaCounterScene, type CounterView } from './TeaCounterScene.tsx';
 import { OpenConfirm, ReportDialog } from './TeaDialogs.tsx';
 import { Face } from './HiringHall.tsx';
 import { useGame } from '../store.ts';
@@ -17,6 +17,7 @@ const roleName = (r:string) => r === 'maker' ? '制作' : r === 'cashier' ? '端
 export function TeaCounterGame({controller:c,onExit,onPhone,onHall}:{controller:TeaChapterController;onExit:()=>void;onPhone:()=>void;onHall:()=>void}) {
  const [confirm,setConfirm]=useState<'practice'|'official'|null>(null);
  const [help,setHelp]=useState(false);
+ const [cameraView,setCameraView]=useState<CounterView>('overview');
  const touch=useTouchUi();
  const me=useGame(s=>s.snapshot?.me);
  const home=c.home;
@@ -24,6 +25,11 @@ export function TeaCounterGame({controller:c,onExit,onPhone,onHall}:{controller:
  const playing=view==='play';
  const report=view==='report'&&!!c.run;
  const modal=!!confirm||report;
+ useEffect(()=>{
+  const key=(e:KeyboardEvent)=>{if(modal||e.repeat||e.ctrlKey||e.metaKey||e.altKey||(e.target as HTMLElement)?.closest('input,textarea,select,[contenteditable="true"]'))return;
+   if(e.key.toLowerCase()==='v'){e.preventDefault();setCameraView(v=>v==='overview'?'front':v==='front'?'top':'overview');}
+  };window.addEventListener('keydown',key);return()=>window.removeEventListener('keydown',key);
+ },[modal]);
  const currentRun=view==='prep'?null:c.run;
  const frame=playing?c.frame:null;
  const team=currentRun?.workers??c.team;
@@ -70,7 +76,8 @@ export function TeaCounterGame({controller:c,onExit,onPhone,onHall}:{controller:
    <button className="counter-pause" onClick={c.togglePause} aria-label={c.paused?'继续营业':'暂停营业'}>{c.paused?<Play size={16}/>:<Pause size={16}/>}<span>{c.paused?'继续':'暂停'}</span></button>
   </div>}
   <section className="counter-scene" aria-label="奶茶店：左边制作台，右边取餐台，前方客人座位" inert={modal}>
-   <TeaCounterScene level={home.shop.level} team={team} roles={roles} frame={frame} liveFrame={frame} stockMax={currentRun?.plan.stock??c.stock} events={c.events} supportAt={c.supportAt} selfAvatar={me?.avatarUrl} selfId="self" live={playing&&!c.paused} canAssign={playing&&!c.paused&&!modal&&!selfTask?.queuedRole} onAssign={assign}/>
+   <TeaCounterScene cameraView={cameraView} level={home.shop.level} team={team} roles={roles} frame={frame} liveFrame={frame} stockMax={currentRun?.plan.stock??c.stock} events={c.events} supportAt={c.supportAt} selfAvatar={me?.avatarUrl} selfId="self" live={playing&&!c.paused} canAssign={playing&&!c.paused&&!modal&&!selfTask?.queuedRole} onAssign={assign}/>
+   <nav className="counter-camera" aria-label="店内视角">{([['overview','全景'],['front','正面'],['top','俯瞰']] as const).map(([id,label])=><button key={id} onClick={()=>setCameraView(id)} aria-pressed={cameraView===id}>{label}</button>)}{!touch&&<kbd>V</kbd>}</nav>
    {playing&&frame&&<div className="counter-mobile-progress" aria-label="岗位进度">
     {(['maker','cashier'] as const).map(role=>{
      const workers=frame.workersState.filter(w=>w.role===role&&w.customerId!=null);

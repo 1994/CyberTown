@@ -427,23 +427,27 @@ function StationProgress({ frame, role, position }: { frame: TeaLiveFrame; role:
 }
 
 // ───────── 正交镜头取景 ─────────
-function OrthoFit({ portrait }: { portrait: boolean }) {
+export type CounterView = 'overview' | 'front' | 'top';
+function OrthoFit({ view }: { view: CounterView }) {
   const { camera, size } = useThree();
   useEffect(() => {
     const cam = camera as THREE.OrthographicCamera;
+    const portrait = size.height > size.width;
     // 店面占 ~15×8 米；竖屏时视角更高、更靠近中间
-    cam.position.set(portrait ? 4 : 7, portrait ? 13 : 10, portrait ? 12 : 13);
+    if(view==='front')cam.position.set(0,9,16);
+    else if(view==='top')cam.position.set(0,19,5);
+    else cam.position.set(portrait ? 4 : 7, portrait ? 13 : 10, portrait ? 12 : 13);
     cam.lookAt(0, 0.9, 0.6);
     const spanX = portrait ? 18 : 16.1;
     const spanY = portrait ? 14 : 10.5;
     cam.zoom = Math.max(10, Math.min(size.width / spanX, size.height / spanY));
     cam.updateProjectionMatrix();
-  }, [camera, size, portrait]);
+  }, [camera, size, view]);
   return null;
 }
 
 /** 新版剖面奶茶店。props 与旧 TeaScene 的 ShopProps 相同；指派只经可见岗位牌 onAssign。 */
-export function TeaCounterScene(props: ShopProps) {
+export function TeaCounterScene(props: ShopProps & { cameraView?: CounterView }) {
   const { level, team, roles, live, liveFrame, onAssign, canAssign, selfId, selfAvatar } = props;
   // 暂停时 live=false 但保留最后一帧并定格，不删人
   const frame = liveFrame ?? null;
@@ -483,6 +487,6 @@ export function TeaCounterScene(props: ShopProps) {
     </>}
     <Staff team={team} roles={roles} frame={frame} selfId={selfId} selfAvatar={selfAvatar} frozen={frozen} />
     {frame && <Customers frame={frame} frozen={frozen} />}
-    <OrthoFit portrait={portrait} />
+    <OrthoFit view={props.cameraView ?? 'overview'} />
   </Canvas>;
 }

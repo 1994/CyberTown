@@ -303,3 +303,9 @@
  .counter-orders li:nth-child(n+3){display:none}
 }
 @media(prefers-reduced-motion:reduce){.counter-dot{animation:none}}
+
+.counter-camera{position:absolute;z-index:5;left:10px;top:10px;display:flex;align-items:center;gap:3px;padding:3px;background:#0a1729ed;border:1px solid #63dacc66;pointer-events:auto}
+.counter-camera button{min-width:48px;min-height:36px;padding:5px 9px;border:0;background:transparent;color:#c4dae6;font:700 12px system-ui;cursor:pointer}
+.counter-camera button[aria-pressed="true"]{background:#66ead5;color:#102334}.counter-camera button:focus-visible{outline:2px solid #ffe27b;outline-offset:-2px}
+.counter-camera kbd{padding:0 7px;color:#b6cfdb;font-size:11px}
+@media(max-width:650px){.counter-camera{left:6px;top:6px}.counter-camera button{min-width:44px;padding:4px 7px}}
