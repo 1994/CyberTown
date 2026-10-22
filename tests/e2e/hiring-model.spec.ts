@@ -2,7 +2,7 @@ import { test, expect, type Page } from '@playwright/test';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import type { TownHome } from '../../shared/town.ts';
 
-const dir = 'artifacts/hiring-model';
+const dir = process.env.HIRING_ARTIFACT_DIR ?? 'artifacts/hiring-model';
 mkdirSync(dir, { recursive: true });
 test.beforeEach(async ({ request }) => {
   expect((await request.post('/api/demo/reset')).ok()).toBe(true);
@@ -45,7 +45,10 @@ test('自然培养与合同流转：真实签约、自动杂活、召回、撤�
   const initial = await home(page); expect(initial.clones).toHaveLength(0);
   const sellerHeaders = await auth(page);
   await hall(page, 'candidates'); await fit(page);
+  await expect(page.locator('.hall-staff')).not.toBeVisible();
   await page.getByTestId('hire-candidate-system-a').click();
+  await expect(page.getByTestId('hire-detail')).toContainText('先做杂活赚钱');
+  await expect(page.getByTestId('hire-detail').locator('.hall-stats')).not.toBeVisible();
   await page.screenshot({ animations: 'disabled', path: `${dir}/01-candidate.png` });
   await page.getByTestId('hire-open-confirm').click();
   await expect(page.getByTestId('hire-confirm')).not.toContainText('永久');

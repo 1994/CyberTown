@@ -144,3 +144,20 @@
   .hall-market { display: block !important; }
   .hall-market > section + section { margin-top: 14px; }
 }
+
+/* 一次只做一件事：招人、安排工作、转让。 */
+.hall-body.tab-candidates { grid-template-columns: minmax(260px,1fr) minmax(300px,1fr); }
+.hall-body.tab-candidates .hall-staff,.hall-body.tab-staff .hall-candidates,.hall-body.tab-staff .hall-detail { display:none; }
+.hall-body.tab-staff { grid-template-columns:1fr; }
+.hall-staff>ul { grid-template-columns:repeat(auto-fit,minmax(280px,1fr));align-items:start; }
+.hall-intro,.hall-next-step { margin:4px 0 16px;color:var(--tea-text);font-size:14px;line-height:1.7; }
+.hall-next-step { padding:14px;border-radius:10px;background:#3ef0ff0b;border:1px solid #3ef0ff25; }
+.hall-more { margin:8px 0;color:var(--tea-dim);font-size:12px;line-height:1.7; }
+.hall-more summary { cursor:pointer;padding:8px 0;color:var(--tea-cyan); }
+.hall-more p { margin:10px 0; }
+.hall-more .hall-stats { margin-top:12px; }
+.hall-simple-jobs { display:block; }
+.hall-simple-jobs>.tea-btn { width:100%;min-height:48px; }
+.hall-clone { border-radius:12px;padding:16px; }
+.hall-detail,.hall-candidates { border-radius:12px; }
+@media(max-width:900px){.hall-staff>ul {grid-template-columns:1fr;}}

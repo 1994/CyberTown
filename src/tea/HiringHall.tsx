@@ -16,7 +16,7 @@ const JOB: Record<TownJobKind, { name: string; cycle: number; reward: number; ne
   rest: { name: '召回待命', cycle: 0, reward: 0, need: 1 },
 };
 type Filter = 'all' | 'service' | 'production' | 'adapt';
-const FILTER_LABEL: Record<Filter, string> = { all: '全部', service: '擅长接待', production: '擅长制作', adapt: '擅长机动' };
+const FILTER_LABEL: Record<Filter, string> = { all: '全部', service: '端送', production: '制作', adapt: '帮忙' };
 type Sort = 'price' | 'potential';
 
 export const shiftWage = (w: TeaWorker) => Math.ceil(w.salary / 4);
@@ -24,7 +24,7 @@ const best = (w: TeaWorker): Exclude<Filter, 'all'> => {
   const m = Math.max(w.service, w.production, w.adaptability);
   return m === w.production ? 'production' : m === w.service ? 'service' : 'adapt';
 };
-const POTENTIAL: Record<Exclude<Filter, 'all'>, string> = { service: '前台接待', production: '制作出杯', adapt: '机动补位' };
+const POTENTIAL: Record<Exclude<Filter, 'all'>, string> = { service: '端送快', production: '制作快', adapt: '擅长帮忙' };
 const potentialScore = (w: TeaWorker) => w.service + w.production + w.adaptability;
 const ms = (t: number) => (t < 1e12 ? t * 1000 : t);
 
@@ -37,7 +37,7 @@ export function Face({ w, size = 44 }: { w: { name: string; color: string; avata
 
 function Stats({ w }: { w: TeaWorker }) {
   return <div className="hall-stats">
-    {([['接待', w.service], ['制作', w.production], ['应变', w.adaptability]] as const).map(([k, v]) =>
+    {([['端送', w.service], ['制作', w.production], ['帮忙', w.adaptability]] as const).map(([k, v]) =>
       <span key={k}><em>{k}</em><b><i style={{ width: `${Math.min(100, v)}%` }} /></b><small>{v}</small></span>)}
   </div>;
 }
@@ -64,35 +64,33 @@ function CloneCard({ c, now, busy, fresh, listing, onJob, onList, onWithdraw, on
         <b>{c.name}</b>
         <span className={`hall-lv lv${c.level}`}>Lv{c.level} {LEVEL_TITLE[c.level] ?? '经理'}</span>
       </div>
-      <em className={listed ? 'listed' : working ? 'out' : c.canStaff ? 'ready' : ''}>{listed ? '挂牌中' : working ? '外出派工' : c.canStaff ? '可入店' : '待命'}</em>
+      <em className={listed ? 'listed' : working ? 'out' : c.canStaff ? 'ready' : ''}>{listed ? '转让中' : working ? '工作中' : c.canStaff ? '可去奶茶店' : '待命'}</em>
     </header>
-    <div className="hall-xp" aria-label={`经验 ${c.xp}/${c.nextXp}`}><i style={{ width: `${pct}%` }} /><small>{c.nextXp > 0 ? `${c.xp}/${c.nextXp} XP` : '满级'}</small></div>
+    <div className="hall-xp" aria-label={`经验 ${c.xp}/${c.nextXp}`}><i style={{ width: `${pct}%` }} /><small>{c.nextXp > 0 ? `成长 ${c.xp}/${c.nextXp}` : '满级'}</small></div>
     <p className="hall-job">
       {listed
-        ? <>交易市场挂牌中{listing ? <> · 标价 <b>{listing.price}</b></> : null}，撤单后才能派工或入店</>
+        ? <>正在转让{listing ? <> · <b>{listing.price} 金币</b></> : null}</>
         : working
-        ? <>{JOB[job!.kind].name} · <b>{left}s</b> 后 +{job!.reward} 金币 · 本次已赚 {job!.earned}</>
-        : c.canStaff ? '待命中，可在奶茶店筹备时选入' : '学徒先做杂活，60XP 升店员'}
+        ? <>{JOB[job!.kind].name} · <b>{left} 秒</b> 后赚 {job!.reward} 金币</>
+        : c.canStaff ? '可以帮你制作或端送奶茶了' : '先做杂活，升到 2 级就能去奶茶店'}
     </p>
-    <div className="hall-jobs">
-      {(['clean', 'stock', 'manage'] as const).map(k => {
-        const locked = k === 'manage' && !c.canManage;
-        const on = working && job!.kind === k;
-        return <button key={k} className={`tea-btn ${on ? 'on' : ''}`} disabled={busy || locked || on || listed} onClick={() => onJob(k)} data-testid={`clone-job-${k}`}
-          title={locked ? 'Lv3 经理解锁' : undefined}>
-          {JOB[k].name}<small>{locked ? '🔒Lv3' : `+${JOB[k].reward}/${JOB[k].cycle}s`}</small>
-        </button>;
-      })}
-      <button className="tea-btn ghost" disabled={busy || !working || listed} onClick={() => onJob('rest')} data-testid="clone-job-rest">召回</button>
-    </div>
+    {!listed && <div className="hall-jobs hall-simple-jobs">
+      {working ? <button className="tea-btn primary" disabled={busy} onClick={() => onJob('rest')} data-testid="clone-job-rest">结束杂活 · 叫回来</button>
+        : <button className="tea-btn primary" disabled={busy} onClick={() => onJob('clean')} data-testid="clone-job-clean">{c.canStaff ? '去做杂活赚钱' : '开始做杂活'}<small>自动做 · 每 20 秒赚 12 金币</small></button>}
+      <details className="hall-more"><summary>其他工作</summary><div className="hall-jobs">
+        {(['stock', 'manage'] as const).map(k => <button key={k} className="tea-btn" disabled={busy || (k === 'manage' && !c.canManage) || (working && job!.kind === k)} onClick={() => onJob(k)} data-testid={`clone-job-${k}`}>
+          {JOB[k].name}<small>{k === 'manage' && !c.canManage ? '3 级可做' : `每 ${JOB[k].cycle} 秒赚 ${JOB[k].reward} 金币`}</small>
+        </button>)}
+      </div></details>
+    </div>}
     <div className="hall-clone-acts">
-      {c.canStaff && !working && !listed && <button className="tea-btn primary" disabled={busy} onClick={onShop} data-testid="clone-to-shop">加入本班 · 去奶茶店</button>}
+      {c.canStaff && !working && !listed && <button className="tea-btn primary" disabled={busy} onClick={onShop} data-testid="clone-to-shop">去奶茶店安排岗位</button>}
       {listed
-        ? <button className="tea-btn ghost" disabled={busy || !c.listingId} onClick={onWithdraw} data-testid={`clone-withdraw-${c.id}`}>撤单</button>
-        : <button className="tea-btn ghost" disabled={busy || working} onClick={onList} data-testid={`clone-list-${c.id}`} title={working ? '先召回再挂牌' : undefined}>挂牌转让</button>}
+        ? <button className="tea-btn ghost" disabled={busy || !c.listingId} onClick={onWithdraw} data-testid={`clone-withdraw-${c.id}`}>取消转让</button>
+        : <button className="tea-btn ghost" disabled={busy || working} onClick={onList} data-testid={`clone-list-${c.id}`} title={working ? '先结束杂活，再转让' : undefined}>转让员工</button>}
     </div>
-    {!listed && !c.canStaff && <p className="hall-lock">🔒 店员岗位：Lv2（60XP）后召回即可入店</p>}
-    {!listed && working && <p className="hall-lock">外出中：召回后才能入店营业或挂牌</p>}
+
+    {!listed && working && <p className="hall-lock">杂活会一直自动做，想去奶茶店时再叫回来。</p>}
   </li>;
 }
 
@@ -153,7 +151,7 @@ export function HiringHall({ onClose, onChanged, onShop, initialTab = 'candidate
       const before = new Set(home.clones.map(c => c.id));
       await hire(confirm.id, confirm.price);
       const added = useTownState.getState().home?.clones.find(c => !before.has(c.id));
-      setSuccess(`${confirm.name} 入职！可立即派工`);
+      setSuccess(`${confirm.name} 来了！点“开始做杂活”培养他`);
       setFresh(added?.id ?? null);
       setConfirmId(null);
       setTab('staff');
@@ -175,7 +173,7 @@ export function HiringHall({ onClose, onChanged, onShop, initialTab = 'candidate
   const buyItem = home.market.find(m => m.listingId === buyId) ?? null;
   // 同源判定按 sourceId（候选 id），不能用 playerId（系统员工 playerId 为空）
   const ownsSource = (m: TownEmployeeListing) => !!home.candidates.find(c => c.id === m.sourceId)?.owned;
-  const buyBlock = (m: TownEmployeeListing) => m.seller.id === home.owner.id ? '这是你的挂牌' : m.sourceId === `employee:${home.owner.id}` ? '这是你本人的分身' : ownsSource(m) ? '已有同源员工' : full ? `员工已满 ${MAX_STAFF} 位` : home.coins < m.price ? '金币不足' : '';
+  const buyBlock = (m: TownEmployeeListing) => m.seller.id === home.owner.id ? '你正在转让' : m.sourceId === `employee:${home.owner.id}` ? '不能雇佣自己' : ownsSource(m) ? '你已雇过这位员工' : full ? `员工已满 ${MAX_STAFF} 位` : home.coins < m.price ? '金币不足' : '';
   const job = async (c: TownClone, k: TownJobKind) => {
     setErr('');
     try { await startJob(c.id, k); onChanged(); }
@@ -186,23 +184,21 @@ export function HiringHall({ onClose, onChanged, onShop, initialTab = 'candidate
     <button className="hall-back" onClick={() => setPick(null)} aria-label="返回候选列表">← 列表</button>
     <header><Face w={cur} size={72} /><div><b>{cur.name}</b>{cur.demo && <i className="hall-demo">演示</i>}
       <span>适合 · {POTENTIAL[best(cur)]}</span></div></header>
-    <Stats w={cur} />
+    <p className="hall-next-step">先做杂活赚钱，升到 2 级后帮你卖奶茶。</p>
     <dl className="hall-facts">
-      <dt>雇佣价</dt><dd className="price">{cur.price} 金币</dd>
-      <dt>全服已雇</dt><dd>{cur.hireCount} 份 · 每多一份 +25%</dd>
-      <dt>入店每班工资</dt><dd>{shiftWage(cur)} 金币</dd>
-      <dt>你的金币</dt><dd>{home.coins}</dd>
+      <dt>雇佣费用</dt><dd className="price">{cur.price} 金币</dd>
+      <dt>奶茶店工资</dt><dd>{shiftWage(cur)} 金币 / 班</dd>
     </dl>
-    <ol className="hall-ladder">
-      <li className="now"><b>Lv1 学徒</b><span>街坊保洁、邻里补货</span></li>
-      <li><b>Lv2 店员</b><span>60XP · 奶茶店收银/制作/机动</span></li>
-      <li><b>Lv3 经理</b><span>180XP · 经理巡检、店内自动补位</span></li>
-    </ol>
+    <details className="hall-more"><summary>能力和成长</summary>
+      <Stats w={cur} />
+      <p>1 级做杂活 → 2 级做奶茶 → 3 级当经理。</p>
+      <p>成长到 60 / 180 点时升级。雇的人越多，雇佣费用越高；确认时会显示最新价格。</p>
+    </details>
     {cur.owned
       ? <p className="hall-owned">已是你的员工</p>
       : <button className="tea-btn primary hall-hire" data-testid="hire-open-confirm" disabled={busy || full || !cur.enabled || home.coins < cur.price}
         onClick={() => { setErr(''); setQuoted(cur.price); setConfirmId(cur.id); }}>雇佣 {cur.price} 金币</button>}
-    {!cur.owned && !cur.enabled && <p className="tea-hint bad">暂未开放签约</p>}
+    {!cur.owned && !cur.enabled && <p className="tea-hint bad">暂时不能雇佣</p>}
     {!cur.owned && full && <p className="tea-hint bad">员工已满 {MAX_STAFF} 位</p>}
     {!cur.owned && !full && home.coins < cur.price && <p className="tea-hint bad">金币不足：还差 {cur.price - home.coins}</p>}
   </section>;
@@ -213,9 +209,9 @@ export function HiringHall({ onClose, onChanged, onShop, initialTab = 'candidate
       <header className="hall-top">
         <div className="hall-title"><small>你的小镇</small><b>雇佣大厅</b></div>
         <nav className="hall-tabs">
-          <button className={tab === 'candidates' ? 'on' : ''} onClick={() => setTab('candidates')} data-testid="hiring-tab" data-tab="candidates">候选分身</button>
+          <button className={tab === 'candidates' ? 'on' : ''} onClick={() => setTab('candidates')} data-testid="hiring-tab" data-tab="candidates">招员工</button>
           <button className={tab === 'staff' ? 'on' : ''} onClick={() => setTab('staff')} data-testid="hiring-tab" data-tab="staff">我的员工 <em data-testid="town-hall-capacity">{home.clones.length}/{MAX_STAFF}</em></button>
-          <button className={tab === 'market' ? 'on' : ''} onClick={() => setTab('market')} data-testid="hiring-tab" data-tab="market">交易市场 <em>{home.market.filter(m => m.status === 'active').length}</em></button>
+          <button className={tab === 'market' ? 'on' : ''} onClick={() => setTab('market')} data-testid="hiring-tab" data-tab="market">员工转让 <em>{home.market.filter(m => m.status === 'active').length}</em></button>
         </nav>
         <span className="hall-coins"><i className="coin sm" />{home.coins}</span>
         <button className="town-x" onClick={onClose} aria-label="关闭雇佣大厅" data-testid="hiring-close">×</button>
@@ -224,56 +220,56 @@ export function HiringHall({ onClose, onChanged, onShop, initialTab = 'candidate
       {err && <p className="hall-error" role="alert" data-testid="hire-error">{err}<button onClick={() => setErr('')}>知道了</button></p>}
 
       {tab === 'market' ? <div className="hall-body hall-market">
-        <section aria-label="在售员工合同">
-          <h3>在售合同 <small>转让后等级与经验保留</small></h3>
+        <section aria-label="可接手的员工">
+          <h3>接手员工 <small>2 级起就能去奶茶店</small></h3>
           {home.market.filter(m => m.status === 'active').length
             ? <ul className="hall-list">{home.market.filter(m => m.status === 'active').map(m => {
               const block = buyBlock(m);
               return <li key={m.listingId} className="hall-listing" data-testid={`market-listing-${m.listingId}`}>
                 <Face w={m} size={44} />
                 <span className="hall-cand-main"><b>{m.name} <i className={`hall-lv lv${m.level}`}>Lv{m.level} {LEVEL_TITLE[m.level] ?? '经理'}</i></b>
-                  <small>{m.seller.id === home.owner.id ? '我的挂牌' : `卖家 ${m.seller.name}`} · {m.xp}XP · 每班 {shiftWage(m)}</small></span>
+                  <small>{m.seller.id === home.owner.id ? '我在转让' : `卖家 ${m.seller.name}`} · {m.level >= 2 ? '能做奶茶' : '先做杂活'}</small></span>
                 <span className="hall-cand-price"><b>{m.price}</b>
                   <button className="tea-btn primary" disabled={busy || !!block} title={block || undefined}
-                    onClick={() => { setErr(''); setBuyQuoted(m.price); setBuyId(m.listingId); }} data-testid={`market-buy-${m.listingId}`}>{block || '购买'}</button></span>
+                    onClick={() => { setErr(''); setBuyQuoted(m.price); setBuyId(m.listingId); }} data-testid={`market-buy-${m.listingId}`}>{block || '接手'}</button></span>
               </li>;
             })}</ul>
-            : <p className="tea-empty">暂时没有在售合同</p>}
+            : <p className="tea-empty">还没有人转让员工，先去“招员工”看看吧。</p>}
         </section>
-        <section aria-label="我的挂牌与记录">
-          <h3>我的挂牌与记录</h3>
+        <section aria-label="我的转让记录">
+          <h3>我的转让</h3>
           {home.trades.length
             ? <ul className="hall-trades" data-testid="market-history">{home.trades.map(t => <li key={t.listingId} data-testid={`market-trade-${t.listingId}`} data-status={t.status}>
               <Face w={t} size={32} />
-              <span><b>{t.name}</b><small>{t.status === 'active' ? `挂牌中 · ${t.price}` : t.status === 'sold' ? (t.seller.id === home.owner.id ? `已售出 +${t.proceeds}（手续费 ${t.fee}）` : `已买入 −${t.price}`) : '已撤单'}</small></span>
+              <span><b>{t.name}</b><small>{t.status === 'active' ? `转让中 · ${t.price}` : t.status === 'sold' ? (t.seller.id === home.owner.id ? `已售出 +${t.proceeds}（手续费 ${t.fee}）` : `已买入 −${t.price}`) : '已取消'}</small></span>
               {t.status === 'active' && t.seller.id === home.owner.id
-                ? <button className="tea-btn ghost" disabled={busy} onClick={() => void run(() => withdraw(t.listingId), `${t.name} 已撤单`)} data-testid={`market-withdraw-${t.listingId}`}>撤单</button>
-                : <em className={t.status}>{t.status === 'sold' ? '成交' : t.status === 'cancelled' ? '撤单' : ''}</em>}
+                ? <button className="tea-btn ghost" disabled={busy} onClick={() => void run(() => withdraw(t.listingId), `${t.name} 已取消`)} data-testid={`market-withdraw-${t.listingId}`}>取消转让</button>
+                : <em className={t.status}>{t.status === 'sold' ? '成交' : t.status === 'cancelled' ? '已取消' : ''}</em>}
             </li>)}</ul>
-            : <p className="tea-empty">还没有交易记录。在“我的员工”里召回后可挂牌转让。</p>}
+            : <p className="tea-empty">想转让员工？到“我的员工”里选择“转让员工”。</p>}
         </section>
       </div> :
       <div className={`hall-body tab-${tab} ${cur ? 'has-detail' : ''}`}>
-        <section className="hall-candidates" aria-label="候选分身">
-          <div className="hall-tools">
+        <section className="hall-candidates" aria-label="招员工">
+          <p className="hall-intro">选一位帮手，从杂活开始培养。</p><details className="hall-more hall-filter"><summary>筛选和排序</summary><div className="hall-tools">
             {(Object.keys(FILTER_LABEL) as Filter[]).map(f => <button key={f} className={filter === f ? 'on' : ''} onClick={() => setFilter(f)} data-testid="hire-filter" data-filter={f}>{FILTER_LABEL[f]}</button>)}
             <select value={sort} onChange={e => setSort(e.target.value as Sort)} aria-label="排序">
               <option value="price">按价格</option><option value="potential">按潜力</option>
             </select>
-          </div>
+          </div></details>
           <ul className="hall-list">
             {shown.map(c => <li key={c.id}>
               <button className={`hall-cand ${pick === c.id ? 'on' : ''} ${c.owned ? 'owned' : ''}`} onClick={() => setPick(c.id)}
                 data-testid={`hire-candidate-${c.id}`} data-owned={c.owned ? 'true' : undefined} aria-pressed={pick === c.id}>
                 <Face w={c} size={44} />
-                <span className="hall-cand-main"><b>{c.name}</b><small>{POTENTIAL[best(c)]} · 每班 {shiftWage(c)}</small></span>
-                <span className="hall-cand-price">{c.owned ? <em>已雇佣</em> : <><b>{c.price}</b><small>已雇 {c.hireCount}</small></>}</span>
+                <span className="hall-cand-main"><b>{c.name}</b><small>{POTENTIAL[best(c)]} · 学徒</small></span>
+                <span className="hall-cand-price">{c.owned ? <em>已雇佣</em> : <><b>{c.price}</b><small>金币</small></>}</span>
               </button>
             </li>)}
             {!shown.length && <li className="tea-empty">没有符合的候选</li>}
           </ul>
         </section>
-        {detail || <section className="hall-detail empty"><p>选一位候选分身查看能力与价格</p></section>}
+        {detail || <section className="hall-detail empty"><p>点一位员工，看看是否适合你</p></section>}
         <section className="hall-staff" aria-label="我的员工">
           <h3>我的员工 <em>{home.clones.length}/{MAX_STAFF}</em></h3>
           {home.clones.length
@@ -281,8 +277,8 @@ export function HiringHall({ onClose, onChanged, onShop, initialTab = 'candidate
               listing={home.trades.find(t => t.listingId === c.listingId) ?? home.market.find(t => t.listingId === c.listingId) ?? null}
               onJob={k => void job(c, k)} onShop={() => onShop(c.id)}
               onList={() => { setErr(''); setListing({ cloneId: c.id, price: String(Math.max(10, c.hiredPrice || 120)), key: crypto.randomUUID() }); }}
-              onWithdraw={() => c.listingId && void run(() => withdraw(c.listingId!), `${c.name} 已撤单，回到待命`)} />)}</ul>
-            : <p className="tea-empty">还没有员工。雇一位学徒派去杂活，升到 Lv2 就能入店。</p>}
+              onWithdraw={() => c.listingId && void run(() => withdraw(c.listingId!), `${c.name} 已取消转让，可以工作了`)} />)}</ul>
+            : <p className="tea-empty">还没有员工。去“招员工”挑一位帮手。</p>}
         </section>
       </div>}
     </section>
@@ -291,22 +287,23 @@ export function HiringHall({ onClose, onChanged, onShop, initialTab = 'candidate
       const cl = home.clones.find(c => c.id === listing.cloneId);
       if (!cl) return null;
       return <div className="hall-confirm-wrap">
-        <section ref={sheet} className="hall-confirm tea-sheet" role="dialog" aria-modal="true" aria-label="挂牌转让" data-testid="market-list-confirm" tabIndex={-1}>
-          <header><Face w={cl} size={48} /><div><small>挂牌转让 · Lv{cl.level} {cl.xp}XP</small><b>{cl.name}</b></div></header>
-          <label className="hall-price-input">标价（10–100000 金币）
+        <section ref={sheet} className="hall-confirm tea-sheet" role="dialog" aria-modal="true" aria-label="转让员工" data-testid="market-list-confirm" tabIndex={-1}>
+          <header><Face w={cl} size={48} /><div><small>转让员工 · {cl.level} 级</small><b>{cl.name}</b></div></header>
+          <label className="hall-price-input">你想卖多少金币？
             <input type="number" inputMode="numeric" min={10} max={100000} step={10} value={listing.price}
               onChange={e => setListing({ ...listing, price: e.target.value })} data-testid="market-price" /></label>
+          {!listValid && <p className="tea-hint bad">请输入 10～100000 之间的整数。</p>}
           <dl className="tea-slip">
             <dt>成交手续费 5%</dt><dd className="bad">−{listValid ? fee(listPrice) : 0}</dd>
             <dt>成交后到手</dt><dd className="ok">+{listValid ? listPrice - fee(listPrice) : 0}</dd>
           </dl>
-          <p className="hall-note">挂牌期间不能派工或入店；随时可撤单。成交后员工转入买家小镇，等级经验保留。</p>
+          <p className="hall-note">转让期间员工暂停工作，可随时取消。卖出后，员工会带着等级加入对方的小镇。</p>
           {err && <p className="tea-hint bad" role="alert">{err}</p>}
           <div className="tea-sheet-actions">
             <button className="tea-btn ghost" disabled={busy} onClick={() => setListing(null)}>取消</button>
             <button className="tea-btn primary" disabled={busy || !listValid} data-testid="market-list-submit"
-              onClick={() => void run(() => list(cl.id, listPrice, listing.key), `${cl.name} 已挂牌 ${listPrice}`, () => { setListing(null); setTab('market'); })}>
-              {busy ? '挂牌中…' : err ? '重试挂牌' : `挂牌 ${listValid ? listPrice : ''}`}</button>
+              onClick={() => void run(() => list(cl.id, listPrice, listing.key), `${cl.name} 正在转让 · ${listPrice} 金币`, () => { setListing(null); setTab('market'); })}>
+              {busy ? '转让中…' : err ? '重新发布' : `确认转让 · ${listValid ? listPrice : ''} 金币`}</button>
           </div>
         </section>
       </div>;
@@ -314,13 +311,13 @@ export function HiringHall({ onClose, onChanged, onShop, initialTab = 'candidate
 
     {buyId && (buyItem
       ? <div className="hall-confirm-wrap">
-        <section ref={sheet} className="hall-confirm tea-sheet" role="dialog" aria-modal="true" aria-label="购买员工合同" data-testid="market-buy-confirm" tabIndex={-1}>
-          <header><Face w={buyItem} size={48} /><div><small>买入合同 · 卖家 {buyItem.seller.name}</small><b>{buyItem.name}</b></div></header>
+        <section ref={sheet} className="hall-confirm tea-sheet" role="dialog" aria-modal="true" aria-label="接手员工" data-testid="market-buy-confirm" tabIndex={-1}>
+          <header><Face w={buyItem} size={48} /><div><small>接手员工 · 来自 {buyItem.seller.name}</small><b>{buyItem.name}</b></div></header>
           <dl className="tea-slip">
-            <dt>合同价</dt><dd className="bad">−{buyItem.price}</dd>
+            <dt>接手费用</dt><dd className="bad">−{buyItem.price}</dd>
             <dt>买入后金币</dt><dd>{home.coins - buyItem.price}</dd>
-            <dt>保留</dt><dd>Lv{buyItem.level} {LEVEL_TITLE[buyItem.level] ?? '经理'} · {buyItem.xp}XP</dd>
-            <dt>入店每班工资</dt><dd>{shiftWage(buyItem)} / 班</dd>
+            <dt>员工等级</dt><dd>Lv{buyItem.level} {LEVEL_TITLE[buyItem.level] ?? '经理'}</dd>
+            <dt>奶茶店工资</dt><dd>{shiftWage(buyItem)} / 班</dd>
           </dl>
           {buyItem.price !== buyQuoted && <p className="tea-hint bad">价格已变动：{buyQuoted} → {buyItem.price}</p>}
           {buyBlock(buyItem) && <p className="tea-hint bad">{buyBlock(buyItem)}</p>}
@@ -329,25 +326,25 @@ export function HiringHall({ onClose, onChanged, onShop, initialTab = 'candidate
             <button className="tea-btn ghost" disabled={busy} onClick={() => setBuyId(null)}>取消</button>
             <button className="tea-btn primary" disabled={busy || !!buyBlock(buyItem)} data-testid="market-buy-submit"
               onClick={() => void run(() => buy(buyItem.listingId, buyItem.price), `${buyItem.name} 加入你的小镇`, () => { setBuyId(null); setTab('staff'); })}>
-              {busy ? '购买中…' : err ? `重试 · ${buyItem.price}` : `确认买入 ${buyItem.price} 金币`}</button>
+              {busy ? '购买中…' : err ? `重试 · ${buyItem.price}` : `确认接手 ${buyItem.price} 金币`}</button>
           </div>
         </section>
       </div>
-      : <div className="hall-confirm-wrap"><section ref={sheet} className="hall-confirm tea-sheet" role="dialog" aria-modal="true" aria-label="合同已下架" tabIndex={-1}>
-        <p>这份合同已成交或撤单。</p>
+      : <div className="hall-confirm-wrap"><section ref={sheet} className="hall-confirm tea-sheet" role="dialog" aria-modal="true" aria-label="员工已下架" tabIndex={-1}>
+        <p>这位员工已被接手或取消转让。</p>
         <div className="tea-sheet-actions"><button className="tea-btn" onClick={() => setBuyId(null)}>知道了</button></div>
       </section></div>)}
 
     {confirm && <div className="hall-confirm-wrap">
       <section ref={sheet} className="hall-confirm tea-sheet" role="dialog" aria-modal="true" aria-label="确认雇佣" data-testid="hire-confirm" tabIndex={-1}>
-        <header><Face w={confirm} size={48} /><div><small>签约雇佣</small><b>{confirm.name}</b></div></header>
+        <header><Face w={confirm} size={48} /><div><small>确认雇佣</small><b>{confirm.name}</b></div></header>
         <dl className="tea-slip">
-          <dt>签约费</dt><dd className="bad">−{confirm.price}</dd>
+          <dt>现在支付</dt><dd className="bad">−{confirm.price}</dd>
           <dt>雇佣后金币</dt><dd>{home.coins - confirm.price}</dd>
-          <dt>入店每班工资</dt><dd>{shiftWage(confirm)} / 班</dd>
+          <dt>奶茶店工资</dt><dd>{shiftWage(confirm)} / 班</dd>
         </dl>
         {confirm.price !== quoted && <p className="tea-hint bad" data-testid="hire-price-changed">报价已更新：{quoted} → {confirm.price}</p>}
-        <p className="hall-note">签约后成为本镇员工（独立分身，不占用别人的）：可派工、入店，也可在交易市场挂牌转让；入店营业时每班另付工资。</p>
+        <p className="hall-note">雇来后先做杂活，2 级才能去奶茶店。上面显示的工资只在奶茶店营业时收取。</p>
         {err && <p className="tea-hint bad" role="alert">{err}</p>}
         <div className="tea-sheet-actions">
           <button className="tea-btn ghost" disabled={busy} onClick={() => setConfirmId(null)}>再想想</button>
