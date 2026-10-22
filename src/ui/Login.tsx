@@ -75,7 +75,7 @@ function LoginForm() {
   return (
     <LoginStage>
         <div className="entry-panel-title"><h2>{identityMode === 'demo' ? '选择身份' : '登录小镇'}</h2>{identityMode === 'demo' && <span className="entry-mode">演示</span>}</div>
-        <span className="entry-pick">
+        <span className={`entry-pick ${identityMode === 'demo' ? 'is-demo' : ''}`}>
 
           {identityMode === 'demo'
             ? '选一个身份，开启你的小镇'
