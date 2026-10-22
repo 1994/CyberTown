@@ -373,3 +373,28 @@
 .town-locked-status{display:block;margin-top:3px;color:#ffda8b;font-size:14px;line-height:1.4;font-weight:700;white-space:nowrap}
 .town-locked-hint{margin-top:7px;padding-top:6px;border-top:1px solid #e7bc6944;color:#e5d5b4;font-size:13px;line-height:1.5;min-width:180px;white-space:normal}
 @media(max-width:600px){.town-locked-area{gap:8px;padding:8px 10px;max-width:220px}.town-locked-area strong{font-size:15px}.town-locked-status{font-size:13px}.town-locked-area>svg{width:20px;height:20px}}
+
+/* Compact live business overview, with a separate tools row on narrow screens. */
+.town-business-hud{display:flex;align-items:stretch;gap:5px;min-width:0}
+.town-business-hud .town-coins{min-height:46px;padding:5px 12px;background:#25251ee8}
+.town-business-hud .town-coins b{font:800 28px/1.1 system-ui;font-variant-numeric:tabular-nums;letter-spacing:0}
+.town-business-stat{display:flex;align-items:center;gap:8px;padding:5px 11px;background:#0b192bea;border:1px solid #699fbb55;border-bottom:2px solid #50dfd3;text-align:left}
+.town-business-stat>svg{color:#7fe8db;flex-shrink:0}
+.town-business-stat span{display:grid;gap:2px;white-space:nowrap}
+.town-business-stat b{font:700 14px/1.25 system-ui;color:#e7f6ff}
+.town-business-stat em{font-style:normal;color:#ffdd83;margin-left:4px}
+.town-business-stat small{font:500 11px/1.3 system-ui;color:#a9c7d7}
+.town-business-stat:focus-visible{outline:2px solid #ffdd83;outline-offset:2px}
+.town-presence{top:calc(var(--st) + 72px)}
+@media(max-width:900px){.town-top .tea-brand{display:none}}
+@media(max-width:700px){
+ .town-top{display:grid;grid-template-columns:1fr;padding:calc(var(--st) + 8px) 10px 8px;gap:6px;left:0;right:0}
+ .town-tools{grid-row:1;justify-self:end;margin:0}
+ .town-business-hud{grid-row:2;justify-self:start;max-width:100%}
+ .town-business-hud .town-coins{padding:5px 8px;min-height:44px}
+ .town-business-hud .town-coins b{font-size:24px}
+ .town-business-stat{padding:5px 8px;gap:5px}.town-business-stat b{font-size:12px}.town-business-stat>svg{width:16px}
+ .town-presence{top:calc(var(--st) + 108px)}
+ .town-map,.town-arrival,.compact-arrival,.town-notice{top:calc(var(--st) + 108px)}
+}
+@media(max-width:360px){.town-business-stat{padding:5px}.town-business-hud{gap:3px}.town-business-hud .town-coins b{font-size:22px}.town-business-stat>svg{display:none}}

@@ -2,7 +2,7 @@ import { useShowcase } from '../scene/showcaseState';
 import { ShoppingStreet } from './ShoppingStreet';
 import { useRide, mountBike, parkBike, resetRide } from './rideState';
 import { SHOPPING_STORES, BIKE_STAND } from '../../shared/townActivities';
-import { Bike, ShoppingBag } from 'lucide-react';
+import { Bike, ShoppingBag, Store, Users } from 'lucide-react';
 import { GameLogo } from '../ui/GameLogo';
 import { useEffect, useRef, useState } from 'react';
 import { CinematicOverlay } from '../ui/CinematicOverlay.tsx';
@@ -68,6 +68,7 @@ export function TownGame() {
   const introPlaying = useGame(s => s.introPlaying);
   const c = useTeaChapter();
   const { home } = c;
+  const staffHome = useTownState(s => s.ready ? s.home : null);
   const touch = useTouchUi();
   const placeKey = `town-place:${myId}`;
   // 只记住“在店里”这一件事，刷新后回到同一处（营业 session 由 controller 从服务端恢复）
@@ -261,9 +262,17 @@ export function TownGame() {
     <div inert={introPlaying || away} aria-hidden={introPlaying || away} style={introPlaying ? { visibility: 'hidden' } : undefined} className={`hud town-hud ${touch ? 'touch-ui' : ''}`}>
       <header className="town-top">
         <div className="tea-brand"><GameLogo compact /></div>
-        <button className="town-coins" onClick={() => openPhone('wallet')} aria-label="钱包">
-          <i className="coin sm" /><b>{home ? home.wallet.balance : '…'}</b>
-        </button>
+        <div className="town-business-hud" aria-label="经营概览">
+          <button className="town-coins" onClick={() => openPhone('wallet')} aria-label="钱包">
+            <i className="coin sm" /><b>{home ? home.wallet.balance.toLocaleString() : '…'}</b>
+          </button>
+          <button className="town-business-stat town-shop-stat" onClick={() => openPhone('mission')} aria-label="查看店铺信息" disabled={!home}>
+            <Store size={18}/><span><b>街角奶茶 <em>Lv.{home?.shop.level ?? '—'}</em></b><small>{!home?'读取中':c.session?.status==='active'?'营业暂停':mission==='offered'?'待接手':'待营业'}</small></span>
+          </button>
+          <button className="town-business-stat" onClick={() => openHall('staff')} aria-label="查看员工信息" disabled={!staffHome}>
+            <Users size={18}/><span><b>员工 <em>{staffHome ? staffHome.clones.length : '—'}</em></b><small>已排班 {home ? hires : '—'} 人</small></span>
+          </button>
+        </div>
         <div className="town-tools">
           <SoundMenu className="tea-sound" />
           <button className={`town-chip ${map ? 'on' : ''}`} onClick={() => setMap(v => !v)} aria-expanded={map} aria-label="小地图">地图</button>
