@@ -1,0 +1,22 @@
+{
+  "date": "2026-10-22",
+  "checks": {
+    "typecheck": "pass",
+    "production_build": "pass",
+    "render_tests": "15 passed",
+    "preview_8897_index": "matches production build",
+    "overview_M": "town visible, floating wordmark visible",
+    "manual_wheel_zoom": "town visible, floating wordmark visible",
+    "return_to_near_camera": "wordmark hidden",
+    "initial_mount_and_refresh": "wordmark mounted successfully"
+  },
+  "changes": [
+    "Fog range follows actual camera distance, including manual wheel zoom",
+    "Existing Cyber Town wordmark floats above the central plaza and fades out at close range"
+  ],
+  "screenshots": [
+    "01-overview.png",
+    "02-wheel-zoom.png"
+  ],
+  "storage": "Existing preview database preserved; static files only deployment"
+}

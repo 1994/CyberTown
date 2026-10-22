@@ -1,3 +1,4 @@
+import { townFogRange } from './cameraAtmosphere';
 import { useEffect, useRef } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
@@ -50,16 +51,7 @@ export function FollowCamera({ active }: { active: boolean }) {
   const tmp = useRef(new THREE.Vector3());
   const desiredPos = useRef(new THREE.Vector3());
 
-  useEffect(() => {
-    if (!(scene.fog instanceof THREE.Fog)) return;
-    const fog = scene.fog;
-    const before = [fog.near, fog.far];
-    if (active && overview) {
-      fog.near = OVERVIEW_DIST + 30;
-      fog.far = OVERVIEW_DIST + 190;
-    }
-    return () => { [fog.near, fog.far] = before; };
-  }, [active, overview, scene]);
+
 
   useEffect(() => {
     if (!active || !worldReady || !introNonce || !useGame.getState().introPlaying) return;
@@ -165,6 +157,13 @@ export function FollowCamera({ active }: { active: boolean }) {
   useFrame((_, dtRaw) => {
     const c = controls.current;
     if (!c) return;
+    // OrbitControls wheel zoom does not set overview. Use actual camera range
+    // for both manual zoom and scripted overview/intro paths.
+    if (scene.fog instanceof THREE.Fog) {
+      const fog = townFogRange(camera.position.distanceTo(c.target));
+      scene.fog.near = fog.near;
+      scene.fog.far = fog.far;
+    }
     const dt = Math.min(dtRaw, 0.05);
     const now = performance.now();
     if (camera instanceof THREE.PerspectiveCamera) {

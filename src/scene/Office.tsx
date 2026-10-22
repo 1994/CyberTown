@@ -1,3 +1,4 @@
+import { TownSkyLogo } from './TownSkyLogo';
 import { NeonStreetLight } from './NeonStreetLight';
 import { TownAmbientLight } from './TownAtmosphere';
 import { TownLife } from './TownLife.tsx';
@@ -231,6 +232,7 @@ export function OfficeCanvas({ myId, covered: townCovered = false }: { myId: str
         {playing && !LOW_FX && <NightRain />}
         <Room />
         <TownLandmarks />
+        <TownSkyLogo />
         <TownDistricts />
         {/* 私人小镇只显示自己雇佣的分身；登录背景保留旧同事群像 */}
         {town ? <TownStaffActors /> : <Colleagues />}

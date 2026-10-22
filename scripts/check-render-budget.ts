@@ -1,3 +1,4 @@
+import { townFogRange } from '../src/scene/cameraAtmosphere.ts';
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { shallow } from 'zustand/shallow';
@@ -211,4 +212,14 @@ test('world islands freeze world matrices, while character islands still follow 
     assert.ok(sources.every(mesh => mesh.matrixWorldAutoUpdate));
   }
   geometry.dispose(); material.dispose();
+});
+
+test('manual zoom and aerial camera targets stay before the fog wall', () => {
+  for (const distance of [6, 17, 45, 60, 100, 180, 270, 306]) {
+    const fog=townFogRange(distance);
+    assert.ok(fog.near>distance, `target hidden at distance ${distance}`);
+    assert.equal(fog.far-fog.near,160);
+  }
+  assert.deepEqual(townFogRange(17),{near:60,far:220});
+  assert.deepEqual(townFogRange(NaN),{near:60,far:220});
 });
