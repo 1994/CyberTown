@@ -1,4 +1,5 @@
 /** Original synthesized effects; no downloaded samples or music. */
+import { TEA_CUES } from './musicScore.ts';
 export interface SoundNote {
   hz: number;
   end?: number;
@@ -12,6 +13,7 @@ const notes = (hz: number[], gap: number, length = 0.13, gain = 0.23): SoundNote
   hz.map((f, i) => ({ hz: f, at: i * gap, length, gain, wave: 'triangle' }));
 
 export const SOUND_CUES = {
+  ...TEA_CUES,
   ui: [{ hz: 780, end: 1100, length: 0.045, gain: 0.13 }],
   phone: notes([440, 880], 0.055, 0.12, 0.16),
   intro: notes([261.63, 392, 523.25, 783.99], 0.14, 0.24, 0.17),
@@ -33,6 +35,8 @@ export const SOUND_CUES = {
 
 export type SoundCue = keyof typeof SOUND_CUES;
 export const SOUND_LABELS: Record<SoundCue, string> = {
+  tea_order: '接单', tea_pour: '制作', tea_serve: '交付', tea_skill: '技能', tea_stock: '缺货',
+  tea_pass: '营业达标', tea_fail: '营业复盘', tea_upgrade: '门店升级',
   ui: '按钮', phone: '手机', intro: '入场', start: '开局', catch: '接住礼物', miss: '失误',
   shield: '护盾', countdown: '倒计时', coins: '金币', hire: '签约', poach: '被挖角',
   reward: '年终奖', promotion: '晋升', cheers: '碰杯', equip: '换装', step: '脚步',

@@ -95,7 +95,7 @@ func main() {
 		defer cancel()
 		_ = server.Shutdown(ctx)
 	}()
-	fmt.Println("🏢 今天老板给我打工 · Go 服务已启动")
+	fmt.Println("🏢 赛博小镇 · Go 服务已启动")
 	printAddresses(*host, fmt.Sprint(listener.Addr().(*net.TCPAddr).Port))
 	identityLabel := "demo（体验身份，非真实 SSO）"
 	if provider != nil {

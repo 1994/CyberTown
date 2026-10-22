@@ -1,0 +1,83 @@
+
+Running 3 tests using 1 worker
+
+(node:31823) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  1 tests/e2e/tea-town.spec.ts:40:1 › 大地图救店：手机可暂缓→不招募独自赚钱→回地图查账→升级保存 (3.4m)
+(node:36149) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  2 tests/e2e/tea-town.spec.ts:69:1 › 手机自由动线：广场可选招募两人→步行奶茶小镇→同事自动赚金币 (45.6s)
+  ✘  3 tests/e2e/tea-town.spec.ts:83:1 › 正常画质：大地图→手机→步行入店，配乐随动线切换且静音可用 (24.4s)
+
+
+  1) tests/e2e/tea-town.spec.ts:40:1 › 大地图救店：手机可暂缓→不招募独自赚钱→回地图查账→升级保存 ──────────────────────────────
+
+    Test timeout of 180000ms exceeded.
+
+    Error: locator.click: Test timeout of 180000ms exceeded.
+    Call log:
+      - waiting for getByRole('button', { name: '再开一班 →', exact: true })
+
+
+      60 |  await page.getByTestId('town-phone').getByRole('button',{name:'钱包',exact:true}).click();await expect(page.getByTestId('town-wallet')).toContainText('开店预付');await expect(page.getByTestId('town-wallet')).toContainText('营业收入');await snap(page,'06-wallet');
+      61 |  await page.getByTestId('town-phone').getByRole('button',{name:'任务',exact:true}).click();await walkShop(page);
+    > 62 |  await page.getByRole('button',{name:/^升级.*600/}).click();expect((await home(page)).shop.level).toBe(2);await snap(page,'07a-rescue-upgrade');
+         |                                                            ^
+      63 |  await page.getByTestId('town-exit-shop').click();await snap(page,'07-upgraded-town');await page.reload();await expect(page.getByTestId('town-world')).toBeVisible();expect((await home(page)).shop.level).toBe(2);
+      64 |  await contained(page);expect(errors).toEqual([]);
+      65 |  writeFileSync(`${dir}/ui-desktop.json`,JSON.stringify({solo:ended.run.result.completed,batches:ended.commands.length,net:ended.run.result.profit+ended.run.result.bonus,coinsBefore:before.coins,coinsAfter:after.coins,mission:after.mission,mapWalk:true,optionalRecruitment:true,leavePauses:true,reloadResumes:true,upgradePersists:true,errors},null,2));
+        at /Users/r/code/boss-works-for-me/tests/e2e/tea-town.spec.ts:62:60
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/tea-town-大地图救店：手机可暂缓→不招募独自赚钱→回地图查账→升级保存/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/tea-town-大地图救店：手机可暂缓→不招募独自赚钱→回地图查账→升级保存/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/tea-town-大地图救店：手机可暂缓→不招募独自赚钱→回地图查账→升级保存/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/tea-town-大地图救店：手机可暂缓→不招募独自赚钱→回地图查账→升级保存/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2) tests/e2e/tea-town.spec.ts:83:1 › 正常画质：大地图→手机→步行入店，配乐随动线切换且静音可用 ───────────────────────────────
+
+    Error: locator.click: Error: strict mode violation: getByRole('button', { name: '手机', exact: true }) resolved to 2 elements:
+        1) <button aria-label="手机" aria-expanded="false" class="town-chip town-phone-btn">…</button> aka getByTestId('town-world').getByRole('button', { name: '手机' })
+        2) <button data-testid="sound-test-phone">手机</button> aka getByTestId('sound-test-phone')
+
+    Call log:
+      - waiting for getByRole('button', { name: '手机', exact: true })
+
+
+       9 | async function frame(page:Page){await page.evaluate(async()=>{for(let i=0;i<8;i++)await new Promise<void>(r=>requestAnimationFrame(()=>r()));});}
+      10 | async function snap(page:Page,name:string){await frame(page);await page.screenshot({path:`${dir}/${name}.png`});}
+    > 11 | async function phone(page:Page){await page.getByRole('button',{name:'手机',exact:true}).click();await expect(page.getByTestId('town-phone')).toBeVisible();}
+         |                                                                                       ^
+      12 | async function enter(page:Page,id:string){await page.goto('/?lowfx=1');await page.getByTestId(`identity-${id}`).click();await expect(page.getByTestId('town-world')).toBeVisible();await expect(page.getByRole('button',{name:'手机',exact:true})).toBeEnabled();}
+      13 | async function accept(page:Page){await phone(page);await expect(page.getByTestId('town-mission')).toHaveAttribute('data-status','offered');await page.getByTestId('town-accept-mission').click();await expect(page.getByTestId('town-mission')).toHaveAttribute('data-status','accepted');}
+      14 | async function walkShop(page:Page){
+        at phone (/Users/r/code/boss-works-for-me/tests/e2e/tea-town.spec.ts:11:87)
+        at accept (/Users/r/code/boss-works-for-me/tests/e2e/tea-town.spec.ts:13:40)
+        at /Users/r/code/boss-works-for-me/tests/e2e/tea-town.spec.ts:90:8
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/tea-town-正常画质：大地图→手机→步行入店，配乐随动线切换且静音可用/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/tea-town-正常画质：大地图→手机→步行入店，配乐随动线切换且静音可用/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/tea-town-正常画质：大地图→手机→步行入店，配乐随动线切换且静音可用/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/tea-town-正常画质：大地图→手机→步行入店，配乐随动线切换且静音可用/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2 failed
+    tests/e2e/tea-town.spec.ts:40:1 › 大地图救店：手机可暂缓→不招募独自赚钱→回地图查账→升级保存 ───────────────────────────────
+    tests/e2e/tea-town.spec.ts:83:1 › 正常画质：大地图→手机→步行入店，配乐随动线切换且静音可用 ────────────────────────────────
+  1 passed (4.8m)

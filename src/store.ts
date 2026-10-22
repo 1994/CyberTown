@@ -161,7 +161,7 @@ export const useGame = create<GameStore>((set, get) => ({
               lastSyncAt: Date.now(),
               clockOffset: snap.serverTime - Date.now(),
             });
-            get().replayIntro();
+            // 小镇主线登录即进入大地图，不再自动播放旧公司开场（手动 replayIntro 仍可用）
             return;
           } catch (e) {
             if (e instanceof ApiError && e.status === 401) session.clear();
@@ -199,7 +199,6 @@ export const useGame = create<GameStore>((set, get) => ({
       celebration: null,
       lastCelebrationKey: '',
     });
-    get().replayIntro();
   },
 
   async logout() {

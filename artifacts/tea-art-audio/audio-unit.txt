@@ -1,0 +1,19 @@
+✔ no context or voices before explicit user activation; repeated gestures reuse one context (0.886333ms)
+✔ mute and zero-volume preferences persist without initializing audio (1.450542ms)
+✔ malformed preferences, nonfinite numbers and out-of-range volume are safe (0.071583ms)
+✔ unsupported devices and rejected resume never break gameplay; later gestures can retry (0.203667ms)
+✔ hidden pages stop, suspend and discard events instead of replaying a backlog (0.149ms)
+✔ API and SSE delivery of the same transaction produce exactly one confirmation cue (0.218666ms)
+✔ OS audio interruptions discard scheduled notes before the next gesture resumes (0.153417ms)
+✔ rapid clicks, misses and footsteps are throttled and active voices stay bounded (0.31525ms)
+✔ each note has a finite end and releases both oscillator and envelope nodes (0.253875ms)
+✔ muting mid-effect stops queued notes immediately; re-enabling does not replay them (0.170917ms)
+✔ all cues stay short, pitched safely and use click-free attack/release envelopes (0.649291ms)
+ℹ tests 11
+ℹ suites 0
+ℹ pass 11
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 10.609834

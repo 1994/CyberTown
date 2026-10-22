@@ -1,0 +1,212 @@
+{
+  "base": "http://127.0.0.1:8896",
+  "startedAt": "2026-10-21T19:21:29.115Z",
+  "ok": true,
+  "checks": [
+    {
+      "name": "solo 免费开门幂等",
+      "ok": true
+    },
+    {
+      "name": "solo 练习零经济且真实出杯",
+      "ok": true
+    },
+    {
+      "name": "solo 推进到 duo",
+      "ok": true
+    },
+    {
+      "name": "duo 免费开门幂等",
+      "ok": true
+    },
+    {
+      "name": "duo 练习零经济且真实出杯",
+      "ok": true
+    },
+    {
+      "name": "duo 推进到 rush",
+      "ok": true
+    },
+    {
+      "name": "正式开门只预付且幂等",
+      "ok": true
+    },
+    {
+      "name": "正式达标并真实结算",
+      "ok": true
+    },
+    {
+      "name": "最终币数=开门前+profit+bonus",
+      "ok": true
+    },
+    {
+      "name": "章节进入升级段",
+      "ok": true
+    },
+    {
+      "name": "最后 step 重试不重复结算",
+      "ok": true
+    },
+    {
+      "name": "GET 回放与结算一致",
+      "ok": true
+    },
+    {
+      "name": "升级 Lv2 完成首章",
+      "ok": true
+    },
+    {
+      "name": "升级 Lv3 完成主线",
+      "ok": true
+    },
+    {
+      "name": "升级后刷新保持 Lv3",
+      "ok": true
+    },
+    {
+      "name": "主线 Lv3 已完成",
+      "ok": true
+    },
+    {
+      "name": "历史正式局可只读回放",
+      "ok": true
+    },
+    {
+      "name": "完成态只读不再花钱",
+      "ok": true
+    }
+  ],
+  "chapterBefore": {
+    "stage": "solo",
+    "level": 1,
+    "coins": 2000
+  },
+  "solo": {
+    "id": "d72efa2938fd8d0c20ab4e3add07a33322af792911da5eb7",
+    "lesson": "solo",
+    "status": "finished",
+    "revision": 90,
+    "t": 90,
+    "hold": 0,
+    "completed": 8,
+    "passed": true,
+    "revenue": 160,
+    "profit": -320,
+    "bonus": 0,
+    "coinsAfter": 2000,
+    "settledAt": 1792610489206,
+    "chapterAfter": "duo",
+    "coinsBefore": 2000,
+    "attemptsBefore": 3,
+    "attemptsAfter": 3,
+    "openRetrySameId": true
+  },
+  "duo": {
+    "id": "67e6c8130c8943992dcdd575c934c9387f5f659ed9aad7b9",
+    "lesson": "duo",
+    "status": "finished",
+    "revision": 120,
+    "t": 120,
+    "hold": 0,
+    "completed": 18,
+    "passed": true,
+    "revenue": 360,
+    "profit": -380,
+    "bonus": 0,
+    "coinsAfter": 2000,
+    "settledAt": 1792610489269,
+    "chapterAfter": "rush",
+    "coinsBefore": 2000,
+    "attemptsBefore": 3,
+    "attemptsAfter": 3,
+    "openRetrySameId": true
+  },
+  "official": {
+    "id": "9658a71b14fd0e9bb09eff7d67ee763600dd76ad9dd9a041",
+    "lesson": "rush",
+    "status": "finished",
+    "revision": 240,
+    "t": 240,
+    "hold": 1080,
+    "completed": 80,
+    "passed": true,
+    "revenue": 1600,
+    "profit": 520,
+    "bonus": 200,
+    "coinsAfter": 2720,
+    "settledAt": 1792610489490,
+    "target": 72,
+    "beforeCoins": 2000,
+    "coinsAfterOpen": 920,
+    "openRetrySameId": true,
+    "lastStepReplay": {
+      "requestId": "tea-live-v1:9658a71b14fd0e9bb09eff7d67ee763600dd76ad9dd9a041:239:1:none",
+      "revision": 240,
+      "coinsBefore": 2720,
+      "coinsAfter": 2720
+    },
+    "historySame": true,
+    "plan": {
+      "assignments": [
+        {
+          "workerId": "self",
+          "role": "support"
+        },
+        {
+          "workerId": "demo-wang",
+          "role": "maker"
+        },
+        {
+          "workerId": "demo-li",
+          "role": "cashier"
+        }
+      ],
+      "stock": 80,
+      "strategy": "balanced"
+    }
+  },
+  "upgrade": {
+    "levelBefore": 1,
+    "coinsBefore": 2720,
+    "lv2": {
+      "stage": "complete",
+      "level": 2,
+      "coins": 2120
+    },
+    "lv3": {
+      "stage": "complete",
+      "level": 3,
+      "coins": 920
+    },
+    "refreshed": {
+      "stage": "complete",
+      "level": 3,
+      "coins": 920
+    }
+  },
+  "completed": {
+    "chapter": {
+      "stage": "complete",
+      "level": 3,
+      "coins": 920
+    },
+    "session": {
+      "id": "9658a71b14fd0e9bb09eff7d67ee763600dd76ad9dd9a041",
+      "lesson": "rush",
+      "status": "finished",
+      "revision": 240,
+      "t": 240,
+      "hold": 1080,
+      "completed": 80,
+      "passed": true,
+      "revenue": 1600,
+      "profit": 520,
+      "bonus": 200,
+      "coinsAfter": 2720,
+      "settledAt": 1792610489490
+    },
+    "coinsBefore": 920,
+    "coinsAfter": 920
+  },
+  "finishedAt": "2026-10-21T19:21:29.507Z"
+}

@@ -1,0 +1,29 @@
+=== RUN   TestTeamLimitsAndSelf
+--- PASS: TestTeamLimitsAndSelf (0.01s)
+=== RUN   TestTeaSimulation
+    tea_test.go:33: weak=55 (前台接待拥堵), strong=80 (配合默契), reversed=49 (制作出杯拥堵)
+--- PASS: TestTeaSimulation (0.02s)
+=== RUN   TestTeaEconomyAndRetry
+--- PASS: TestTeaEconomyAndRetry (0.01s)
+=== RUN   TestTeaHireConsentAndQuota
+--- PASS: TestTeaHireConsentAndQuota (0.01s)
+=== RUN   TestTeaValidationAndIsolation
+--- PASS: TestTeaValidationAndIsolation (0.01s)
+=== RUN   TestTeaConcurrentIdempotency
+--- PASS: TestTeaConcurrentIdempotency (0.01s)
+=== RUN   TestTeaHTTPAndRunPrivacy
+--- PASS: TestTeaHTTPAndRunPrivacy (0.01s)
+=== RUN   TestTeaSkillsAffectQueues
+--- PASS: TestTeaSkillsAffectQueues (0.00s)
+=== RUN   TestTeaDailyAttemptsAndBonus
+--- PASS: TestTeaDailyAttemptsAndBonus (0.01s)
+=== RUN   TestTeaEmployeeQuotaIsAtomic
+--- PASS: TestTeaEmployeeQuotaIsAtomic (0.01s)
+=== RUN   TestTeaPracticeReplayAndWalletRestart
+--- PASS: TestTeaPracticeReplayAndWalletRestart (0.00s)
+=== RUN   TestTeaPersistentShopAndProfile
+--- PASS: TestTeaPersistentShopAndProfile (0.01s)
+=== RUN   TestTeaPracticeBeforeHomeHasNoGrant
+--- PASS: TestTeaPracticeBeforeHomeHasNoGrant (0.00s)
+PASS
+ok  	github.com/1994/boss-works-for-me/backend	0.710s

@@ -14,6 +14,7 @@ import type { Rig } from './Character.tsx';
 import { applyPose, idlePose, turnTowards } from './pose.ts';
 import { useFx } from './Effects.tsx';
 import { walkNear, goToColleague } from '../world/navigation.ts';
+import { useTownLook } from '../tea/TownLandmarks.tsx';
 import { FootRing } from './Avatars.tsx';
 import { dressedColleague, isBoss } from '../look.ts';
 import { Crown } from 'lucide-react';
@@ -346,11 +347,14 @@ function ColleagueActor({
     }
   });
 
+  // 小镇模式：旧签约价与奶茶短班工资口径不同，名牌只留名字/角色
+  const townActive = useTownLook(s => s.active);
   const onClick = (e: ThreeEvent<MouseEvent>) => {
     e.stopPropagation();
     if (e.delta > 6) return;
     const r = run.current;
     if (
+      !useTownLook.getState().active &&
       c.ownerId === useGame.getState().snapshot?.me.id &&
       Math.hypot(rt.me.x - r.x, rt.me.z - r.z) < 4
     ) {
@@ -395,7 +399,7 @@ function ColleagueActor({
               {boss ? <Crown size={12} /> : meta.icon}
             </span>
             {self ? `${self.name}的分身` : c.name}
-            {!c.ownerId && <em className="cprice">{c.price}</em>}
+            {!c.ownerId && !townActive && <em className="cprice">{c.price}</em>}
             {owner && !mine && (
               <i
                 className="cowner"

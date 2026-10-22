@@ -1,0 +1,8 @@
+
+Running 1 test using 1 worker
+
+(node:64681) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 tests/e2e/tea-art-audio.spec.ts:7:1 › 正常画质：双场景美术、配乐切换、独立音乐音量和静音恢复 (14.5s)
+
+  1 passed (15.3s)

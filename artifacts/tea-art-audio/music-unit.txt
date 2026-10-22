@@ -1,0 +1,14 @@
+✔ music remains locked until audible; repeated gestures/scene updates own one scheduler (1.040166ms)
+✔ scene crossfades retire old buses, with a shared voice cap and no surviving timer on stop (0.966458ms)
+✔ long stalls discard missed music instead of scheduling minutes of backlog (0.467209ms)
+✔ backgrounding, zero music volume and audio interruption stop the scheduler and all voices (0.297208ms)
+✔ a removed audio device cannot throw from scene changes or break game state (0.219667ms)
+✔ all five original arrangements are complete, finite and fit polyphony across their loop seam (3.111875ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 12.842417

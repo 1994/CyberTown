@@ -1,0 +1,5 @@
+street: peak=0.0883 rms=0.0157 clipped=0
+prep: peak=0.0657 rms=0.0132 clipped=0
+business: peak=0.0869 rms=0.0136 clipped=0
+rush: peak=0.0750 rms=0.0118 clipped=0
+report: peak=0.0832 rms=0.0153 clipped=0

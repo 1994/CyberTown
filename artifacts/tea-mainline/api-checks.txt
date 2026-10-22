@@ -1,0 +1,5 @@
+
+> boss-works-for-me@1.0.0 test:tea
+> node scripts/check-tea-agent.ts
+
+{"ok":true,"practice":{"defaultCompleted":56,"complementaryCompleted":80},"hireRun":"e09b2a4d00fbc9a1d1f416b46621ba561bb9c266692051de","demosRun":"7430d41a3f21d2c8f2f8b1bcbaf0921d4906860df97690af","shop":{"level":2,"coins":2620,"nextUpgradeCost":1200}}

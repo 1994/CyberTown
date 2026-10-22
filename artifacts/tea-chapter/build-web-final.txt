@@ -1,0 +1,15 @@
+
+> boss-works-for-me@1.0.0 build:web
+> tsc -b && vite build
+
+vite v7.3.7 building client environment for production...
+transforming...
+✓ 2585 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                        0.61 kB │ gzip:   0.39 kB
+dist/assets/index-DnwNifKH.css.gz     29.67 kB
+dist/assets/index-BRIl71h9.js.gz     448.24 kB
+dist/assets/index-DnwNifKH.css       141.92 kB │ gzip:  30.03 kB
+dist/assets/index-BRIl71h9.js      1,560.23 kB │ gzip: 449.65 kB
+✓ built in 2.48s

@@ -1,0 +1,15 @@
+{
+  "desktop": {
+    "weak": 56,
+    "strong": 80,
+    "officialId": "8fb1fc4bd83a99959a4099815e498d375be829c33cda4468",
+    "networkRetrySameKey": true,
+    "persistentUpgrade": true,
+    "errors": []
+  },
+  "mobile": {
+    "viewport": "390x844 / 844x390",
+    "completed": 61,
+    "errors": []
+  }
+}

@@ -127,3 +127,57 @@ CREATE TABLE IF NOT EXISTS player_styles (
   shirt TEXT NOT NULL DEFAULT '',accessory TEXT NOT NULL DEFAULT '',aura TEXT NOT NULL DEFAULT '',
   boss_shirt TEXT NOT NULL DEFAULT '',boss_accessory TEXT NOT NULL DEFAULT '',boss_aura TEXT NOT NULL DEFAULT ''
 );
+
+-- Milk-tea mainline: independent shops and immutable runs share the player wallet.
+CREATE TABLE IF NOT EXISTS tea_shops (
+ player_id TEXT PRIMARY KEY REFERENCES players(id) ON DELETE CASCADE,
+ level INTEGER NOT NULL DEFAULT 1 CHECK(level BETWEEN 1 AND 3),
+ best INTEGER NOT NULL DEFAULT 0, runs INTEGER NOT NULL DEFAULT 0
+);
+CREATE TABLE IF NOT EXISTS tea_avatars (
+ player_id TEXT PRIMARY KEY REFERENCES players(id) ON DELETE CASCADE,
+ enabled INTEGER NOT NULL DEFAULT 0 CHECK(enabled IN (0,1))
+);
+CREATE TABLE IF NOT EXISTS tea_runs (
+ id TEXT PRIMARY KEY, player_id TEXT NOT NULL REFERENCES players(id) ON DELETE CASCADE,
+ request_key TEXT NOT NULL, request_body TEXT NOT NULL, mode TEXT NOT NULL,
+ day TEXT NOT NULL, completed INTEGER NOT NULL, bonus INTEGER NOT NULL, result TEXT NOT NULL,
+ created_at INTEGER NOT NULL, UNIQUE(player_id,request_key)
+);
+CREATE INDEX IF NOT EXISTS idx_tea_runs_player_day ON tea_runs(player_id,day,mode);
+CREATE TABLE IF NOT EXISTS tea_jobs (
+ run_id TEXT NOT NULL REFERENCES tea_runs(id) ON DELETE CASCADE,
+ employee_id TEXT NOT NULL REFERENCES players(id) ON DELETE CASCADE,
+ employer_id TEXT NOT NULL REFERENCES players(id) ON DELETE CASCADE,
+ worker_name TEXT NOT NULL, role TEXT NOT NULL, salary INTEGER NOT NULL,
+ completed INTEGER NOT NULL, day TEXT NOT NULL, created_at INTEGER NOT NULL,
+ PRIMARY KEY(run_id,employee_id)
+);
+CREATE INDEX IF NOT EXISTS idx_tea_jobs_employee_day ON tea_jobs(employee_id,day);
+
+-- tea.2: durable interactive services; the immutable run is written only on close.
+CREATE TABLE IF NOT EXISTS tea_chapters (
+ player_id TEXT PRIMARY KEY REFERENCES players(id) ON DELETE CASCADE,
+ stage INTEGER NOT NULL DEFAULT 0, solo_best INTEGER NOT NULL DEFAULT 0,
+ duo_best INTEGER NOT NULL DEFAULT 0
+);
+CREATE TABLE IF NOT EXISTS tea_sessions (
+ id TEXT PRIMARY KEY, player_id TEXT NOT NULL REFERENCES players(id) ON DELETE CASCADE,
+ request_key TEXT NOT NULL, request_body TEXT NOT NULL, mode TEXT NOT NULL,
+ day TEXT NOT NULL, status TEXT NOT NULL, data TEXT NOT NULL,
+ UNIQUE(player_id,request_key)
+);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_tea_one_active ON tea_sessions(player_id) WHERE status='active';
+CREATE TABLE IF NOT EXISTS tea_live_jobs (
+ session_id TEXT NOT NULL REFERENCES tea_sessions(id) ON DELETE CASCADE,
+ employee_id TEXT NOT NULL REFERENCES players(id) ON DELETE CASCADE,
+ day TEXT NOT NULL, PRIMARY KEY(session_id,employee_id)
+);
+CREATE INDEX IF NOT EXISTS idx_tea_live_jobs_day ON tea_live_jobs(employee_id,day);
+
+-- tea.3: an optional, persistent phone mission in the walkable town.
+CREATE TABLE IF NOT EXISTS tea_missions (
+ player_id TEXT PRIMARY KEY REFERENCES players(id) ON DELETE CASCADE,
+ accepted_at INTEGER NOT NULL, completed_at INTEGER NOT NULL DEFAULT 0,
+ income INTEGER NOT NULL DEFAULT 0, run_id TEXT REFERENCES tea_runs(id)
+);

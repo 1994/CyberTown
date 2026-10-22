@@ -1,0 +1,12 @@
+{
+  "mobile": {
+    "solo": 2,
+    "duo": 5,
+    "official": 80,
+    "viewports": [
+      "390x844",
+      "844x390"
+    ],
+    "errors": []
+  }
+}

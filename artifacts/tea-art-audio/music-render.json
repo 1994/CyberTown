@@ -1,0 +1,50 @@
+{
+  "renderer": "OfflineAudioContext; same score and voice renderer as live playback",
+  "rows": [
+    {
+      "scene": "street",
+      "peak": 0.08829464763402939,
+      "rms": 0.015706056105191293,
+      "clipped": 0,
+      "maxJump": 0.005955079570412636,
+      "seconds": 27,
+      "file": "artifacts/tea-art-audio/street.mp3"
+    },
+    {
+      "scene": "prep",
+      "peak": 0.06566387414932251,
+      "rms": 0.013202334186430478,
+      "clipped": 0,
+      "maxJump": 0.006035059690475464,
+      "seconds": 27,
+      "file": "artifacts/tea-art-audio/prep.mp3"
+    },
+    {
+      "scene": "business",
+      "peak": 0.08691078424453735,
+      "rms": 0.013637375070870502,
+      "clipped": 0,
+      "maxJump": 0.0062827011570334435,
+      "seconds": 27,
+      "file": "artifacts/tea-art-audio/business.mp3"
+    },
+    {
+      "scene": "rush",
+      "peak": 0.0749509334564209,
+      "rms": 0.011807945572941228,
+      "clipped": 0,
+      "maxJump": 0.00642490477184765,
+      "seconds": 27,
+      "file": "artifacts/tea-art-audio/rush.mp3"
+    },
+    {
+      "scene": "report",
+      "peak": 0.0831710696220398,
+      "rms": 0.015307760688923295,
+      "clipped": 0,
+      "maxJump": 0.006333163008093834,
+      "seconds": 27,
+      "file": "artifacts/tea-art-audio/report.mp3"
+    }
+  ]
+}

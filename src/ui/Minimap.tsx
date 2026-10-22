@@ -8,7 +8,9 @@ const W = B.maxX - B.minX;
 const H = B.maxZ - B.minZ;
 
 /** 小地图：区域、道路、在线玩家、自己的朝向与小队。点击 = 设定步行目标（寻路走过去，不瞬移） */
-export function Minimap({ onNavigate }: { onNavigate?: () => void } = {}) {
+export interface MapMark { x: number; z: number; color: string; icon: string; hot?: boolean }
+
+export function Minimap({ onNavigate, marks = [] }: { onNavigate?: () => void; marks?: MapMark[] } = {}) {
   const snap = useGame((s) => s.snapshot)!;
   const players = useWorld((s) => s.players);
   const [, setTick] = useState(0);
@@ -55,6 +57,12 @@ export function Minimap({ onNavigate }: { onNavigate?: () => void } = {}) {
           <text y={1.1} textAnchor="middle" fontSize={3.2}>
             {z.icon}
           </text>
+        </g>
+      ))}
+      {marks.map((m, i) => (
+        <g key={'m' + i} transform={`translate(${m.x} ${m.z})`}>
+          <circle r={m.hot ? 3 : 2.2} fill={m.color} opacity={m.hot ? 0.45 : 0.25} stroke={m.color} strokeWidth={0.4} />
+          <text y={1.1} textAnchor="middle" fontSize={3}>{m.icon}</text>
         </g>
       ))}
       {end && <circle cx={end[0]} cy={end[1]} r={0.9} fill="none" stroke="#ffd166" strokeWidth={0.4} />}

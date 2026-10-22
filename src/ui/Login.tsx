@@ -34,28 +34,26 @@ export function Login() {
       <div className="login-card panel">
         <span className="login-kicker">
           <Sparkles size={15} />
-          今天，换你当老板
+          今晚，老板替你打工
         </span>
         <div className="logo big">
-          今天<span>老板</span>
-          <br />
-          给我打工
+          赛博<span>小镇</span>
         </div>
         <p className="tagline">
-          雇个老板，逛逛园区。
+          自由探索霓虹小镇，用手机接下救店任务。
           <br />
-          和朋友玩几局，等一份属于你的年终奖。
+          可以独自经营奶茶店，也可以去广场招帮手。
         </p>
         <div className="login-promise">
           <Crown size={17} />
-          <span>工作交给老板，快乐留给自己。</span>
+          <span>街角奶茶快倒闭了，等你来救。</span>
         </div>
         <span className="login-pick">
           {identityMode === 'demo'
             ? '选一个身份，开始你的快乐营业'
             : identityMode === 'mock'
               ? '本地 Mock 联调模式'
-              : '请从已配置的身份认证入口进入园区'}
+              : '请从已配置的身份认证入口进入奶茶街区'}
         </span>
         {identityMode === 'demo' && <div className="identity-grid" role="group" aria-label="选择测试身份">
           {identities.map((p) => (

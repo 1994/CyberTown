@@ -1,0 +1,145 @@
+{
+  "base": "http://127.0.0.1:8898",
+  "startedAt": "2026-10-22T01:26:42.215Z",
+  "ok": true,
+  "checks": [
+    {
+      "name": "acceptMission 空 body 幂等不加钱",
+      "ok": true
+    },
+    {
+      "name": "rescue 开门仅预付成本且幂等",
+      "ok": true
+    },
+    {
+      "name": "救店有真实出杯并结算",
+      "ok": true
+    },
+    {
+      "name": "任务完成且 runId 对应",
+      "ok": true
+    },
+    {
+      "name": "钱包等于真实余额",
+      "ok": true
+    },
+    {
+      "name": "账本含 hold 与 sales",
+      "ok": true
+    },
+    {
+      "name": "最后 step 同键不重复入账",
+      "ok": true
+    },
+    {
+      "name": "GET 回放与结算一致",
+      "ok": true
+    },
+    {
+      "name": "救店后升级 Lv2 付 600",
+      "ok": true
+    },
+    {
+      "name": "同 expectedLevel 升级重试幂等",
+      "ok": true
+    },
+    {
+      "name": "升级刷新后保持",
+      "ok": true
+    }
+  ],
+  "initial": {
+    "coins": 2000,
+    "level": 1,
+    "mission": {
+      "status": "offered",
+      "acceptedAt": 0,
+      "completedAt": 0,
+      "income": 0,
+      "runId": null
+    },
+    "walletBalance": 2000
+  },
+  "accepted": {
+    "status": "accepted",
+    "acceptedAt": 1792632402255,
+    "coinsBefore": 2000,
+    "coinsAfter": 2000
+  },
+  "opened": {
+    "id": "51b2068504fb8c61843edbd6569bab4288365eb2c0137caa",
+    "hold": 240,
+    "coinsBefore": 2000,
+    "coinsAfterOpen": 1760,
+    "openRetrySameId": true
+  },
+  "lastStep": {
+    "requestId": "tea-town-v1:51b2068504fb8c61843edbd6569bab4288365eb2c0137caa:239:1:none",
+    "revision": 240,
+    "coinsBefore": 2340,
+    "coinsAfter": 2340
+  },
+  "session": {
+    "id": "51b2068504fb8c61843edbd6569bab4288365eb2c0137caa",
+    "lesson": "rescue",
+    "mode": "official",
+    "status": "finished",
+    "revision": 240,
+    "t": 240,
+    "hold": 240,
+    "completed": 19,
+    "passed": true,
+    "revenue": 380,
+    "profit": 140,
+    "bonus": 200,
+    "coinsAfter": 2340,
+    "settledAt": 1792632402425,
+    "plan": {
+      "assignments": [
+        {
+          "workerId": "self",
+          "role": "support"
+        }
+      ],
+      "stock": 20,
+      "strategy": "balanced"
+    }
+  },
+  "settlement": {
+    "home": {
+      "coins": 2340,
+      "level": 1,
+      "mission": {
+        "status": "completed",
+        "acceptedAt": 1792632402255,
+        "completedAt": 1792632402425,
+        "income": 340,
+        "runId": "51b2068504fb8c61843edbd6569bab4288365eb2c0137caa"
+      },
+      "walletBalance": 2340
+    },
+    "holdEntry": {
+      "id": 6,
+      "delta": -240,
+      "kind": "tea_hold",
+      "ref": "tea:hold:51b2068504fb8c61843edbd6569bab4288365eb2c0137caa",
+      "at": 1792632402258
+    },
+    "salesEntry": {
+      "id": 8,
+      "delta": 580,
+      "kind": "tea_sales",
+      "ref": "tea:51b2068504fb8c61843edbd6569bab4288365eb2c0137caa",
+      "at": 1792632402425
+    }
+  },
+  "upgrade": {
+    "levelBefore": 1,
+    "coinsBefore": 2340,
+    "levelAfter": 2,
+    "coinsAfter": 1740,
+    "retryCoins": 1740,
+    "refreshedLevel": 2
+  },
+  "finishedAt": "2026-10-22T01:26:42.437Z"
+}

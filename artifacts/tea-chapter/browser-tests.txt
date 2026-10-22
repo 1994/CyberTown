@@ -1,0 +1,10 @@
+
+Running 3 tests using 1 worker
+
+(node:1997) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 tests/e2e/tea-art-audio.spec.ts:27:1 › 正常画质与声音：半自动会话中五场景配乐、静音、音量保存和跳过 (12.0s)
+  ✓  2 tests/e2e/tea-mainline.spec.ts:71:1 › 完整首章：独自→一位→两位同事→真实正式营业→升级旗舰（正常节奏） (2.9m)
+  ✓  3 tests/e2e/tea-mainline.spec.ts:114:1 › 手机：首章全闭环、真实半自动、横竖屏可操作 (48.0s)
+
+  3 passed (3.9m)

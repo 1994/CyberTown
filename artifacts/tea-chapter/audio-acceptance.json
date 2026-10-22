@@ -1,0 +1,29 @@
+{
+  "trustedGestureUnlock": true,
+  "musicOnlyMuteKeepsSfx": true,
+  "totalMuteStopsVoices": true,
+  "preferencesPersist": true,
+  "scenes": [
+    "street",
+    "prep",
+    "business",
+    "rush",
+    "report"
+  ],
+  "skipDoesNotBurst": true,
+  "data": {
+    "testid": "sound-diagnostics",
+    "state": "running",
+    "played": "30",
+    "lastCue": "tea_pass",
+    "voices": "3",
+    "peak": "0.10558",
+    "cues": "{\"ui\":4,\"tea_order\":9,\"tea_pour\":6,\"tea_serve\":7,\"tea_skill\":3,\"tea_pass\":1}",
+    "musicScene": "report",
+    "musicVolume": "1.00",
+    "musicNotes": "104",
+    "musicVoices": "1",
+    "musicPlaying": "true"
+  },
+  "errors": []
+}

@@ -23,5 +23,14 @@
 .sound-debug > div { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; }
 .sound-debug button { min-height: 32px; background: #172543; border: 1px solid #66f4ff33; border-radius: 6px; cursor: pointer; font: inherit; }
 
+/* 游戏内紧凑声音菜单 */
+.sound-menu { position: relative; display: inline-flex; }
+.sound-menu-btn { display: inline-flex; align-items: center; justify-content: center; min-width: 34px; min-height: 30px; padding: 4px 8px; border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 3px; background: rgba(255, 255, 255, 0.04); color: #9ef8ff; cursor: pointer; }
+.sound-menu-btn[aria-expanded="true"] { border-color: #66f4ff; box-shadow: 0 0 10px #66f4ff44; }
+.sound-menu-pop { position: absolute; top: calc(100% + 8px); right: 0; z-index: 40; width: 230px; padding: 6px 0; border: 1px solid #66f4ff55; border-top: 2px solid #ffd400; background: #080d1df2; backdrop-filter: blur(8px); }
+.sound-menu-pop .sound-settings > button { display: flex; align-items: center; width: 100%; min-height: 40px; gap: 8px; padding: 0 10px; background: none; border: 0; color: #e8f4ff; cursor: pointer; }
+.sound-volume svg { vertical-align: -2px; }
+@media (max-height: 500px) { .sound-menu-pop { position: fixed; top: 46px; right: 12px; max-height: calc(100dvh - 56px); overflow-y: auto; } }
+
 /* Portalled trade confirmation stays usable in a short landscape viewport. */
 .modal-backdrop .confirm { max-height: calc(100dvh - 32px); overflow-y: auto; }

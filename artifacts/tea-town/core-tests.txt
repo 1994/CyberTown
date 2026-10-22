@@ -1,0 +1,46 @@
+=== RUN   TestTeaTownOptionalRecruitmentAndIncome
+=== RUN   TestTeaTownOptionalRecruitmentAndIncome/wang-0
+    tea_town_test.go:61: wang hires=0 completed=19 batches=20 cost=240 net=340 coins=2340
+=== RUN   TestTeaTownOptionalRecruitmentAndIncome/wang-1
+    tea_town_test.go:61: wang hires=1 completed=20 batches=10 cost=305 net=295 coins=2295
+=== RUN   TestTeaTownOptionalRecruitmentAndIncome/wang-2
+    tea_town_test.go:61: wang hires=2 completed=20 batches=0 cost=360 net=240 coins=2240
+=== RUN   TestTeaTownOptionalRecruitmentAndIncome/li-0
+    tea_town_test.go:61: li hires=0 completed=19 batches=20 cost=240 net=340 coins=2340
+=== RUN   TestTeaTownOptionalRecruitmentAndIncome/li-1
+    tea_town_test.go:61: li hires=1 completed=20 batches=10 cost=305 net=295 coins=2295
+=== RUN   TestTeaTownOptionalRecruitmentAndIncome/li-2
+    tea_town_test.go:61: li hires=2 completed=20 batches=0 cost=360 net=240 coins=2240
+=== RUN   TestTeaTownOptionalRecruitmentAndIncome/mei-0
+    tea_town_test.go:61: mei hires=0 completed=17 batches=17 cost=240 net=300 coins=2300
+=== RUN   TestTeaTownOptionalRecruitmentAndIncome/mei-1
+    tea_town_test.go:61: mei hires=1 completed=20 batches=10 cost=305 net=295 coins=2295
+=== RUN   TestTeaTownOptionalRecruitmentAndIncome/mei-2
+    tea_town_test.go:61: mei hires=2 completed=20 batches=0 cost=360 net=240 coins=2240
+=== RUN   TestTeaTownOptionalRecruitmentAndIncome/liu-0
+    tea_town_test.go:61: liu hires=0 completed=19 batches=16 cost=240 net=340 coins=2340
+=== RUN   TestTeaTownOptionalRecruitmentAndIncome/liu-1
+    tea_town_test.go:61: liu hires=1 completed=20 batches=10 cost=305 net=295 coins=2295
+=== RUN   TestTeaTownOptionalRecruitmentAndIncome/liu-2
+    tea_town_test.go:61: liu hires=2 completed=20 batches=0 cost=360 net=240 coins=2240
+--- PASS: TestTeaTownOptionalRecruitmentAndIncome (2.94s)
+    --- PASS: TestTeaTownOptionalRecruitmentAndIncome/wang-0 (0.32s)
+    --- PASS: TestTeaTownOptionalRecruitmentAndIncome/wang-1 (0.46s)
+    --- PASS: TestTeaTownOptionalRecruitmentAndIncome/wang-2 (0.31s)
+    --- PASS: TestTeaTownOptionalRecruitmentAndIncome/li-0 (0.30s)
+    --- PASS: TestTeaTownOptionalRecruitmentAndIncome/li-1 (0.22s)
+    --- PASS: TestTeaTownOptionalRecruitmentAndIncome/li-2 (0.21s)
+    --- PASS: TestTeaTownOptionalRecruitmentAndIncome/mei-0 (0.21s)
+    --- PASS: TestTeaTownOptionalRecruitmentAndIncome/mei-1 (0.20s)
+    --- PASS: TestTeaTownOptionalRecruitmentAndIncome/mei-2 (0.19s)
+    --- PASS: TestTeaTownOptionalRecruitmentAndIncome/liu-0 (0.17s)
+    --- PASS: TestTeaTownOptionalRecruitmentAndIncome/liu-1 (0.18s)
+    --- PASS: TestTeaTownOptionalRecruitmentAndIncome/liu-2 (0.17s)
+=== RUN   TestTeaTownPracticeAndIdleCannotCompleteMission
+--- PASS: TestTeaTownPracticeAndIdleCannotCompleteMission (0.16s)
+=== RUN   TestTeaTownConcurrentAcceptAndMissionReceipt
+--- PASS: TestTeaTownConcurrentAcceptAndMissionReceipt (0.16s)
+=== RUN   TestTeaTownHTTPMissionAuthority
+--- PASS: TestTeaTownHTTPMissionAuthority (0.01s)
+PASS
+ok  	github.com/1994/boss-works-for-me/backend	3.685s

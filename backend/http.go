@@ -257,6 +257,9 @@ func (a *App) handle(w http.ResponseWriter, r *http.Request) error {
 	if err != nil {
 		return err
 	}
+	if strings.HasPrefix(path, "/api/tea/") {
+		return a.handleTea(w, r, player)
+	}
 	if strings.HasPrefix(path, "/api/world") {
 		return a.handleWorld(w, r, player)
 	}

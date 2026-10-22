@@ -1,0 +1,67 @@
+
+Running 3 tests using 1 worker
+
+(node:57211) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  1 tests/e2e/tea-art-audio.spec.ts:7:1 › 正常画质：双场景美术、配乐切换、独立音乐音量和静音恢复 (3.4m)
+(node:61622) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  2 tests/e2e/tea-mainline.spec.ts:32:1 › 桌面：试营业→复盘换人→正式断网重试→升级存档 (16.6s)
+  ✓  3 tests/e2e/tea-mainline.spec.ts:85:1 › 手机：招募→筹备→免费营业→报告，横竖屏操作可达 (3.4s)
+
+
+  1) tests/e2e/tea-art-audio.spec.ts:7:1 › 正常画质：双场景美术、配乐切换、独立音乐音量和静音恢复 ─────────────────────────────
+
+    Test timeout of 180000ms exceeded.
+
+    Error: browserContext._wrapApiCall: file data stream has unexpected number of bytes
+
+    Error: locator.click: Test ended.
+    Call log:
+      - waiting for getByRole('dialog', { name: '声音设置' }).getByTestId('btn-sound')
+        - locator resolved to <button type="button" data-sound="none" aria-label="音效：开" title="开启或关闭游戏音效" aria-pressed="true" data-testid="btn-sound">…</button>
+      - attempting click action
+        2 × waiting for element to be visible, enabled and stable
+          - element is visible, enabled and stable
+          - scrolling into view if needed
+          - done scrolling
+          - <h3>…</h3> from <aside class="tea-drawer">…</aside> subtree intercepts pointer events
+        - retrying click action
+        - waiting 20ms
+        2 × waiting for element to be visible, enabled and stable
+          - element is visible, enabled and stable
+          - scrolling into view if needed
+          - done scrolling
+          - <h3>…</h3> from <aside class="tea-drawer">…</aside> subtree intercepts pointer events
+        - retrying click action
+          - waiting 100ms
+        371 × waiting for element to be visible, enabled and stable
+            - element is visible, enabled and stable
+            - scrolling into view if needed
+            - done scrolling
+            - <h3>…</h3> from <aside class="tea-drawer">…</aside> subtree intercepts pointer events
+          - retrying click action
+            - waiting 500ms
+        - waiting for element to be visible, enabled and stable
+
+
+      40 |   await page.keyboard.press('End');
+      41 |   await expect(diag).toHaveAttribute('data-music-volume', '1.00');
+    > 42 |   await expect.poll(async () => Number(await diag.getAttribute('data-music-notes'))).toBeGreaterThan(zeroNotes);
+         |                                           ^
+      43 |   const settings = page.getByRole('dialog', { name: '声音设置' });
+      44 |   await settings.getByTestId('btn-sound').click();
+      45 |   await expect(diag).toHaveAttribute('data-voices', '0');
+        at /Users/r/code/boss-works-for-me/tests/e2e/tea-art-audio.spec.ts:42:43
+
+    Error: End of central directory record signature not found. Either not a zip file, or file is truncated.
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/tea-art-audio-正常画质：双场景美术、配乐切换、独立音乐音量和静音恢复/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/tea-art-audio-正常画质：双场景美术、配乐切换、独立音乐音量和静音恢复/error-context.md
+
+  1 failed
+    tests/e2e/tea-art-audio.spec.ts:7:1 › 正常画质：双场景美术、配乐切换、独立音乐音量和静音恢复 ──────────────────────────────
+  2 passed (3.7m)

@@ -1,0 +1,38 @@
+{
+  "desktop": {
+    "solo": {
+      "completed": 8,
+      "batches": 6,
+      "realSeconds": 47.337
+    },
+    "duo": {
+      "completed": 18,
+      "batches": 6,
+      "realSeconds": 61.689,
+      "reloadResumed": true
+    },
+    "official": {
+      "completed": 80,
+      "batches": 9,
+      "realSeconds": 62.764,
+      "cost": 1080,
+      "profit": 520,
+      "bonus": 200,
+      "coinsAfter": 2720
+    },
+    "sameOpeningRetry": true,
+    "firstUpgrade": true,
+    "flagshipPersisted": true,
+    "errors": []
+  },
+  "mobile": {
+    "solo": 2,
+    "duo": 5,
+    "official": 80,
+    "viewports": [
+      "390x844",
+      "844x390"
+    ],
+    "errors": []
+  }
+}

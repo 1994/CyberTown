@@ -27,6 +27,7 @@ import {
 import { rt, useWorld } from '../world/runtime.ts';
 import type { Near } from '../world/runtime.ts';
 import { useGame } from '../store.ts';
+import { TownLandmarks } from '../tea/TownLandmarks.tsx';
 
 const params = new URLSearchParams(location.search);
 /** ?lowfx=1：关闭后期与阴影（低端设备/无 GPU 的录制环境） */
@@ -163,13 +164,13 @@ function BackgroundFrames({ covered }: { covered: boolean }) {
   return null;
 }
 
-export function OfficeCanvas({ myId }: { myId: string | null }) {
+export function OfficeCanvas({ myId, covered: townCovered = false }: { myId: string | null; covered?: boolean }) {
   const quality = useRenderQuality(s => s.quality);
   const tier = useRenderQuality(s => s.tier);
   const settings = quality === 'balanced' ? BALANCED_LEVELS[tier] : QUALITY[quality];
   const coveredUi = useGame(s => !s.introPlaying && (!!s.drawer || s.phoneOpen || s.projectActive));
   const projectOpen = useWorld(s => s.projectOpen);
-  const covered = coveredUi || projectOpen;
+  const covered = coveredUi || projectOpen || townCovered;
   const introPlaying = useGame(s => s.introPlaying);
   const playing = !!myId;
   const onGround = useCallback((e: ThreeEvent<MouseEvent>) => {
@@ -220,6 +221,7 @@ export function OfficeCanvas({ myId }: { myId: string | null }) {
         <UrbanDetails />
         {playing && !LOW_FX && <NightRain />}
         <Room />
+        <TownLandmarks />
         <Colleagues />
         {myId && <MePlayer key={myId} myId={myId} />}
         {myId && <RemotePlayers myId={myId} />}

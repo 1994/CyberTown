@@ -1,0 +1,346 @@
+{
+  "base": "http://127.0.0.1:8896",
+  "startedAt": "2026-10-21T18:05:39.276Z",
+  "ok": true,
+  "checks": [
+    {
+      "name": "登录身份与同日挑战",
+      "ok": true
+    },
+    {
+      "name": "默认与互补阵容可用",
+      "ok": true
+    },
+    {
+      "name": "练习不改变经济与正式次数",
+      "ok": true
+    },
+    {
+      "name": "互补阵完成数高于默认阵",
+      "ok": true
+    },
+    {
+      "name": "li 公开招聘后 wang 可见 employee:li",
+      "ok": true
+    },
+    {
+      "name": "同幂等键返回同一结果且余额不二次变化",
+      "ok": true
+    },
+    {
+      "name": "li 收到真实工资与合作 notice",
+      "ok": true
+    },
+    {
+      "name": "正式互补局可通过 getRun 本人读取",
+      "ok": true
+    },
+    {
+      "name": "升级扣除600或已升级时保持",
+      "ok": true
+    },
+    {
+      "name": "刷新后等级与余额保持",
+      "ok": true
+    }
+  ],
+  "practice": {
+    "default": {
+      "id": "practice-eaa0d52295d456c8ed5742094b1cb7b5b37cc243c5a0e198",
+      "mode": "practice",
+      "challengeId": "lunch-2026-10-21",
+      "seed": 2491317946,
+      "plan": {
+        "assignments": [
+          {
+            "workerId": "self",
+            "role": "support"
+          },
+          {
+            "workerId": "system-a",
+            "role": "cashier"
+          },
+          {
+            "workerId": "system-b",
+            "role": "maker"
+          }
+        ],
+        "stock": 80,
+        "strategy": "balanced"
+      },
+      "workers": [
+        {
+          "id": "self",
+          "name": "老王",
+          "skill": "rescue_captain",
+          "salary": 0,
+          "service": 60,
+          "production": 60
+        },
+        {
+          "id": "system-a",
+          "name": "阿团",
+          "skill": "none",
+          "salary": 100,
+          "service": 45,
+          "production": 45
+        },
+        {
+          "id": "system-b",
+          "name": "小圆",
+          "skill": "none",
+          "salary": 100,
+          "service": 45,
+          "production": 45
+        }
+      ],
+      "completed": 56,
+      "passed": false,
+      "revenue": 1120,
+      "totalCost": 800,
+      "profit": 320,
+      "bonus": 0,
+      "stockLeft": 22,
+      "bottleneck": "制作出杯拥堵",
+      "suggestion": "把高制作同事放到制作台，或用机动岗支援出杯。",
+      "coinsAfter": 2000
+    },
+    "complementary": {
+      "id": "practice-8dbe4d67dd91ad066de6dd6f7bbf8feb1564e0854cd32488",
+      "mode": "practice",
+      "challengeId": "lunch-2026-10-21",
+      "seed": 2491317946,
+      "plan": {
+        "assignments": [
+          {
+            "workerId": "self",
+            "role": "support"
+          },
+          {
+            "workerId": "demo-li",
+            "role": "cashier"
+          },
+          {
+            "workerId": "demo-wang",
+            "role": "maker"
+          }
+        ],
+        "stock": 80,
+        "strategy": "balanced"
+      },
+      "workers": [
+        {
+          "id": "self",
+          "name": "老王",
+          "skill": "rescue_captain",
+          "salary": 0,
+          "service": 60,
+          "production": 60
+        },
+        {
+          "id": "demo-li",
+          "name": "小李",
+          "skill": "golden_service",
+          "salary": 220,
+          "service": 95,
+          "production": 30
+        },
+        {
+          "id": "demo-wang",
+          "name": "老王",
+          "skill": "batch_master",
+          "salary": 260,
+          "service": 30,
+          "production": 95
+        }
+      ],
+      "completed": 80,
+      "passed": true,
+      "revenue": 1600,
+      "totalCost": 1080,
+      "profit": 520,
+      "bonus": 0,
+      "stockLeft": 0,
+      "bottleneck": "配合默契",
+      "suggestion": "阵容已经均衡，继续优化成本，向明星旗舰店迈进。",
+      "coinsAfter": 2000
+    },
+    "completedDelta": 24,
+    "economy": {
+      "coinsBefore": 2000,
+      "coinsAfter": 2000,
+      "runsBefore": 0,
+      "runsAfter": 0,
+      "attemptsBefore": 3,
+      "attemptsAfter": 3
+    }
+  },
+  "officialHire": {
+    "run": {
+      "id": "e09b2a4d00fbc9a1d1f416b46621ba561bb9c266692051de",
+      "mode": "official",
+      "challengeId": "lunch-2026-10-21",
+      "seed": 2491317946,
+      "plan": {
+        "assignments": [
+          {
+            "workerId": "self",
+            "role": "support"
+          },
+          {
+            "workerId": "employee:li",
+            "role": "cashier"
+          },
+          {
+            "workerId": "demo-chen",
+            "role": "maker"
+          }
+        ],
+        "stock": 60,
+        "strategy": "balanced"
+      },
+      "workers": [
+        {
+          "id": "self",
+          "name": "老王",
+          "skill": "rescue_captain",
+          "salary": 0,
+          "service": 60,
+          "production": 60
+        },
+        {
+          "id": "employee:li",
+          "name": "小李",
+          "skill": "rescue_captain",
+          "salary": 180,
+          "service": 60,
+          "production": 60
+        },
+        {
+          "id": "demo-chen",
+          "name": "小陈",
+          "skill": "materials_saver",
+          "salary": 140,
+          "service": 55,
+          "production": 75
+        }
+      ],
+      "completed": 65,
+      "passed": false,
+      "revenue": 1300,
+      "totalCost": 800,
+      "profit": 500,
+      "bonus": 0,
+      "stockLeft": 0,
+      "bottleneck": "原料不足",
+      "suggestion": "试试增加备货，或让节约原料的同事负责制作。",
+      "coinsAfter": 2500
+    },
+    "replaySameId": true,
+    "wangCoinsBefore": 2000,
+    "wangCoinsAfter": 2500,
+    "wangCoinsAfterRetry": 2500,
+    "li": {
+      "coinsBefore": 2000,
+      "coinsAfter": 2180,
+      "wage": 180,
+      "wageDelta": 180,
+      "settledNow": true,
+      "settlementNote": "本次实际到账",
+      "notice": {
+        "id": 1,
+        "employer": "老王",
+        "worker": "小李",
+        "role": "cashier",
+        "salary": 180,
+        "completed": 65,
+        "cooperation": 1,
+        "at": 1792605939419
+      }
+    }
+  },
+  "officialDemos": {
+    "wangCoinsBefore": 2500,
+    "run": {
+      "id": "7430d41a3f21d2c8f2f8b1bcbaf0921d4906860df97690af",
+      "mode": "official",
+      "challengeId": "lunch-2026-10-21",
+      "seed": 2491317946,
+      "plan": {
+        "assignments": [
+          {
+            "workerId": "self",
+            "role": "support"
+          },
+          {
+            "workerId": "demo-li",
+            "role": "cashier"
+          },
+          {
+            "workerId": "demo-wang",
+            "role": "maker"
+          }
+        ],
+        "stock": 80,
+        "strategy": "balanced"
+      },
+      "workers": [
+        {
+          "id": "self",
+          "name": "老王",
+          "skill": "rescue_captain",
+          "salary": 0,
+          "service": 60,
+          "production": 60
+        },
+        {
+          "id": "demo-li",
+          "name": "小李",
+          "skill": "golden_service",
+          "salary": 220,
+          "service": 95,
+          "production": 30
+        },
+        {
+          "id": "demo-wang",
+          "name": "老王",
+          "skill": "batch_master",
+          "salary": 260,
+          "service": 30,
+          "production": 95
+        }
+      ],
+      "completed": 80,
+      "passed": true,
+      "revenue": 1600,
+      "totalCost": 1080,
+      "profit": 520,
+      "bonus": 200,
+      "stockLeft": 0,
+      "bottleneck": "配合默契",
+      "suggestion": "阵容已经均衡，继续优化成本，向明星旗舰店迈进。",
+      "coinsAfter": 3220
+    },
+    "getRun": {
+      "id": "7430d41a3f21d2c8f2f8b1bcbaf0921d4906860df97690af",
+      "sameResult": true
+    },
+    "beforeUpgrade": {
+      "level": 1,
+      "coins": 3220,
+      "nextUpgradeCost": 600,
+      "levelBefore": 1
+    },
+    "afterUpgrade": {
+      "level": 2,
+      "coins": 2620,
+      "nextUpgradeCost": 1200
+    },
+    "refreshed": {
+      "level": 2,
+      "coins": 2620,
+      "nextUpgradeCost": 1200
+    }
+  },
+  "finishedAt": "2026-10-21T18:05:39.482Z"
+}

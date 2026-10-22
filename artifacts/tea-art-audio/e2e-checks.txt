@@ -1,0 +1,37 @@
+
+> boss-works-for-me@1.0.0 test:e2e
+> npm run build && playwright test tea-mainline.spec.ts tea-art-audio.spec.ts
+
+
+> boss-works-for-me@1.0.0 build
+> npm run build:web && npm run build:server
+
+
+> boss-works-for-me@1.0.0 build:web
+> tsc -b && vite build
+
+vite v7.3.7 building client environment for production...
+transforming...
+✓ 2583 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                        0.61 kB │ gzip:   0.39 kB
+dist/assets/index-Bcu18ezg.css.gz     29.05 kB
+dist/assets/index-CYUCGrCA.js.gz     445.94 kB
+dist/assets/index-Bcu18ezg.css       138.17 kB │ gzip:  29.38 kB
+dist/assets/index-CYUCGrCA.js      1,554.28 kB │ gzip: 447.33 kB
+✓ built in 2.41s
+
+> boss-works-for-me@1.0.0 build:server
+> go build -trimpath -o bin/boss-server ./cmd/boss-server
+
+
+Running 3 tests using 1 worker
+
+(node:74783) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 tests/e2e/tea-art-audio.spec.ts:7:1 › 正常画质：双场景美术、配乐切换、独立音乐音量和静音恢复 (14.4s)
+  ✓  2 tests/e2e/tea-mainline.spec.ts:32:1 › 桌面：试营业→复盘换人→正式断网重试→升级存档 (15.3s)
+  ✓  3 tests/e2e/tea-mainline.spec.ts:85:1 › 手机：招募→筹备→免费营业→报告，横竖屏操作可达 (2.6s)
+
+  3 passed (33.4s)

@@ -1,0 +1,275 @@
+{
+  "runId": "run_9f0e4e180eab",
+  "tasks": [
+    {
+      "id": "task_f494a02260a0",
+      "title": "dsh：奶茶协议与轻量API封装",
+      "status": "failed",
+      "outcome": "failed",
+      "files": [],
+      "completedAt": "2026-10-21T17:29:15.953Z"
+    },
+    {
+      "id": "task_7feee19d35ec",
+      "title": "Claude：双场景美术UI与完整前端",
+      "status": "completed",
+      "outcome": "succeeded",
+      "files": [
+        "src/tea/TeaGame.tsx",
+        "src/tea/TeaScene.tsx",
+        "src/tea/tea.css",
+        "src/App.tsx"
+      ],
+      "completedAt": "2026-10-21T17:46:51.547Z"
+    },
+    {
+      "id": "task_7dcd84312ed8",
+      "title": "目标docs/TEA-MAINLINE.md冻结协议；只写shared/tea.ts全部类型、src/tea/api.ts薄封装teaApi.home/r...",
+      "status": "completed",
+      "outcome": "succeeded",
+      "files": [
+        "shared/tea.ts",
+        "src/tea/api.ts"
+      ],
+      "completedAt": "2026-10-21T17:36:55.152Z"
+    },
+    {
+      "id": "task_9dc269f6d18f",
+      "title": "简单编码续作，复用上次session上下文。只新增scripts/check-tea-agent.ts：Node fetch/assert，读取 TEA_...",
+      "status": "completed",
+      "outcome": "succeeded",
+      "files": [
+        "scripts/check-tea-agent.ts",
+        "artifacts/tea-mainline/api-agent.json"
+      ],
+      "completedAt": "2026-10-21T17:39:52.852Z"
+    },
+    {
+      "id": "task_e14631e6bc4f",
+      "title": "dsh：员工数值配置化",
+      "status": "completed",
+      "outcome": "succeeded",
+      "files": [
+        "backend/tea-workers.json",
+        "backend/tea_config.go",
+        "backend/tea.go"
+      ],
+      "completedAt": "2026-10-21T17:42:08.569Z"
+    },
+    {
+      "id": "task_8b9f8761050c",
+      "title": "Claude：完成八项UI验收返工",
+      "status": "completed",
+      "outcome": "succeeded",
+      "files": [
+        "src/tea/TeaGame.tsx",
+        "src/tea/TeaScene.tsx",
+        "src/tea/tea.css",
+        "src/ui/Login.tsx"
+      ],
+      "completedAt": "2026-10-21T17:52:53.018Z"
+    },
+    {
+      "id": "task_433847b08ee0",
+      "title": "dsh：新主线测试入口",
+      "status": "completed",
+      "outcome": "succeeded",
+      "files": [
+        "package.json"
+      ],
+      "completedAt": "2026-10-21T17:51:32.027Z"
+    },
+    {
+      "id": "task_273f57ad809d",
+      "title": "Claude：修复实机灯光与场景构图",
+      "status": "completed",
+      "outcome": "succeeded",
+      "files": [
+        "src/tea/TeaScene.tsx",
+        "src/tea/TeaGame.tsx",
+        "src/tea/tea.css"
+      ],
+      "completedAt": "2026-10-21T17:56:36.962Z"
+    },
+    {
+      "id": "task_65fbb60bece3",
+      "title": "dsh：赛博小镇项目名称",
+      "status": "completed",
+      "outcome": "succeeded",
+      "files": [
+        "README.md",
+        "package.json",
+        "index.html",
+        "cmd/boss-server/main.go"
+      ],
+      "completedAt": "2026-10-21T17:59:42.942Z"
+    },
+    {
+      "id": "task_f0fafb9a8d43",
+      "title": "Claude：赛博小镇命名及场景切换错误",
+      "status": "completed",
+      "outcome": "succeeded",
+      "files": [
+        "src/tea/Label3D.tsx",
+        "src/tea/TeaScene.tsx",
+        "src/tea/TeaGame.tsx",
+        "src/tea/tea.css",
+        "src/App.tsx",
+        "src/ui/Login.tsx"
+      ],
+      "completedAt": "2026-10-21T18:06:25.856Z"
+    },
+    {
+      "id": "task_863992952cdd",
+      "title": "Claude：主线目标与新手玩法指引",
+      "status": "completed",
+      "outcome": "succeeded",
+      "files": [
+        "src/tea/TeaGame.tsx",
+        "src/tea/TeaScene.tsx",
+        "src/tea/tea.css"
+      ],
+      "completedAt": "2026-10-21T18:11:56.402Z"
+    },
+    {
+      "id": "task_8ad05e6143d0",
+      "title": "Claude：主线指引状态最终修正",
+      "status": "completed",
+      "outcome": "succeeded",
+      "files": [
+        "src/tea/TeaGame.tsx",
+        "src/tea/tea.css"
+      ],
+      "completedAt": "2026-10-21T18:14:57.641Z"
+    }
+  ],
+  "workers": [
+    {
+      "taskId": "task_8ad05e6143d0",
+      "dispatchId": "ctx_deae2a6c9ddf",
+      "status": "completed",
+      "terminal": "term_b0d1ac53-18b3-4fcb-af14-b0a7bbca65ed",
+      "terminalState": "retained",
+      "outcome": "succeeded"
+    },
+    {
+      "taskId": "task_863992952cdd",
+      "dispatchId": "ctx_18249b180419",
+      "status": "completed",
+      "terminal": "term_b0d1ac53-18b3-4fcb-af14-b0a7bbca65ed",
+      "terminalState": "retained",
+      "outcome": "succeeded"
+    },
+    {
+      "taskId": "task_f0fafb9a8d43",
+      "dispatchId": "ctx_61af69ac8f7f",
+      "status": "completed",
+      "terminal": "term_b0d1ac53-18b3-4fcb-af14-b0a7bbca65ed",
+      "terminalState": "retained",
+      "outcome": "succeeded"
+    },
+    {
+      "taskId": "task_65fbb60bece3",
+      "dispatchId": "ctx_ef5279dde217",
+      "status": "completed",
+      "terminal": "term_6db03725-d8f6-4a95-a143-6046ad4aadfa",
+      "terminalState": "retained",
+      "outcome": "succeeded"
+    },
+    {
+      "taskId": "task_273f57ad809d",
+      "dispatchId": "ctx_d2a7f3c83113",
+      "status": "completed",
+      "terminal": "term_b0d1ac53-18b3-4fcb-af14-b0a7bbca65ed",
+      "terminalState": "retained",
+      "outcome": "succeeded"
+    },
+    {
+      "taskId": "task_433847b08ee0",
+      "dispatchId": "ctx_96f0ab118562",
+      "status": "completed",
+      "terminal": "term_6db03725-d8f6-4a95-a143-6046ad4aadfa",
+      "terminalState": "retained",
+      "outcome": "succeeded"
+    },
+    {
+      "taskId": "task_8b9f8761050c",
+      "dispatchId": "ctx_34d0ddc2f25e",
+      "status": "completed",
+      "terminal": "term_b0d1ac53-18b3-4fcb-af14-b0a7bbca65ed",
+      "terminalState": "retained",
+      "outcome": "succeeded"
+    },
+    {
+      "taskId": "task_7feee19d35ec",
+      "dispatchId": "ctx_503bb869d2a6",
+      "status": "completed",
+      "terminal": "term_b0d1ac53-18b3-4fcb-af14-b0a7bbca65ed",
+      "terminalState": "retained",
+      "outcome": "succeeded"
+    },
+    {
+      "taskId": "task_7feee19d35ec",
+      "dispatchId": "ctx_b40a2db90deb",
+      "status": "failed",
+      "terminal": "term_b0d1ac53-18b3-4fcb-af14-b0a7bbca65ed",
+      "terminalState": "retained",
+      "outcome": "failed"
+    },
+    {
+      "taskId": "task_e14631e6bc4f",
+      "dispatchId": "ctx_54ad4abf1c75",
+      "status": "completed",
+      "terminal": "term_6db03725-d8f6-4a95-a143-6046ad4aadfa",
+      "terminalState": "retained",
+      "outcome": "succeeded"
+    },
+    {
+      "taskId": "task_9dc269f6d18f",
+      "dispatchId": "ctx_76ea93af4c28",
+      "status": "completed",
+      "terminal": "term_6db03725-d8f6-4a95-a143-6046ad4aadfa",
+      "terminalState": "retained",
+      "outcome": "succeeded"
+    },
+    {
+      "taskId": "task_7dcd84312ed8",
+      "dispatchId": "ctx_ebb7f4389074",
+      "status": "completed",
+      "terminal": "term_6db03725-d8f6-4a95-a143-6046ad4aadfa",
+      "terminalState": "retained",
+      "outcome": "succeeded"
+    },
+    {
+      "taskId": "task_7feee19d35ec",
+      "dispatchId": "ctx_ce8b475e0cb9",
+      "status": "failed",
+      "terminal": "term_b0d1ac53-18b3-4fcb-af14-b0a7bbca65ed",
+      "terminalState": "retained",
+      "outcome": "failed"
+    },
+    {
+      "taskId": "task_f494a02260a0",
+      "dispatchId": "ctx_602fb7ed43f9",
+      "status": "failed",
+      "terminal": "term_b66c405b-7575-4545-9065-497e0fe76dff",
+      "terminalState": "released",
+      "outcome": "failed"
+    }
+  ],
+  "sessions": {
+    "claude": "e0d44bbc-059c-4573-b0f5-130b7cfd483d",
+    "dsh": "session-aaa73f32-292a-41cc-9ab1-5a2e53a33934"
+  },
+  "dshUsage": {
+    "uncachedInputTokens": 45373,
+    "outputTokens": 33051,
+    "cacheReadTokens": 2812544,
+    "cacheReadShare": 0.9841237516694852
+  },
+  "notes": [
+    "Initial dsh-tui startup failed before task execution; replacement task task_7dcd84312ed8 succeeded using the official bundled CLI.",
+    "Claude's interrupted initial UI attempt resumed in the same provider session and its task completed.",
+    "Successful worker sessions retained at the user's request; no reclaimable terminal resources remain."
+  ]
+}

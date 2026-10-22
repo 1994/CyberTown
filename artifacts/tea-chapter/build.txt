@@ -1,0 +1,22 @@
+
+> boss-works-for-me@1.0.0 build
+> npm run build:web && npm run build:server
+
+
+> boss-works-for-me@1.0.0 build:web
+> tsc -b && vite build
+
+vite v7.3.7 building client environment for production...
+transforming...
+✓ 2585 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                        0.61 kB │ gzip:   0.39 kB
+dist/assets/index-DZHzmpGN.css.gz     29.60 kB
+dist/assets/index-DMndpgXK.js.gz     448.09 kB
+dist/assets/index-DZHzmpGN.css       141.43 kB │ gzip:  29.95 kB
+dist/assets/index-DMndpgXK.js      1,560.08 kB │ gzip: 449.50 kB
+✓ built in 2.46s
+
+> boss-works-for-me@1.0.0 build:server
+> go build -trimpath -o bin/boss-server ./cmd/boss-server

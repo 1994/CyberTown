@@ -7,7 +7,7 @@ import { useRealtime } from './realtime.ts';
 import { useWorldNet } from './world/net.ts';
 import { useWorldInput } from './world/input.ts';
 import { Login } from './ui/Login.tsx';
-import { GameHud } from './ui/GameHud.tsx';
+import { TownGame } from './tea/TownGame.tsx';
 import { ErrorBoundary } from './ui/ErrorBoundary.tsx';
 import { PERF_ENABLED } from './performance.ts';
 import { RenderStats } from './ui/RenderStats.tsx';
@@ -26,18 +26,19 @@ export function App() {
   }, [boot]);
 
   useRealtime(!!myId);
+  // 大地图主线：原世界同步与 WASD/E 输入照常挂载，TownGame 在其上叠加救店任务与奶茶店。
   useWorldNet(myId);
   useWorldInput(!!myId);
 
   return (
     <div className={`app phase-${phase} ${introPlaying ? 'is-film' : ''}`}>
       <ErrorBoundary fallback={<div className="scene-fallback">3D 场景加载失败（浏览器可能不支持 WebGL）</div>}>
-        <OfficeCanvas myId={myId} />
+        {myId ? <TownGame key={myId} /> : <OfficeCanvas myId={null} />}
       </ErrorBoundary>
       {phase === 'boot' && (
         <div className="boot-screen" role="status" aria-live="polite">
           <div className="logo">
-            今天<span>老板</span>给我打工
+            赛博<span>小镇</span>
           </div>
           {bootError ? (
             <div className="boot-error">
@@ -49,13 +50,12 @@ export function App() {
           ) : (
             <div className="loader">
               <i />
-              <span>园区开门中…</span>
+              <span>小镇开门中…</span>
             </div>
           )}
         </div>
       )}
       {phase === 'login' && <><Login /><SoundToggle className="login-sound" /></>}
-      {myId && <GameHud key={myId} />}
       {PERF_ENABLED && <RenderStats />}
       {new URLSearchParams(location.search).get('audio') === 'debug' && <SoundDiagnostics />}
     </div>

@@ -1,0 +1,10 @@
+
+Running 3 tests using 1 worker
+
+(node:39090) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 tests/e2e/tea-town.spec.ts:40:1 › 大地图救店：手机可暂缓→不招募独自赚钱→回地图查账→升级保存 (1.5m)
+  ✓  2 tests/e2e/tea-town.spec.ts:68:1 › 手机自由动线：广场可选招募两人→步行奶茶小镇→同事自动赚金币 (43.4s)
+  ✓  3 tests/e2e/tea-town.spec.ts:82:1 › 正常画质：大地图→手机→步行入店，配乐随动线切换且静音可用 (23.8s)
+
+  3 passed (2.6m)

@@ -2,7 +2,7 @@
   "name": "boss-works-for-me",
   "version": "1.0.0",
   "private": true,
-  "description": "《今天老板给我打工》— 3D 职场社交经营 RPG（演示版）",
+  "description": "《赛博小镇》— 3D 职场社交经营 RPG（演示版）",
   "license": "MIT",
   "type": "module",
   "engines": {
@@ -18,7 +18,9 @@
     "seed": "go run ./cmd/boss-server --seed",
     "reset": "go run ./cmd/boss-server --reset",
     "test": "npm run test:api && npm run test:web",
-    "test:e2e": "npm run build && playwright test",
+    "test:e2e": "npm run build && playwright test tea-town.spec.ts",
+    "test:e2e:legacy": "npm run build && playwright test",
+    "test:tea": "node scripts/check-tea-agent.ts",
     "demo:record": "node --disable-warning=ExperimentalWarning scripts/record-demo.ts",
     "build:web": "tsc -b && vite build",
     "build:server": "go build -trimpath -o bin/boss-server ./cmd/boss-server",
@@ -31,13 +33,16 @@
     "perf:cpu": "node scripts/benchmark-cpu.ts",
     "test:render": "node scripts/check-render-budget.ts",
     "test:audio": "node scripts/check-audio.ts",
-    "test:web": "npm run typecheck && npm run test:contract && npm run test:transport && npm run test:proximity && npm run test:map && npm run test:collision && npm run test:render && npm run test:arcade && npm run test:audio && npm run test:sync && npm run test:player-contract",
+    "test:music": "node scripts/check-music.ts",
+    "audio:preview": "node scripts/render-tea-music.ts",
+    "test:web": "npm run typecheck && npm run test:contract && npm run test:transport && npm run test:proximity && npm run test:map && npm run test:collision && npm run test:render && npm run test:arcade && npm run test:audio && npm run test:music && npm run test:sync && npm run test:player-contract",
     "test:api": "go test ./...",
     "test:transport": "node scripts/check-transport.ts",
     "test:deployment": "node scripts/check-deployment.mjs",
     "test:proximity": "node scripts/check-proximity.ts",
     "test:sync": "node scripts/check-sync-queue.ts",
-    "test:player-contract": "node scripts/export-player-contract.ts"
+    "test:player-contract": "node scripts/export-player-contract.ts",
+    "test:tea-town": "node scripts/check-tea-town.ts"
   },
   "dependencies": {
     "@react-three/drei": "^10.7.9",

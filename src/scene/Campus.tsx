@@ -483,69 +483,9 @@ function StringLights({ from, to }: { from: P3; to: P3 }) {
 }
 
 function CoffeeZone() {
-  const stripe = useMemo(() => {
-    const c = document.createElement('canvas');
-    c.width = 128;
-    c.height = 16;
-    const g = c.getContext('2d')!;
-    for (let i = 0; i < 8; i++) {
-      g.fillStyle = i % 2 ? '#ffffff' : '#a73c39';
-      g.fillRect(i * 16, 0, 16, 16);
-    }
-    const t = new THREE.CanvasTexture(c);
-    t.colorSpace = THREE.SRGBColorSpace;
-    return t;
-  }, []);
   return (
     <group>
-      {/* 咖啡亭 */}
-      <group position={[-22.5, 0, -1]}>
-        <RoundedBox
-          args={[4.2, 2.6, 3.2]}
-          radius={0.08}
-          position={[0, 1.3, 0]}
-          material={std('#253740', 0.55, 0.25)}
-          castShadow
-          receiveShadow
-        />
-        <mesh position={[0, 2.75, 1.85]} rotation-x={0.45}>
-          <boxGeometry args={[4.4, 0.05, 1.3]} />
-          <meshStandardMaterial map={stripe} roughness={0.7} />
-        </mesh>
-        <RoundedBox
-          args={[3.6, 1.0, 0.5]}
-          radius={0.04}
-          position={[0, 0.5, 1.7]}
-          material={std(PALETTE.walnut, 0.5)}
-          castShadow
-        />
-        <mesh position={[0, 1.6, 1.61]}>
-          <planeGeometry args={[3.2, 0.9]} />
-          <meshBasicMaterial
-            color={new THREE.Color('#ffe2b0').multiplyScalar(1.3)}
-            toneMapped={false}
-          />
-        </mesh>
-        <mesh position={[0, 3.35, 0.4]}>
-          <planeGeometry args={[4, 1]} />
-          <meshBasicMaterial
-            map={neonText([
-              { text: '续命咖啡', color: PALETTE.neonPink, size: 150 },
-            ])}
-            transparent
-            toneMapped={false}
-            color={new THREE.Color(2, 2, 2)}
-            depthWrite={false}
-          />
-        </mesh>
-        <LocalPointLight
-          position={[0, 2.2, 3]}
-          color="#ffb38a"
-          intensity={12}
-          distance={9}
-          decay={2}
-        />
-      </group>
+      {/* 原咖啡亭位置由 TownLandmarks 的街角奶茶店接管（碰撞不变） */}
       <CafeTable position={[-15, 0, 2.6]} />
       <CafeTable position={[-18.4, 0, 3.8]} />
       <CafeTable position={[-14.2, 0, -2.6]} />
