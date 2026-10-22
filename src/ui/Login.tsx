@@ -2,9 +2,10 @@ import { useState } from 'react';
 import { useGame } from '../store.ts';
 import { api, ApiError } from '../api.ts';
 import { rememberBrowserLogin } from '../auth/browser.ts';
-import { ArrowRight, Sparkles } from 'lucide-react';
+import { ArrowRight, LoaderCircle, Check } from 'lucide-react';
 import { dressed } from '../look.ts';
 import { Avatar } from './Avatar.tsx';
+import { LoginStage } from './LoginStage.tsx';
 
 /** 已认证欢迎页：只展示当前登录者本人资料，点“进入小镇”才进入游戏。 */
 function Welcome() {
@@ -18,30 +19,26 @@ function Welcome() {
   const look = av ? { ...dressed(av.look, me.style), avatarUrl: me.avatarUrl ?? av.look.avatarUrl } : null;
   const [imgFailed, setImgFailed] = useState(false);
   return (
-    <div className="login-wrap">
-      <div className="login-shell">
-        <div className="login-card panel welcome-card">
-          <div className="logo big">赛博<span>小镇</span></div>
-          <div className="welcome-me" data-testid="welcome-profile">
-            {look ? <Avatar look={look} size={72} ring={me.color} />
-              : me.avatarUrl && !imgFailed ? <img className="avatar welcome-img" src={me.avatarUrl} alt="" width={72} height={72} referrerPolicy="no-referrer" onError={() => setImgFailed(true)} />
-                : <span className="welcome-mono" style={{ ['--pc' as string]: me.color }}>{me.name.slice(-1)}</span>}
+    <LoginStage confirmed>
+          <div className="entry-panel-title"><h2>准备出发</h2><span className="entry-verified"><Check size={14}/>已确认</span></div>
+          <div className="entry-profile" data-testid="welcome-profile">
+            {look ? <Avatar look={look} size={96} ring={me.color} />
+              : me.avatarUrl && !imgFailed ? <img className="avatar entry-profile-image" src={me.avatarUrl} alt="" width={96} height={96} referrerPolicy="no-referrer" onError={() => setImgFailed(true)} />
+                : <span className="entry-profile-mono" style={{ ['--pc' as string]: me.color }}>{me.name.slice(-1)}</span>}
             <div>
               <b>{me.name}</b>
               {me.title && <span>{me.title}</span>}
             </div>
           </div>
-          <button className="btn primary welcome-enter" onClick={() => enterTown()} data-testid="enter-town">
-            进入小镇<ArrowRight size={16} />
+          <button className="entry-enter" onClick={() => enterTown()} data-testid="enter-town">
+            <span>进入小镇</span><ArrowRight size={21} />
           </button>
           {identityMode === 'demo' && (
-            <button className="text-btn welcome-switch" onClick={() => void logout()} data-testid="switch-identity">
+            <button className="entry-switch" onClick={() => void logout()} data-testid="switch-identity">
               切换体验身份
             </button>
           )}
-        </div>
-      </div>
-    </div>
+    </LoginStage>
   );
 }
 
@@ -76,44 +73,36 @@ function LoginForm() {
   };
 
   return (
-    <div className="login-wrap">
-      <div className="login-shell">
-      <div className="login-card panel">
-        <span className="login-kicker">
-          <Sparkles size={15} />
-          霓虹夜，街角见
-        </span>
-        <div className="logo big">
-          赛博<span>小镇</span>
-        </div>
-        <p className="tagline">探索霓虹街区，遇见小镇伙伴。</p>
-        <span className="login-pick">
+    <LoginStage>
+        <div className="entry-panel-title"><h2>{identityMode === 'demo' ? '选择身份' : '登录小镇'}</h2>{identityMode === 'demo' && <span className="entry-mode">演示</span>}</div>
+        <span className="entry-pick">
+
           {identityMode === 'demo'
-            ? '选择体验身份（演示账号）'
+            ? '选一个身份，开启你的小镇'
             : identityMode === 'mock'
               ? '本地 Mock 联调模式 · 本页不收集凭证'
               : browserLogin ? '使用公司账号登录' : '请从公司登录入口进入'}
         </span>
-        {identityMode === 'demo' && <div className="identity-grid" role="group" aria-label="选择体验身份（演示账号）">
+        {identityMode === 'demo' && <div className="entry-identities" role="group" aria-label="选择体验身份（演示账号）">
           {identities.map((p) => (
             <button
               key={p.id}
-              className={`identity ${preferred === p.id ? 'on' : ''}`}
+              className={`entry-identity ${preferred === p.id ? 'on' : ''}`} aria-label={p.name}
               style={{ ['--pc' as string]: p.color }}
               disabled={!!busy}
               onClick={() => void enter(p.id)}
               data-testid={`identity-${p.id}`}
             >
-              <span className="mono">{p.name.slice(-1)}</span>
-              <span className="id-name">
-                {busy === p.id ? '进入中…' : p.name}
+              <span className="entry-mono">{p.name.slice(-1)}</span>
+              <span className="entry-id-name">
+                {p.name}{busy === p.id && <small>连接中</small>}
               </span>
-              <ArrowRight size={16} />
+              {busy === p.id ? <LoaderCircle className="entry-spinner" size={18}/> : <ArrowRight size={18} />}
             </button>
           ))}
         </div>}
         {identityMode === 'sso' && browserLogin && (
-          <button className="btn primary welcome-enter company-login" disabled={!!busy} onClick={() => {
+          <button className="entry-enter company-login" disabled={!!busy} onClick={() => {
             setBusy('sso');
             setError(null);
             void api.beginBrowserLogin().then(({ url, state }) => {
@@ -127,15 +116,13 @@ function LoginForm() {
           </button>
         )}
         {error && (
-          <p className="form-error" role="alert">
+          <p className="entry-error" role="alert">
             {error}
           </p>
         )}
-        <p className="sso-line">
-          {identityMode === 'demo' ? '演示账号，并非员工名单 · 每个身份都有自己的小镇' : identityNotice}
+        <p className="entry-notice">
+          {identityMode === 'demo' ? '演示身份 · 独立存档' : identityNotice}
         </p>
-      </div>
-      </div>
-    </div>
+    </LoginStage>
   );
 }
