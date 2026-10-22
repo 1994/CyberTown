@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import type { TeaMission } from '../../shared/teaTown.ts';
 import type { PlayerPublic } from '../../shared/types.ts';
 import { nearbyPlayers } from '../../shared/proximity.ts';
 import { districtAt, type DistrictId } from '../../shared/townPlan.ts';
@@ -74,25 +75,28 @@ export function arrivalSeen(id: string) { try { return localStorage.getItem(arri
 export function markArrival(id: string) { try { localStorage.setItem(arrivalKey(id), '1'); } catch { /* 仅为便利 */ } }
 
 /** 入镇操作指引：所在区域 + 本人 + 怎么走 + 手机在哪。可关闭，右上「指引」随时重开。 */
-export function TownArrival({ myId, touch, onPhone, onClose }: { myId: string; touch: boolean; onPhone: () => void; onClose: () => void }) {
+export function TownArrival({ myId, touch, missionStatus, onPhone, onGoShop, onClose }: { myId: string; touch: boolean; missionStatus: TeaMission['status']; onPhone: () => void; onGoShop: () => void; onClose: () => void }) {
   const me = useGame(s => s.snapshot?.players.find(p => p.id === myId));
   // 跟随真实坐标：新玩家在小镇广场，老位置（如奶茶店门口）照实显示
   const zone = useDistrict().name;
+  const first = missionStatus === 'offered';
+  const complete = missionStatus === 'completed';
   return <section className={`town-arrival${touch ? " compact-arrival" : ""}`} data-testid="town-arrival" role="dialog" aria-label={`到达${zone}`}>
     <button className="town-x" onClick={onClose} aria-label="关闭引导，自由逛逛" data-testid="town-arrival-dismiss">×</button>
     <div className="town-arrival-me">
       <Face p={me} size={touch ? 28 : 44} />
-      <div><small>已到达</small><b>{zone}</b></div>
+      <div><small>{zone} · {complete ? '继续经营' : '新手第一单'}</small><b>{complete ? '回店，再赚一笔' : '开一班奶茶店，赚第一笔钱'}</b></div>
     </div>
-    {touch ? <p className="town-arrival-short" id="town-guide-phone">黄色「你」是自己 · 拖动左下摇杆走路</p> : <ul className="town-guide">
-      <li><b>移动</b><span>{touch ? '左下摇杆，或点地面' : '点地面，或 WASD'}</span></li>
-      <li><b>互动</b><span>靠近后点按钮，或按 <kbd>E</kbd> 进店 / 上下车</span></li>
-      <li><b>开始</b><span>手机接任务 → 去奶茶店；雇员工可选</span></li>
-      <li id="town-guide-phone"><b>手机</b><span>右上角「手机」看任务和钱包{!touch && <>，或按 <kbd>P</kbd></>}</span></li>
-    </ul>}
+    <p className="town-arrival-next" id="town-guide-phone">{first ? '先点下方按钮，在手机里「接下任务」。' : complete ? '回奶茶店备好料，再开一班。' : '任务已接好，下一步去奶茶店备料。'}</p>
+    <ol className="town-start-steps" aria-label="开店步骤">
+      <li className={first ? 'current' : 'done'}><i>{first ? '1' : '✓'}</i><span>手机接任务</span></li>
+      <li className={!first ? 'current' : ''}><i>2</i><span>跟着带路去店里</span></li>
+      <li><i>3</i><span>备料开店，结束领收入</span></li>
+    </ol>
+    <p className="town-arrival-controls">{touch ? '左下摇杆走路，靠近店门点「进店」。' : '点地面走路，靠近店门按 E 进店。'}<br/>可以先自己干，之后再雇员工帮忙。</p>
     <div className="town-row">
-      <button className="tea-btn primary" onClick={onPhone}>{touch ? "手机接任务" : "查看手机消息"}</button>
-      <button className="tea-btn ghost" onClick={onClose}>先逛逛</button>
+      <button className="tea-btn primary" onClick={first ? onPhone : onGoShop}>{first ? '打开手机 · 接任务' : complete ? '带路回奶茶店' : '带路去奶茶店'}</button>
+      <button className="tea-btn ghost" onClick={onClose}>跳过，先逛逛</button>
     </div>
   </section>;
 }

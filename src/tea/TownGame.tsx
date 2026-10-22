@@ -312,11 +312,11 @@ export function TownGame() {
       {!map && !showcase && <TownPresence myId={myId} ready={worldReady} collapsed={guided} />}
 
       {guided &&
-        <TownArrival myId={myId} touch={touch} onClose={closeArrival} onPhone={() => { closeArrival(); setNotice(false); openPhone('mission'); }} />}
+        <TownArrival myId={myId} touch={touch} missionStatus={home!.mission.status} onGoShop={() => { closeArrival(); setNotice(false); go('shop'); }} onClose={closeArrival} onPhone={() => { closeArrival(); setNotice(false); openPhone('mission'); }} />}
 
       {ready && !arrival && !map && home && notice && offered && !phone && place === 'map' && <div className="town-notice" role="status">
         <button className="town-notice-main" onClick={() => { setNotice(false); openPhone('mission'); }}>
-          <b>📱 手机</b><span>有新任务，打开看看</span>
+          <b>📱 第一笔收入</b><span>打开手机，接奶茶店任务</span>
         </button>
         <button className="town-x" onClick={() => setNotice(false)} aria-label="稍后再说">×</button>
       </div>}

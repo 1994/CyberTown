@@ -398,3 +398,14 @@
  .town-map,.town-arrival,.compact-arrival,.town-notice{top:calc(var(--st) + 108px)}
 }
 @media(max-width:360px){.town-business-stat{padding:5px}.town-business-hud{gap:3px}.town-business-hud .town-coins b{font-size:22px}.town-business-stat>svg{display:none}}
+
+/* Arrival teaches one concrete next action, then shows the short earning loop. */
+.town-arrival-me b{font-size:17px;line-height:1.35}.town-arrival-me small{margin-bottom:3px}
+.town-arrival .town-arrival-next{font-size:15px;line-height:1.5;color:#fff0bb;font-weight:700}
+.town-start-steps{list-style:none;display:grid;gap:7px;margin:0;padding:9px 0;border-block:1px solid #75dcd325}
+.town-start-steps li{display:flex;align-items:center;gap:9px;font-size:13px;color:#b5c9d8}
+.town-start-steps i{display:grid;place-items:center;width:22px;height:22px;background:#24374b;color:#b5c9d8;font:700 12px system-ui}
+.town-start-steps .current{color:#ffe481;font-weight:700}.town-start-steps .current i{background:#ffe481;color:#112335}.town-start-steps .done i{color:#80f2d2}
+.town-arrival .town-arrival-controls{font-size:12px;line-height:1.6;color:#acc4d4}
+.compact-arrival .town-arrival-me div{display:grid;gap:0}.compact-arrival .town-arrival-me b{font-size:15px}
+.town-arrival .town-row{flex-wrap:wrap}.town-arrival .town-row .primary{flex:1;white-space:nowrap}
