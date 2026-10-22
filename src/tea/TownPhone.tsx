@@ -1,9 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
+import { BatteryFull, ChevronLeft, Coins, Map, Users, Wifi, WifiOff, X } from 'lucide-react';
+import { useGame } from '../store.ts';
+import './townPhone.css';
 import { useDialogFocus } from '../ui/useDialogFocus.ts';
 import type { TeaLiveHome } from '../../shared/teaLive.ts';
 import type { DestinationId, SiteId } from '../../shared/townPlan.ts';
 
-// 手机：只有“任务 / 钱包”两页。金币与任务状态全部读 home（服务端权威），这里不记账。
+// 复用原游戏手机机身与 KIM 标志；经营数据仍由服务端提供。
 const KIND: Record<string, string> = {
   tea_hold: '开店预付', tea_sales: '营业收入', tea_wage: '打工工资', tea_upgrade: '门店升级',
   tea_cost: '开店成本', tea_opening_grant: '启动金', tea_mission: '救店奖励', town_explore: '商圈考察', town_hire: '员工签约', town_job: '派工收入', town_market_buy: '买入合同', town_market_sell: '转让收入', town_build: '小镇建设',
@@ -11,12 +14,17 @@ const KIND: Record<string, string> = {
 const kindName = (k: string) => KIND[k] ?? (k.startsWith('tea') ? '奶茶店' : '其他');
 const when = (at: number) => new Date(at < 1e12 ? at * 1000 : at).toLocaleString('zh-CN', { hour12: false, month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' });
 
-export type PhoneTab = 'mission' | 'empire' | 'wallet';
+export type PhoneTab = 'home' | 'mission' | 'empire' | 'wallet';
+const KIM_ICON = '/icons/kim.jpg';
 
 export function TownPhone({ home, tab, onTab, onClose, onAccept, onGo, onHall, busy, hires, toast }: {
   home: TeaLiveHome; tab: PhoneTab; onTab: (t: PhoneTab) => void; onClose: () => void;
   onAccept: () => Promise<void>; onGo: (site: DestinationId) => void; onHall: () => void; busy: boolean; hires: number; toast?: string;
 }) {
+  const me = useGame(s => s.snapshot?.me);
+  const conn = useGame(s => s.conn);
+  const [clock, setClock] = useState(() => new Date());
+  useEffect(() => { const id = setInterval(() => setClock(new Date()), 15000); return () => clearInterval(id); }, []);
   const m = home.mission;
   const biz = home.business;
   const [err, setErr] = useState('');
@@ -31,18 +39,26 @@ export function TownPhone({ home, tab, onTab, onClose, onAccept, onGo, onHall, b
     setErr('');
     try { await onAccept(); } catch (e) { setErr(e instanceof Error ? e.message : '没接上，再试一次'); }
   };
-  return <div className="town-phone-wrap" onPointerDown={e => e.target === e.currentTarget && onClose()}>
-    <section ref={box} className="town-phone" data-testid="town-phone" role="dialog" aria-modal="true" aria-label="手机" tabIndex={-1}>
-      <header>
-        <nav>
-          <button className={tab === 'mission' ? 'on' : ''} onClick={() => onTab('mission')}>任务{m.status === 'offered' && <i />}</button>
-          <button className={tab === 'empire' ? 'on' : ''} onClick={() => onTab('empire')}>版图</button>
-          <button className={tab === 'wallet' ? 'on' : ''} onClick={() => onTab('wallet')}>钱包</button>
-          <button className="town-phone-hall" onClick={onHall} data-testid="town-open-hall">员工 ›</button>
-        </nav>
-        <button className="town-x" onClick={onClose} aria-label="收起手机">×</button>
-      </header>
-
+  return <div className="phone-backdrop town-handset-wrap" onPointerDown={e => e.target === e.currentTarget && onClose()}>
+    <section ref={box} className="game-phone town-handset" data-testid="town-phone" role="dialog" aria-modal="true" aria-label="手机" tabIndex={-1}>
+      <span className="phone-side-button one"/><span className="phone-side-button two"/><span className="phone-side-button three"/>
+      <div className={`phone-display ${tab === 'home' ? '' : 'app'} ${tab === 'mission' ? 'light town-kim' : ''}`}>
+        <div className="phone-status"><time>{clock.toLocaleTimeString('zh-CN', {hour:'2-digit',minute:'2-digit',hour12:false})}</time><span className="phone-island" aria-hidden="true"><i/></span><span className="phone-status-icons">{conn === 'live' ? <Wifi size={14}/> : <WifiOff size={14}/>}<BatteryFull size={18}/><button onClick={onClose} aria-label="收起手机"><X size={14}/></button></span></div>
+        <div className="phone-wallpaper" aria-hidden="true"/>
+        {tab !== 'home' && <header className="phone-page-head"><button onClick={() => onTab('home')} aria-label="返回手机桌面"><ChevronLeft size={20}/><span>桌面</span></button><h2>{tab === 'mission' ? <><img src={KIM_ICON} alt=""/>KIM</> : tab === 'wallet' ? '钱包' : '我的版图'}</h2></header>}
+        <div className={`phone-screen ${tab === 'home' ? 'home' : ''}`} key={tab}>
+          {tab === 'home' && <div className="phone-home town-phone-home" data-testid="town-phone-home">
+            <div className="town-phone-greeting"><small>我的小镇</small><b>{me?.name}</b></div>
+            <button className="town-kim-notification" onClick={() => onTab('mission')} data-testid="town-kim-notification"><img src={KIM_ICON} alt="KIM"/><span><b>KIM <small>街角奶茶 · 店长</small></b><span>{m.status === 'offered' ? '小店快倒闭了，来帮个忙？' : m.status === 'accepted' ? '任务已接下，等你来开店。' : '店救回来了，谢谢你！'}</span></span>{m.status === 'offered' && <i/>}</button>
+            <nav className="phone-app-grid" aria-label="手机应用">
+              <button onClick={() => onTab('mission')} data-testid="phone-app-messages" aria-label="KIM 任务与消息"><span className="phone-app-icon kim"><img src={KIM_ICON} alt=""/>{m.status === 'offered' && <b className="phone-app-badge">1</b>}</span><span>KIM</span></button>
+              <button onClick={() => onTab('wallet')} aria-label="钱包"><span className="phone-app-icon sun"><Coins size={26}/></span><span>钱包</span></button>
+              <button onClick={() => onTab('empire')} aria-label="我的版图"><span className="phone-app-icon sky"><Map size={26}/></span><span>版图</span></button>
+              <button onClick={onHall} data-testid="town-open-hall" aria-label="员工"><span className="phone-app-icon mint"><Users size={26}/></span><span>员工</span></button>
+            </nav>
+            <div className="town-phone-pocket"><Coins size={16}/><b>{home.wallet.balance}</b><span>金币</span></div>
+          </div>}
+          {tab === 'mission' && <div className="town-kim-channel"><b>任务助手</b><span>待办 · {m.status === 'completed' ? '已完成' : '1'}</span></div>}
       {tab === 'mission' && <div className="town-mission" data-testid="town-mission" data-status={m.status}>
         <div className="town-msg">
           <b>街角奶茶 · 店长</b>
@@ -85,6 +101,9 @@ export function TownPhone({ home, tab, onTab, onClose, onAccept, onGo, onHall, b
           </li>)}</ul>
           : <p className="tea-empty">还没有收支</p>}
       </div>}
+        </div>
+        <footer className="phone-bottom"><button onClick={() => tab === 'home' ? onClose() : onTab('home')} aria-label={tab === 'home' ? '收起手机' : '返回手机桌面'}><i/></button></footer>
+      </div>
     </section>
   </div>;
 }

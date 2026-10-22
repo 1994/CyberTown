@@ -67,3 +67,10 @@ for (const id of NPC_WALK_IDS) {
 assert.equal(npcWalkAt('c-zhang', 12345),null,'welcoming boss must remain at spawn');
 assert.equal(npcWalkAt('clone-employee', 12345),null,'employees never become scripted NPCs');
 console.log(`扩图检查通过：${landmarks.length ** 2} 条地标互通、核心步行 <9秒、2位NPC十分钟连续巡游及前后端边界契约`);
+
+// Environmental pedestrians stay on authored pavements, including between endpoints.
+const { TOWN_WALKERS } = await import('../shared/townLife.ts');
+for (const route of TOWN_WALKERS) {
+  for (let x = route.a; x <= route.b; x += .1) assert.equal(blockedAt(x, route.z, .35), false, `resident crosses an obstacle at ${x},${route.z}`);
+}
+console.log(`环境居民 ${TOWN_WALKERS.length} 条步道连续碰撞检查通过`);

@@ -1,3 +1,4 @@
+import { TOWN_VEHICLES, TOWN_CRATES } from './townLife.ts';
 // 园区地图：区域、出生点、碰撞体与寻路（前端使用；数值与 /api/world 的边界一致）。
 // 坐标单位米，x 向东（右），z 向南（朝向默认镜头）。原办公室位于中心 [-8.5,8.5]×[-6,6]。
 import { createCollisionIndex } from './collision.ts';
@@ -170,6 +171,8 @@ export const OFFICE_DOORS = {
 };
 
 export const BOXES: Box[] = [
+  ...TOWN_VEHICLES.map(v => centered(v.x, v.z, 2.1, 4.1)),
+  ...TOWN_CRATES.map(v => centered(v.x, v.z, .9, .9)),
   ...STREET_BUILDINGS.map(b => centered(b.x, b.z, b.w, b.d)),
   ...[1.1, 3.3].map(z => centered(38.4, z, 0.4, 0.3)), // 合影装置脚垫
   ...STREET_BENCHES.map(([x, z]) => centered(x, z, 2, 0.6)),

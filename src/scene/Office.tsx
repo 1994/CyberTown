@@ -1,3 +1,4 @@
+import { TownLife } from './TownLife.tsx';
 import { LocalPointLight, LocalLightPool } from './LocalLights.tsx';
 import { Suspense, useCallback, useEffect, useRef } from 'react';
 import type { ThreeEvent } from '@react-three/fiber';
@@ -71,7 +72,7 @@ function Sun() {
   return (
     <directionalLight
       ref={light}
-      intensity={1.65}
+      intensity={1.95}
       color="#d3e7e5"
       castShadow={!LOW_FX}
       shadow-mapSize={[settings.shadow, settings.shadow]}
@@ -90,7 +91,7 @@ function Sun() {
 function Lights() {
   return (
     <>
-      <hemisphereLight args={['#7da9b8', '#111f28', 0.82]} />
+      <hemisphereLight args={['#b5cfdf', '#526475', 1.3]} />
       <Sun />
       <directionalLight
         position={[-24, 12, -18]}
@@ -223,6 +224,7 @@ export function OfficeCanvas({ myId, covered: townCovered = false }: { myId: str
         <group scale-y={town ? 0.55 : 1}><City /></group>
         <Campus onGround={onGround} />
         <UrbanDetails />
+        <TownLife />
         {playing && !LOW_FX && <NightRain />}
         <Room />
         <TownLandmarks />

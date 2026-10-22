@@ -59,7 +59,7 @@ export function TownGame() {
   }, [placeKey]);
   // 手机开关与原世界共用 useGame.phoneOpen（P 键 / Esc 同一套），这里只记当前页签
   const phoneOpen = useGame(s => s.phoneOpen);
-  const [tab, setTab] = useState<PhoneTab>('mission');
+  const [tab, setTab] = useState<PhoneTab>('home');
   const openPhone = (t: PhoneTab) => { setTab(t); useGame.getState().openPhone(); };
   const closePhone = () => useGame.getState().closePhone();
   const phone = phoneOpen ? tab : null;
@@ -216,7 +216,7 @@ export function TownGame() {
     hires={hires} toast={c.toast} onAccept={c.acceptMission} onGo={s => { if (place === 'shop') exitShop(); go(s); }} onHall={() => openHall('staff')} />;
 
   if (place === 'shop') return <>
-    <TeaGame controller={c} onExit={exitShop} onPhone={() => openPhone('mission')} onHall={() => openHall('staff')} />
+    <TeaGame controller={c} onExit={exitShop} onPhone={() => openPhone('home')} onHall={() => openHall('staff')} />
     {phoneUi && <div className="town town-over">{phoneUi}</div>}
   </>;
 
@@ -236,7 +236,7 @@ export function TownGame() {
           <SoundMenu className="tea-sound" />
           <button className={`town-chip ${map ? 'on' : ''}`} onClick={() => setMap(v => !v)} aria-expanded={map} aria-label="小地图">地图</button>
           <button className="town-chip town-help" onClick={() => { setMap(false); setArrival(true); }} aria-label="操作指引" data-testid="town-guide-help">?</button>
-          <button className="town-chip town-phone-btn" onClick={() => openPhone('mission')} aria-label="手机" aria-expanded={phoneOpen} disabled={!home}
+          <button className="town-chip town-phone-btn" onClick={() => openPhone('home')} aria-label="手机" aria-expanded={phoneOpen} disabled={!home}
             data-testid="town-phone-trigger" data-guided={guided ? 'true' : undefined} aria-describedby={guided ? 'town-guide-phone' : undefined}>
             <Smartphone size={16} aria-hidden /><span>手机</span>{!touch && <kbd>P</kbd>}{offered && <i className="town-dot" />}
           </button>
