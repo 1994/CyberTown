@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {TABLE,award,startRound,creditThrough,returnFrame,returnOrder,catchPad,shellFrame,makeSwaps,heroFrame,settledHero,coinSupport,visualCount,type DemoWallet} from '../shared/tableGames.ts';
+import {TABLE,clearFinishedRound,award,startRound,creditThrough,returnFrame,returnOrder,catchPad,shellFrame,makeSwaps,heroFrame,settledHero,coinSupport,visualCount,type DemoWallet} from '../shared/tableGames.ts';
 const base:DemoWallet={version:1,balance:2000,round:null};
 for(const bet of [10,50,100,500,1000]){
  let w=startRound(base,'coin',bet,0,'one',()=>.1,1);assert.equal(w.balance,2000-bet);assert.equal(startRound(w,'coin',bet,0,'two',()=>.9,2),w);
@@ -33,3 +33,17 @@ for(let t=0;t<5.6;t+=.002){for(let i=0;i<20;i++){const f=returnFrame(i,t,20);if(
 }}
 
 console.log('Table games: exact debit/2x payout/idempotent credit; 100 continuous 18-swap rounds; face/support geometry; 20-coin catch pads and aerial clearance passed',nearest);
+
+// Re-entering via either lobby card discards only the previous result.
+for(const game of ['coin','shell'] as const){
+ const playing=startRound(base,game,100,0,'entry',()=>.1,1);
+ assert.equal(clearFinishedRound(playing),playing,'active rounds must resume');
+ for(const win of [true,false]){
+ const settled:DemoWallet={...playing,balance:win?2100:1900,round:{...playing.round!,phase:'result',win}};
+ const entered=clearFinishedRound(settled);
+ assert.equal(entered.round,null);assert.equal(entered.balance,settled.balance);
+ assert.equal(clearFinishedRound(entered),entered,'repeated entry does not change balance');
+ const next=startRound(entered,game==='coin'?'shell':'coin',100,0,'next',()=>.1,2);
+ assert.notEqual(next.round!.game,game);assert.equal(next.balance,settled.balance-100);
+ }
+}

@@ -13,6 +13,14 @@ export function ArcadeHall({ playerId, coins, onClose, onPaid }: { playerId: str
  const [demo,updateDemo]=useState<'coin'|'shell'|null>(()=>{const v=sessionStorage.getItem('table-demo-screen');return v==='coin'||v==='shell'?v:null;});
  const setDemo=(v:'coin'|'shell'|null)=>{if(v)sessionStorage.setItem('table-demo-screen',v);else sessionStorage.removeItem('table-demo-screen');updateDemo(v);};
  const [catalog,setCatalog]=useState<Catalog|null>(null),[error,setError]=useState(''),[busy,setBusy]=useState(false);
+ const enterDemo=async(id:'coin'|'shell')=>{
+   if(busy)return;setBusy(true);setError('');
+   try{
+     // Clear only a completed round; an unfinished round must still resume safely.
+     const {reset}=await import('../minigames/wallet');
+     await reset();setDemo(id);
+   }catch(e){setError(e instanceof Error?e.message:'进入失败，请重试');}finally{setBusy(false);}
+ };
  const [selected,setSelected]=useState<string|null>(null),[ticket,setTicket]=useState<ArcadeTicket|null>(null);
  const receiptKey=(id:string)=>`arcade-pending:${playerId}:${id}`;
  const select=(id:string)=>{
@@ -34,7 +42,7 @@ export function ArcadeHall({ playerId, coins, onClose, onPaid }: { playerId: str
  {Play&&ticket?<Play ticket={ticket} onExit={()=>{try{localStorage.removeItem(receiptKey(ticket.gameId));}catch{/* optional */}setTicket(null);setSelected(null);}}/>:<>
  <div className="arcade-marquee" aria-hidden="true"><Gamepad2/><i>PLAY<br/>YOUR WAY</i><span>✦</span></div>
  <p className="arcade-caption">霓虹赌摊 · 免费试玩 · 独立试玩金币</p>
- <div className="arcade-cabinets">{(["coin","shell"] as const).map(id=><article key={id} className="arcade-cabinet ready"><div className="arcade-screen"><span style={{fontSize:54,color:id==='coin'?'#ffda70':'#64eade'}}>{id==='coin'?'★ ☾':'◒ ◒ ◒'}</span></div><h2>{id==='coin'?'幸运翻币':'三杯幻影'}</h2><p>{id==='coin'?'亲手挥锤 · 猜星或月':'高速换位 · 找能量核心'}</p><button className="tea-btn primary" onClick={()=>setDemo(id)}>免费试玩</button></article>)}</div>
+ <div className="arcade-cabinets">{(["coin","shell"] as const).map(id=><article key={id} className="arcade-cabinet ready"><div className="arcade-screen"><span style={{fontSize:54,color:id==='coin'?'#ffda70':'#64eade'}}>{id==='coin'?'★ ☾':'◒ ◒ ◒'}</span></div><h2>{id==='coin'?'幸运翻币':'三杯幻影'}</h2><p>{id==='coin'?'亲手挥锤 · 猜星或月':'高速换位 · 找能量核心'}</p><button className="tea-btn primary" disabled={busy} onClick={()=>void enterDemo(id)}>免费试玩</button></article>)}</div>
  {!catalog&&!error&&<p role="status">读取机台…</p>}
  <div className="arcade-cabinets">{catalog?.games.map(g=>{const ready=g.ready&&!!arcadeGames[g.id];return <article key={g.id} className={`arcade-cabinet ${ready?'ready':''}`}><div className="arcade-screen"><Gamepad2 size={52}/>{!ready&&<LockKeyhole size={20}/>}</div><h2>{g.name}</h2><p><Ticket size={16}/>报名 {g.fee} 金币 / 次</p><button className="tea-btn primary" disabled={!ready||busy||coins<g.fee} onClick={()=>select(g.id)}>{!ready?'即将开放':coins<g.fee?'金币不足':'报名'}</button>{!ready&&<small>上线前不扣金币</small>}</article>;})}</div>
  {game&&<div className="arcade-confirm"><h2>报名 {game.name}</h2><p>本次支付 {game.fee} 金币</p><button className="tea-btn" disabled={busy} onClick={()=>setSelected(null)}>再看看</button><button className="tea-btn primary" disabled={busy||coins<game.fee} onClick={()=>void join()}>{busy?'报名中…':'确认支付并进入'}</button></div>}

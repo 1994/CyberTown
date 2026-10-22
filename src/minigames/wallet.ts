@@ -1,5 +1,5 @@
 import {useSyncExternalStore} from 'react';
-import {TABLE,creditThrough,startRound,shellFrame,type DemoWallet,type Phase,type TableGame} from '../../shared/tableGames';
+import {TABLE,clearFinishedRound,creditThrough,startRound,shellFrame,type DemoWallet,type Phase,type TableGame} from '../../shared/tableGames';
 const KEY='cyber-town.table-demo.v1';
 const listeners=new Set<()=>void>();
 function read():DemoWallet {const raw=localStorage.getItem(KEY);if(!raw)return {version:1,balance:TABLE.initial,round:null};const s=JSON.parse(raw) as DemoWallet;if(s.version!==1||!Number.isSafeInteger(s.balance)||s.balance<0)throw Error('试玩存档无法读取，请保留存档并重试');return s;}
@@ -13,7 +13,7 @@ export async function transact(fn:(s:DemoWallet)=>DemoWallet){
 function random(){const a=new Uint32Array(1);crypto.getRandomValues(a);return a[0]/4294967296;}
 export const bet=(game:TableGame,n:number,face:0|1)=>transact(s=>startRound(s,game,n,face,crypto.randomUUID(),random,Date.now()));
 export const claim=()=>transact(s=>s.round&&s.round.phase!=='result'?s:{...s,balance:s.balance+1000});
-export const reset=()=>transact(s=>s.round?.phase==='result'?{...s,round:null}:s);
+export const reset=()=>transact(clearFinishedRound);
 export function advance(id:string,from:Phase,to:Phase){return transact(s=>{
  const r=s.round;if(!r||r.id!==id||r.phase!==from)return s;
  const win=to==='payout'?true:to==='loss'?false:r.win;
