@@ -1,0 +1,23 @@
+{
+  "views": [
+    {
+      "name": "desktop",
+      "width": 1440,
+      "height": 900,
+      "loginNoQuest": true,
+      "welcomeNoQuest": true,
+      "worldNoSpoiler": true,
+      "phoneTaskPreserved": true
+    },
+    {
+      "name": "mobile",
+      "width": 390,
+      "height": 844,
+      "loginNoQuest": true,
+      "welcomeNoQuest": true,
+      "worldNoSpoiler": true,
+      "phoneTaskPreserved": true
+    }
+  ],
+  "errors": []
+}

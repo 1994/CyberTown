@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useGame } from '../store.ts';
 import { api, ApiError } from '../api.ts';
 import { rememberBrowserLogin } from '../auth/browser.ts';
-import { ArrowRight, Crown, Sparkles } from 'lucide-react';
+import { ArrowRight, Sparkles } from 'lucide-react';
 import { dressed } from '../look.ts';
 import { Avatar } from './Avatar.tsx';
 
@@ -31,7 +31,6 @@ function Welcome() {
               {me.title && <span>{me.title}</span>}
             </div>
           </div>
-          <p className="tagline">街角奶茶快倒闭了，手机里有新任务。</p>
           <button className="btn primary welcome-enter" onClick={() => enterTown()} data-testid="enter-town">
             进入小镇<ArrowRight size={16} />
           </button>
@@ -87,15 +86,7 @@ function LoginForm() {
         <div className="logo big">
           赛博<span>小镇</span>
         </div>
-        <p className="tagline">
-          自由探索霓虹小镇，用手机接下救店任务。
-          <br />
-          可以独自经营奶茶店，也可以去广场招帮手。
-        </p>
-        <div className="login-promise">
-          <Crown size={17} />
-          <span>街角奶茶快倒闭了，等你来救。</span>
-        </div>
+        <p className="tagline">探索霓虹街区，遇见小镇伙伴。</p>
         <span className="login-pick">
           {identityMode === 'demo'
             ? '选择体验身份（演示账号）'

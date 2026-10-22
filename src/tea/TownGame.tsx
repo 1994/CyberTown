@@ -186,7 +186,7 @@ export function TownGame() {
 
       {ready && !arrival && home && notice && offered && !phone && place === 'map' && <div className="town-notice" role="status">
         <button className="town-notice-main" onClick={() => { setNotice(false); openPhone('mission'); }}>
-          <b>📱 街角奶茶</b><span>快倒闭了，来帮个忙</span>
+          <b>📱 手机</b><span>有新任务，打开看看</span>
         </button>
         <button className="town-x" onClick={() => setNotice(false)} aria-label="稍后再说">×</button>
       </div>}
