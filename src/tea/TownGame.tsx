@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Smartphone } from 'lucide-react';
 import { TEA_TOWN_SITES } from '../../shared/teaTown.ts';
 import { OfficeCanvas } from '../scene/Office.tsx';
 import { useGame } from '../store.ts';
@@ -45,9 +46,8 @@ export function TownGame() {
   const worldReady = useWorldReady(myId);
   const conn = useGame(s => s.conn);
   const ready = worldReady && conn === 'live';
-  // 到达引导：每个会话+玩家只出现一次；已接任务/在店的老玩家直接视为看过
+  // 操作指引 v2：每个会话+玩家首次进地图显示（含已接/已完成任务的老玩家），关闭或打开手机后记 seen，右上「?」可重开
   const [arrival, setArrival] = useState(() => !arrivalSeen(myId) && place === 'map');
-  const [listOpen, setListOpen] = useState(false);
   const closeArrival = () => { markArrival(myId); setArrival(false); };
   const [map, setMap] = useState(false);
   const [near, setNear] = useState<Site | null>(null);
@@ -56,7 +56,8 @@ export function TownGame() {
   const [hint, setHint] = useState('');
 
   const mission = home?.mission.status ?? null;
-  useEffect(() => { if (arrival && (place === 'shop' || phoneOpen || (mission && mission !== 'offered'))) closeArrival(); });
+  // 打开手机即视为看过；在店内只是不显示，不记 seen
+  useEffect(() => { if (arrival && phoneOpen) closeArrival(); });
   const hires = c.team.filter(w => w.id !== home?.self.id).length;
   const live = c.view === 'play' && c.session?.status === 'active';
 
@@ -149,6 +150,8 @@ export function TownGame() {
   </>;
 
   const offered = mission === 'offered';
+  // 操作指引卡：服务端世界里有自己即可显示（短暂断线也能重开）；手机/小地图打开时让位
+  const guided = worldReady && !!home && arrival && place === 'map' && !phone && !map;
   const marks = [
     { x: SITES.shop.x, z: SITES.shop.z, color: '#ff7ab8', icon: '🧋', hot: travel === 'shop' || mission === 'accepted' },
     { x: SITES.recruit.x, z: SITES.recruit.z, color: '#3ef0ff', icon: '🙋', hot: travel === 'recruit' },
@@ -165,8 +168,10 @@ export function TownGame() {
         <div className="town-tools">
           <SoundMenu className="tea-sound" />
           <button className={`town-chip ${map ? 'on' : ''}`} onClick={() => setMap(v => !v)} aria-expanded={map} aria-label="小地图">地图</button>
-          <button className="town-chip town-phone-btn" onClick={() => openPhone('mission')} aria-label="手机" aria-expanded={phoneOpen} disabled={!home}>
-            手机{offered && <i className="town-dot" />}
+          <button className="town-chip town-help" onClick={() => { setMap(false); setArrival(true); }} aria-label="操作指引" data-testid="town-guide-help">?</button>
+          <button className="town-chip town-phone-btn" onClick={() => openPhone('mission')} aria-label="手机" aria-expanded={phoneOpen} disabled={!home}
+            data-testid="town-phone-trigger" data-guided={guided ? 'true' : undefined} aria-describedby={guided ? 'town-guide-phone' : undefined}>
+            <Smartphone size={16} aria-hidden /><span>手机</span>{!touch && <kbd>P</kbd>}{offered && <i className="town-dot" />}
           </button>
         </div>
       </header>
@@ -179,9 +184,9 @@ export function TownGame() {
         </div>
       </div>}
 
-      <TownPresence myId={myId} ready={worldReady} onOpenChange={setListOpen} />
+      <TownPresence myId={myId} ready={worldReady} collapsed={guided} />
 
-      {ready && home && arrival && place === 'map' && !phone && !map && !listOpen &&
+      {guided &&
         <TownArrival myId={myId} touch={touch} onClose={closeArrival} onPhone={() => { closeArrival(); setNotice(false); openPhone('mission'); }} />}
 
       {ready && !arrival && home && notice && offered && !phone && place === 'map' && <div className="town-notice" role="status">

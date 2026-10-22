@@ -1,0 +1,168 @@
+
+> boss-works-for-me@1.0.0 test:web
+> npm run typecheck && npm run test:contract && npm run test:transport && npm run test:proximity && npm run test:map && npm run test:collision && npm run test:render && npm run test:arcade && npm run test:audio && npm run test:music && npm run test:sync && npm run test:player-contract
+
+
+> boss-works-for-me@1.0.0 typecheck
+> tsc -b
+
+
+> boss-works-for-me@1.0.0 test:contract
+> node scripts/check-rules.ts
+
+前端规则与 Go 契约一致：36 组随机序列和计分样例通过。
+
+> boss-works-for-me@1.0.0 test:transport
+> node scripts/check-transport.ts
+
+✔ REST and SSE share the same deployment base without dropping a gateway prefix (1.109917ms)
+✔ deployment config rejects credentials and non-HTTP destinations (0.331667ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 2
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 7.21775
+
+> boss-works-for-me@1.0.0 test:proximity
+> node scripts/check-proximity.ts
+
+✔ delta retains unchanged people, removes departures and reconnect reset clears ghosts (10.813208ms)
+✔ walking promotes nearby people while mobile/desktop retain bounded real crowds (0.833875ms)
+✔ LOD hysteresis does not flicker across the 12m boundary (0.109667ms)
+✔ solo always keeps authored NPCs and own three-person team regardless of catalog size (0.863583ms)
+✔ foreign teams outside the viewport do not instantiate their NPC followers (0.092833ms)
+✔ late HTTP bootstrap cannot overwrite a stream; explicit focus never discards ordered deltas (0.068334ms)
+✔ a far pinned contact stays online without inflating the physical nearby count (0.09325ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 19.19125
+
+> boss-works-for-me@1.0.0 test:map
+> node scripts/check-map-routes.ts
+
+地图路径检查通过：88 条出生点到地标/招募点路线（每 0.05 米检查碰撞）
+扩图检查通过：196 条地标互通、核心步行 <9秒、2位NPC十分钟连续巡游及前后端边界契约
+
+> boss-works-for-me@1.0.0 test:collision
+> node scripts/check-collision.ts
+
+✔ spatial broad phase exactly matches full scan across the entire map and supported radii (75.814ms)
+✔ broad phase preserves contact edges, bucket seams and nonfinite input behavior (6.902375ms)
+✔ repeated character shapes share immutable buffers without changing topology or UVs (2.68025ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 90.903417
+
+> boss-works-for-me@1.0.0 test:render
+> node scripts/check-render-budget.ts
+
+✔ position broadcasts do not invalidate character social subscribers (2.232709ms)
+✔ chat, emotes, renewed expiry and disconnect still invalidate subscribers (0.107792ms)
+✔ GPU light count stays bounded with a large campus (0.998875ms)
+✔ ranking changes preserve GPU slots while moving through the campus (0.101125ms)
+✔ unmounted or invisible sources release slots; empty scenes leave no stale light (0.095042ms)
+✔ one slow window cannot degrade quality; sustained slow frames lower it one step (0.099167ms)
+✔ recovery requires six healthy windows, with no rapid oscillation (0.104ms)
+✔ sustained missed 60fps budget and tail stalls lower quality, isolated stalls do not (0.075292ms)
+✔ static prop batching preserves triangle count and rotated, nonuniformly scaled bounds (1.575ms)
+✔ spatial batching preserves transformed geometry, shadows and shared material ownership (1.962875ms)
+✔ batch buckets retain spatial culling and separate shadow/layer/render-order state (1.219709ms)
+✔ transparent, hidden and reflected meshes retain their individual rendering semantics (0.46575ms)
+✔ network budget keeps prompt movement, limits idle traffic and silences hidden pages after stop (0.1915ms)
+✔ world islands freeze world matrices, while character islands still follow animated parents (2.753125ms)
+ℹ tests 14
+ℹ suites 0
+ℹ pass 14
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 18.78375
+
+> boss-works-for-me@1.0.0 test:arcade
+> node scripts/check-arcade.ts
+
+✔ compositor motion keeps the exact live hit window, independent of React timer cadence (0.987167ms)
+✔ card transforms respond to resize and completed/expired cards release highlight and compositor hints (0.30925ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 2
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 6.762959
+
+> boss-works-for-me@1.0.0 test:audio
+> node scripts/check-audio.ts
+
+✔ no context or voices before explicit user activation; repeated gestures reuse one context (1.4445ms)
+✔ mute and zero-volume preferences persist without initializing audio (1.02025ms)
+✔ malformed preferences, nonfinite numbers and out-of-range volume are safe (0.109ms)
+✔ unsupported devices and rejected resume never break gameplay; later gestures can retry (0.30575ms)
+✔ hidden pages stop, suspend and discard events instead of replaying a backlog (0.235458ms)
+✔ API and SSE delivery of the same transaction produce exactly one confirmation cue (0.173ms)
+✔ OS audio interruptions discard scheduled notes before the next gesture resumes (0.167625ms)
+✔ rapid clicks, misses and footsteps are throttled and active voices stay bounded (0.251ms)
+✔ each note has a finite end and releases both oscillator and envelope nodes (0.236209ms)
+✔ muting mid-effect stops queued notes immediately; re-enabling does not replay them (0.254167ms)
+✔ all cues stay short, pitched safely and use click-free attack/release envelopes (0.23275ms)
+ℹ tests 11
+ℹ suites 0
+ℹ pass 11
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 12.328333
+
+> boss-works-for-me@1.0.0 test:music
+> node scripts/check-music.ts
+
+✔ music remains locked until audible; repeated gestures/scene updates own one scheduler (1.418292ms)
+✔ scene crossfades retire old buses, with a shared voice cap and no surviving timer on stop (0.870708ms)
+✔ long stalls discard missed music instead of scheduling minutes of backlog (0.15025ms)
+✔ backgrounding, zero music volume and audio interruption stop the scheduler and all voices (0.149708ms)
+✔ a removed audio device cannot throw from scene changes or break game state (0.160167ms)
+✔ all five original arrangements are complete, finite and fit polyphony across their loop seam (2.511916ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 13.165791
+
+> boss-works-for-me@1.0.0 test:sync
+> node scripts/check-sync-queue.ts
+
+✔ 100 economic events require one refresh, then deliver every event in order (1.831709ms)
+✔ an event arriving during a refresh gets its own refresh; old batches cannot leak after logout (0.184875ms)
+✔ disposing a queued refresh cancels work, and a rejected refresh emits no stale events (0.228625ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 6.883042
+
+> boss-works-for-me@1.0.0 test:player-contract
+> node scripts/export-player-contract.ts
+
+CLI map, collision, movement and belt windows match the web player.

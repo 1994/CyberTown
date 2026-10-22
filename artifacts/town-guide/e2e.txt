@@ -1,0 +1,12 @@
+
+Running 5 tests using 1 worker
+
+(node:56142) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 tests/e2e/town-arrival.spec.ts:107:1 › 演示账号双端到达：真实名牌/SSE移动/离开与首次引导 (8.9s)
+  ✓  2 tests/e2e/town-arrival.spec.ts:205:1 › welcome 未确认入镇时不会建立 world SSE (1.9s)
+  ✓  3 tests/e2e/town-arrival.spec.ts:222:1 › 断网恢复：offline 提示真实、恢复后仍在小镇且不扣费 (3.3s)
+  ✓  4 tests/e2e/town-guide.spec.ts:55:1 › 桌面首次入镇：真实手机任务、帮助重开与刷新持久化 (3.9s)
+  ✓  5 tests/e2e/town-guide.spec.ts:108:1 › 触屏竖屏/横屏：旧 v1 与已接任务仍首次显示 v2，且无 WASD/P (4.5s)
+
+  5 passed (23.3s)

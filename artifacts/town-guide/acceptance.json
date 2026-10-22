@@ -1,0 +1,13 @@
+{
+  "status": "accepted",
+  "e2ePassed": 5,
+  "webChecksPassed": true,
+  "desktopMobileLandscape": true,
+  "touchPhoneOpened": true,
+  "offlineHelpAvailable": true,
+  "oldV1SeenAndAcceptedMissionStillGuided": true,
+  "guideReplayEntry": "右上角 ?",
+  "desktopPhone": "右上角手机或P",
+  "autoAcceptMission": false,
+  "walletChanged": false
+}

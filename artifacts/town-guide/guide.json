@@ -1,0 +1,16 @@
+{
+  "demo": true,
+  "desktop": {
+    "wasd": true,
+    "guideHelp": true,
+    "noMissionAutoAccept": true,
+    "persisted": true
+  },
+  "touch": {
+    "portrait": true,
+    "landscape": true,
+    "oldV1KeySeeded": true,
+    "acceptedMissionStillGuided": true,
+    "pcHintsHidden": true
+  }
+}

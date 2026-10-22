@@ -1,0 +1,14 @@
+{
+  "preview": "http://127.0.0.1:8897",
+  "validatedAssets": [
+    {
+      "path": "/assets/index-DJ_ezquZ.js",
+      "sha256": "26e82e89cc99f85cb83ca8c7253170c05618509899a5af18d430b02b488c0f19"
+    },
+    {
+      "path": "/assets/index-D9_tI00t.css",
+      "sha256": "b88ed600aa0045a848cd80130e5c77e088789ee2ac2efb9d6f2f93568f4c0473"
+    }
+  ],
+  "backendRestarted": false
+}

@@ -1,0 +1,1 @@
+Touch guide opens actual phone; read-only help remains usable offline

@@ -237,7 +237,7 @@ test('断网恢复：offline 提示真实、恢复后仍在小镇且不扣费', 
     await expect(presence).toContainText('重连中');
     await expect(presence).toHaveAttribute('data-nearby', '0');
     await expect(page.getByTestId('town-nearby-list')).toHaveCount(0);
-    await expect(page.getByTestId('town-arrival')).toHaveCount(0);
+    await expect(page.getByTestId('town-arrival')).toBeVisible();
     await page.screenshot({ path: `${dir}/04-offline.png` });
 
     await ctx.setOffline(false);
@@ -253,7 +253,7 @@ test('断网恢复：offline 提示真实、恢复后仍在小镇且不扣费', 
     writeFileSync(`${dir}/offline.json`, JSON.stringify({
       demo: true,
       account: 'li',
-      offline: { state: 'offline', text: '重连中', nearby: 0, arrival: false },
+      offline: { state: 'offline', text: '重连中', nearby: 0, arrival: true },
       online: { state: 'live', world: true, relogin: false, coins: after.coins, mission: after.mission.status },
       coinsBefore: before.coins,
       coinsAfter: after.coins,
