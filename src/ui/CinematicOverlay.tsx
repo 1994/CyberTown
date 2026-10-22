@@ -1,3 +1,4 @@
+import { GameLogo } from './GameLogo';
 import { useEffect, useRef, useState } from 'react';
 import { useCinema } from '../scene/cinema.ts';
 import { useGame } from '../store.ts';
@@ -38,7 +39,7 @@ export function CinematicOverlay() {
     {playing ? <>
       <div className="cinema-title" style={{ animationPlayState: startedAt ? 'running' : 'paused' }}>
         <small>CYBER TOWN</small>
-        <h1>赛博<span>小镇</span></h1>
+        <h1><GameLogo /></h1>
 
       </div>
       <div className="cinema-chapter"><i>0{chapter + 1} / 04</i><span>{CHAPTERS[chapter]}</span></div>

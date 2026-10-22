@@ -1,3 +1,4 @@
+import { GameLogo } from './GameLogo';
 import type { ReactNode } from 'react';
 import './login.css';
 
@@ -11,7 +12,7 @@ export function LoginStage({ children, confirmed = false, demo = false }: { chil
     <div className="entry-frame">
       <header className="entry-brand">
         <span className="entry-kicker">CYBER TOWN{demo && <em>DEMO</em>}</span>
-        <h1>赛博<span>小镇</span></h1>
+        <h1><GameLogo /></h1>
         <svg className="entry-shard" viewBox="0 0 320 14" preserveAspectRatio="none" aria-hidden="true">
           <polyline points="0,12 64,12 78,3 196,3 208,9 320,9" />
         </svg>

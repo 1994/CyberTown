@@ -10,6 +10,7 @@ import './hud-polish.css';
 import './sound.css';
 import './ui-polish.css';
 import './night-city.css';
+import './ui/game-brand.css';
 
 async function start() {
   await loadRuntimeConfig();

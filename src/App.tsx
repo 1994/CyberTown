@@ -1,3 +1,4 @@
+import { GameLogo } from './ui/GameLogo';
 import { useEffect } from 'react';
 import { useGameAudio } from './useGameAudio.ts';
 import { SoundDiagnostics, SoundToggle } from './ui/SoundControl.tsx';
@@ -50,11 +51,11 @@ export function App() {
       <ErrorBoundary fallback={<div className="scene-fallback">3D 场景加载失败（浏览器可能不支持 WebGL）</div>}>
         {myId && townReady ? <TownGame key={`${myId}:${townOwner}`} /> : <OfficeCanvas myId={null} />}
       </ErrorBoundary>
-      {myId && !townReady && <div className="boot-screen" role="status"><div className="logo">赛博<span>小镇</span></div>{townError ? <div className="boot-error"><p>{townError}</p><button className="btn primary" onClick={() => void useTownState.getState().enterTown(myId).catch(() => undefined)}>重试进入</button></div> : <div className="loader"><i /><span>正在回到你的小镇…</span></div>}</div>}
+      {myId && !townReady && <div className="boot-screen" role="status"><div className="logo"><GameLogo /></div>{townError ? <div className="boot-error"><p>{townError}</p><button className="btn primary" onClick={() => void useTownState.getState().enterTown(myId).catch(() => undefined)}>重试进入</button></div> : <div className="loader"><i /><span>正在回到你的小镇…</span></div>}</div>}
       {phase === 'boot' && (
         <div className="boot-screen" role="status" aria-live="polite">
           <div className="logo">
-            赛博<span>小镇</span>
+            <GameLogo />
           </div>
           {bootError ? (
             <div className="boot-error">

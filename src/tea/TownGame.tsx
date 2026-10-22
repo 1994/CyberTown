@@ -1,3 +1,4 @@
+import { GameLogo } from '../ui/GameLogo';
 import { useEffect, useRef, useState } from 'react';
 import { CinematicOverlay } from '../ui/CinematicOverlay.tsx';
 import { Smartphone } from 'lucide-react';
@@ -228,7 +229,7 @@ export function TownGame() {
     <OfficeCanvas myId={myId} covered={!!phone || place === 'recruit'} />
     <div inert={introPlaying} aria-hidden={introPlaying} style={introPlaying ? { visibility: 'hidden' } : undefined} className={`hud town-hud ${touch ? 'touch-ui' : ''}`}>
       <header className="town-top">
-        <div className="tea-brand">赛博<b>小镇</b></div>
+        <div className="tea-brand"><GameLogo compact /></div>
         <button className="town-coins" onClick={() => openPhone('wallet')} aria-label="钱包">
           <i className="coin sm" /><b>{home ? home.wallet.balance : '…'}</b>
         </button>
