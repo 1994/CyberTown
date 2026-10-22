@@ -74,7 +74,7 @@ function Sun() {
   return (
     <directionalLight
       ref={light}
-      intensity={2.5}
+      intensity={1.95}
       color="#d3e7e5"
       castShadow={!LOW_FX}
       shadow-mapSize={[settings.shadow, settings.shadow]}
@@ -94,12 +94,11 @@ function Lights() {
   return (
     <>
       <TownAmbientLight />
-      <ambientLight intensity={0.7} color="#d9e5ff" />
       <Sun />
       <directionalLight
         position={[-24, 12, -18]}
-        intensity={1.5}
-        color="#ff79bc"
+        intensity={0.8}
+        color="#ff9866"
       />
       {[-3.3, 0, 3.3].map((x) => (
         <LocalPointLight
@@ -197,8 +196,8 @@ export function OfficeCanvas({ myId, covered: townCovered = false }: { myId: str
       gl={{ antialias: false, powerPreference: 'high-performance' }}
       onCreated={({ gl, scene }) => {
         gl.toneMapping = THREE.ACESFilmicToneMapping;
-        gl.toneMappingExposure = 1.16;
-        scene.fog = new THREE.Fog('#303858', 85, 260);
+        gl.toneMappingExposure = 1.06;
+        scene.fog = new THREE.Fog('#151d34', 60, 220);
       }}
     >
       <Suspense fallback={null}>
@@ -244,12 +243,12 @@ export function OfficeCanvas({ myId, covered: townCovered = false }: { myId: str
           <EffectComposer multisampling={settings.multisampling}>
             <Bloom
               mipmapBlur
-              luminanceThreshold={1.4}
+              luminanceThreshold={1.25}
               luminanceSmoothing={0.3}
-              intensity={0.34}
-              radius={0.5}
+              intensity={0.48}
+              radius={0.65}
             />
-            <Vignette offset={0.3} darkness={0.08} />
+            <Vignette offset={0.32} darkness={0.24} />
           </EffectComposer>
         )}
       </Suspense>

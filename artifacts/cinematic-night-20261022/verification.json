@@ -1,0 +1,21 @@
+{
+  "changes": [
+    "Restore pre-a2073b8 district wall and roof palette",
+    "Remove painted additive ground spill overlays",
+    "Reduce local spill intensity 85 to 24 and range 18 to 10",
+    "Restore directional contrast and controlled hemisphere fill",
+    "Retune thresholded bloom, vignette and distance fog"
+  ],
+  "checks": [
+    "typecheck",
+    "production build",
+    "14 render budget tests",
+    "Desktop entry, plaza, entertainment and commerce visual inspection"
+  ],
+  "preserved": [
+    "entrance icons",
+    "arcade lobby",
+    "district music",
+    "DB and gameplay"
+  ]
+}
