@@ -245,3 +245,61 @@ func TestCounterPatienceDoesNotResetAtPickup(t *testing.T) {
 		t.Fatal("legacy replay timing changed")
 	}
 }
+
+func TestCounterOneMinuteAtEveryShopLevel(t *testing.T) {
+	for level := 1; level <= 3; level++ {
+		ch := counterChallenge("2026-10-22", level, level)
+		if ch.Duration != 60 || ch.Flow != "counter.3" {
+			t.Fatalf("level %d: %+v", level, ch)
+		}
+		p, ws := counterPlan(true)
+		p.Stock = 100
+		r, _ := simulateCounter(ch, p, ws, 60, nil)
+		if !r.Passed {
+			t.Fatalf("level %d: only %d / %d served", level, r.Completed, ch.Target)
+		}
+	}
+}
+
+func TestCounterApprenticesWorkImmediately(t *testing.T) {
+	e := setup(t)
+	g := e.g
+	if _, err := g.TownEnter("wang", "wang"); err != nil {
+		t.Fatal(err)
+	}
+	for _, id := range []string{"system-a", "system-b"} {
+		h, err := g.TownHire("wang", id, 120)
+		if err != nil {
+			t.Fatal(err)
+		}
+		for _, c := range h.Clones {
+			if c.Level != 1 || !c.CanStaff {
+				t.Fatal("apprentice cannot staff", c)
+			}
+		}
+	}
+	if _, err := g.TeaAcceptMission("wang"); err != nil {
+		t.Fatal(err)
+	}
+	h, err := g.TeaHome("wang")
+	if err != nil {
+		t.Fatal(err)
+	}
+	a, b := townWorker(h, "system-a"), townWorker(h, "system-b")
+	if a == nil || b == nil {
+		t.Fatal("new apprentices missing")
+	}
+	p, _ := counterPlan(false)
+	p.Assignments = append(p.Assignments, TeaAssignment{WorkerID: a.ID, Role: "maker"}, TeaAssignment{WorkerID: b.ID, Role: "cashier"})
+	s, err := g.TeaOpen("wang", TeaOpenSession{Lesson: "rescue", Mode: "official", Key: "apprentice", Plan: p})
+	if err != nil {
+		t.Fatal(err)
+	}
+	s, err = g.TeaStepSession("wang", s.ID, TeaStep{Revision: s.Revision, Advance: 60, RequestID: "finish"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if s.Status == "active" || !s.Run.Result.Passed {
+		t.Fatalf("apprentice shift failed: %+v", s)
+	}
+}

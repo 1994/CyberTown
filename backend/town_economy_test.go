@@ -126,8 +126,8 @@ func TestTownEconomyRollbackAndStaffing(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if townWorker(lv1, "system-a") != nil {
-		t.Fatal("Lv1 clone entered store staffing")
+	if townWorker(lv1, "system-a") == nil {
+		t.Fatal("Lv1 apprentice missing from store staffing")
 	}
 	if _, err = g.TownStartJob("wang", "system-a", "clean"); err != nil {
 		t.Fatal(err)

@@ -43,7 +43,7 @@ export function TeaCounterGame({controller:c,onExit,onPhone,onHall}:{controller:
  const fullyAuto=staff.some(w=>roles[w.id]==='maker')&&staff.some(w=>roles[w.id]==='cashier');
  const selfTask=frame?.selfTask;
  const taskActive=!!selfTask&&selfTask.role!=='idle';
- const phase=!playing?'准备开店':(frame?.t??0)>=ch.duration-30?'收尾中':'营业中';
+ const phase=!playing?'准备开店':(frame?.t??0)>=ch.duration-Math.min(10,ch.duration/4)?'收尾中':'营业中';
  const guide=!home.counter?.guideSeen||help;
  const made=(currentRun?.result.selfMade??0)+(frame?.customersState.filter(x=>['ready','delivering','served'].includes(x.state)).length??0),served=frame?.served??0;
  const recommended = !c.paused && !selfTask?.queuedRole ? ready>0 && selfTask?.role!=='cashier' ? 'cashier' : !taskActive && orders>0 ? 'maker' : null : null;
@@ -89,7 +89,7 @@ export function TeaCounterGame({controller:c,onExit,onPhone,onHall}:{controller:
     {c.pool.length?<div className="counter-crew-list">{c.pool.map(w=>{const on=c.team.some(x=>x.id===w.id);return <div className={on?'selected':''} key={w.id}>
      <button data-testid={`tea-staff-${w.id}`} aria-pressed={on} onClick={()=>c.pick(w.id)}><Face w={w} size={32}/><span><b>{w.name}</b><small>{w.salary} 金币 / 班</small></span>{on&&<Check size={16}/>}</button>
      {on&&<select aria-label={`${w.name}的岗位`} value={c.roles[w.id]??'maker'} onChange={e=>c.setRole(w.id,e.target.value as TeaRole)}><option value="maker">制作</option><option value="cashier">端送</option><option value="support">忙时补位</option></select>}
-    </div>})}</div>:<p className="counter-empty">可亲自经营 · 员工 Lv2 可上岗</p>}
+    </div>})}</div>:<p className="counter-empty">你可亲自经营，也可雇学徒立即上岗</p>}
    </section>
    <div className="counter-stock"><h3><Package size={16}/>备原料</h3><div>{(home.business?.stockOptions??[20,40,60]).map(n=><button key={n} aria-pressed={c.stock===n} onClick={()=>c.setStock(n as typeof c.stock)}>{n} 份{n===home.business?.recommendedStock&&<small>推荐</small>}</button>)}</div></div>
    <div className="counter-budget"><span>预付成本 <strong>{c.totalCost}</strong></span><small>原料 {c.stock*ch.materialCost} + 工资 {staff.reduce((n,w)=>n+w.salary,0)} + 运营 {ch.operatingCost}</small></div>

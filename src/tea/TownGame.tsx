@@ -189,6 +189,7 @@ export function TownGame() {
   });
 
   // 导航：只设置真实寻路，不瞬移、不自动开店
+  const [pendingShop, setPendingShop] = useState(false);
   const go = (s: DestinationId) => {
     closePhone();
     setNotice(false);
@@ -203,6 +204,9 @@ export function TownGame() {
     setFar(Math.round(distDest(s)));
     setTravel(s);
   };
+  useEffect(() => {
+    if (pendingShop && place === 'map') { setPendingShop(false); go('shop'); }
+  }, [pendingShop, place]);
   useEffect(() => { if (!arrived) return; const t = setTimeout(() => setArrived(null), 3000); return () => clearTimeout(t); }, [arrived]);
 
   // 雇佣大厅：地图招募点 / 手机“员工” / 筹备缺员工入口都进同一个大厅；关闭回地图，不自动营业
@@ -334,11 +338,12 @@ export function TownGame() {
     {phoneUi}
     {place === 'shopping' && <ShoppingStreet initialCategory={nearShopping??'shirt'} onClose={()=>setPlace('map')} onChanged={()=>{syncTea();void useTownState.getState().refresh().catch(()=>undefined);}}/>}
     {place === 'arcade' && <ArcadeHall playerId={myId} coins={home?.wallet.balance ?? 0} onClose={() => setPlace('map')} onPaid={syncTea} />}
-    {place === 'recruit' && <HiringHall initialTab={hallTab} onClose={() => setPlace('map')} onChanged={syncTea}
-      onShop={id => {
-        // 召回的店员：选入本班（只在 controller 可排名单里时）并带路去奶茶店，不自动营业
-        if (c.pool.some(w => w.id === id) && !c.team.some(t => t.id === id)) c.pick(id);
-        setPlace('map'); go('shop');
+    {place === 'recruit' && <HiringHall canAssign={c.session?.status!=='active'} assignedIds={c.team.filter(w=>w.id!=='self').map(w=>w.id)} initialTab={hallTab} onClose={() => setPlace('map')} onChanged={syncTea}
+      onShop={async id => {
+        await c.assignStaff(id);
+        setPlace('map');
+        // Start walking after the hall releases its movement lock.
+        setPendingShop(true);
       }} />}
   </div>;
 }

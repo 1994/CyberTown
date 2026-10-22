@@ -161,3 +161,17 @@
 .hall-clone { border-radius:12px;padding:16px; }
 .hall-detail,.hall-candidates { border-radius:12px; }
 @media(max-width:900px){.hall-staff>ul {grid-template-columns:1fr;}}
+
+/* 招聘像选队员：直接选卡确认，杂活和转让收进次要操作。 */
+.hall{width:min(1000px,100%);background:linear-gradient(135deg,#17273b,#0c1322 65%);clip-path:polygon(0 0,calc(100% - 18px) 0,100% 18px,100% 100%,18px 100%,0 calc(100% - 18px))}
+.hall-title b{font-family:CyberTownDisplay,sans-serif;letter-spacing:2px;font-size:25px}.hall-title small{letter-spacing:3px}
+.hall-body.tab-candidates{grid-template-columns:1fr}.hall-body.tab-candidates>.hall-candidates{border:0;background:transparent;padding:8px}
+.hall-mission-strip{display:flex;align-items:center;gap:18px;margin:0 0 18px;padding:18px 20px;background:linear-gradient(90deg,#39777c33,transparent);border-left:3px solid #62e8d9}
+.hall-mission-strip>span{font-size:20px;color:#bdf7ee;font-weight:800;white-space:nowrap}.hall-mission-strip b{color:#f6cf66;margin:0 8px}.hall-mission-strip strong{font-size:14px}.hall-mission-strip small{margin-left:auto;color:#9cb1c0;font-size:12px}
+.hall-tools{margin-bottom:14px;gap:8px}.hall-tools button{border-radius:0;min-height:40px;padding:6px 20px}.hall-tools select{min-height:40px;padding:5px 10px}
+.hall-recruit-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.hall-recruit-grid .hall-cand{grid-template-columns:auto 1fr;min-height:156px;gap:12px;padding:18px;background:linear-gradient(130deg,#29405588,#162438);border:1px solid #466475;clip-path:polygon(0 0,100% 0,100% calc(100% - 12px),calc(100% - 12px) 100%,0 100%)}
+.hall-recruit-grid .hall-cand:hover{transform:translateY(-2px);border-color:#64e5d9;background:#29526080}.hall-recruit-grid .hall-cand-main{gap:5px}.hall-recruit-grid .hall-cand-main b{font-size:17px}.hall-recruit-grid .hall-role-tag{color:#91e7e0;font-size:13px}.hall-recruit-grid .hall-cand-price{grid-column:1/-1;display:flex;justify-content:space-between;align-items:center;border-top:1px solid #718d9c33;padding-top:10px}.hall-recruit-grid .hall-cand-price>small{color:#ffdb74;font-size:13px}.hall-recruit-grid .hall-cand-price b{font-size:22px}.hall-recruit-grid .hall-cand:disabled{opacity:.55}
+.hall-clone{border-radius:0;border-left:3px solid #5ae0d2;background:linear-gradient(130deg,#29405566,#162438)}.hall-clone .hall-assign{min-height:48px;justify-content:center}.hall-clone .hall-more{margin:0}.hall-clone .hall-jobs{grid-template-columns:1fr 1fr;margin-bottom:8px}.hall-clone .hall-xp{height:4px;margin:5px 0 8px}.hall-clone .hall-xp small{display:none}.hall-confirm-wrap{z-index:40}.hall-confirm .tea-sheet-actions{flex-wrap:wrap}
+@media(max-width:900px){.hall-recruit-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.hall-mission-strip{flex-wrap:wrap;gap:6px 12px;padding:12px}.hall-mission-strip small{width:100%;margin:0}.hall-body.tab-candidates>.hall-candidates{padding:0}.hall-tabs button{padding:6px 8px}.hall-title b{font-size:22px}}
+@media(max-width:540px){.hall-recruit-grid .hall-cand{display:flex;flex-direction:column;align-items:flex-start;padding:12px;min-height:205px}.hall-recruit-grid .hall-cand-main{width:100%}.hall-recruit-grid .hall-cand-price{width:100%;margin-top:auto}.hall-recruit-grid .hall-cand-main b{font-size:15px}.hall-tools button{padding:4px 10px}.hall-tools select{max-width:110px}.hall-mission-strip>span{font-size:17px}.hall-mission-strip strong{font-size:12px}}

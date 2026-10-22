@@ -26,14 +26,16 @@ func counterSelf(w TeaWorker, p TeaCounterProgress) TeaWorker {
 	w.Service = min(95, w.Service+min(5, p.ServiceXP/10)*5)
 	return w
 }
-func isCounterFlow(flow string) bool { return flow == "counter.1" || flow == "counter.2" }
+func isCounterFlow(flow string) bool {
+	return flow == "counter.1" || flow == "counter.2" || flow == "counter.3"
+}
 
 func counterChallenge(day string, level, businessDay int) TeaChallenge {
 	c := teaBusinessChallenge(day, level)
-	c.Flow = "counter.2"
+	c.Flow = "counter.3"
 	c.BusinessDay = businessDay
 	c.ID = fmt.Sprintf("counter-%d-lv%d", businessDay, level)
-	c.Duration = []int{120, 160, 200}[min(3, max(1, level))-1]
+	c.Duration = 60
 	return c
 }
 func (g *Game) TeaDismissGuide(player string) (TeaHome, error) {
@@ -58,7 +60,7 @@ func (g *Game) TeaDismissGuide(player string) (TeaHome, error) {
 // after a completed delivery. A single actor cannot work two stations at once.
 func simulateCounter(ch TeaChallenge, plan TeaPlan, workers []TeaWorker, until int, commands []TeaCommand) (TeaResult, TeaLiveFrame) {
 	until = min(ch.Duration, max(0, until))
-	bounded := ch.Flow == "counter.2"
+	bounded := ch.Flow == "counter.2" || ch.Flow == "counter.3"
 	r := TeaResult{Arrivals: ch.Arrivals, MaterialCost: plan.Stock * ch.MaterialCost, OperatingCost: ch.OperatingCost, SkillCounts: map[string]int{}, Frames: []TeaFrame{}, Events: []TeaEvent{}}
 	for _, w := range workers {
 		r.Wages += w.Salary
@@ -312,7 +314,14 @@ func simulateCounter(ch TeaChallenge, plan TeaPlan, workers []TeaWorker, until i
 				s.customer = chosen
 				s.currentRole = role
 				s.start = t
-				s.end = t + math.Ceil(max(1.5, duration)*4)/4
+				// One-minute services retain the original goals and economy. Upgraded
+				// equipment scales throughput; frozen .1/.2 sessions keep old timing.
+				minimum := 1.5
+				if ch.Flow == "counter.3" {
+					duration /= float64(1 + min(3, max(1, ch.ShopLevel)))
+					minimum = .5
+				}
+				s.end = t + math.Ceil(max(minimum, duration)*4)/4
 				cs[chosen].state = "making"
 				event := "making_started"
 				if role == "cashier" {

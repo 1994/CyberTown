@@ -475,7 +475,7 @@
 .tea-hist em.ok { color: #7dffb0; }
 .tea-hist em.bad { color: var(--tea-red); }
 
-/* 筹备：带员工入店（来自雇佣大厅的 Lv2+ 已召回分身） */
+/* 筹备：带员工入店（来自雇佣大厅的 已召回分身（学徒也可）） */
 .tea-staffpick h3 small { margin-left: 6px; }
 .tea-staffrow { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 6px; }
 .tea-staff { display: flex; align-items: center; gap: 8px; padding: 6px 8px; text-align: left; border: 1px solid rgba(255, 255, 255, 0.12); background: rgba(255, 255, 255, 0.04); }

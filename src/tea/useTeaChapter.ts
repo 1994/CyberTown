@@ -107,6 +107,23 @@ export function useTeaChapter() {
     const role: TeaRole = lesson === 'duo' || !others.includes('maker') ? 'maker' : 'cashier';
     updateRoles(old => ({ ...old, [id]: role, self: 'support' })); setSelected(next);
   };
+  // Hiring/recalling changes the authoritative pool asynchronously. Resolve from
+  // the awaited response, never from a previous render's pool.
+  const assignStaff = async (id: string) => {
+    if (current.current?.status === 'active') throw new Error('本轮营业结束后再调整员工');
+    const h = await refresh();
+    const w = h.workers.find(w => w.id === id && w.enabled);
+    if (!w) throw new Error('这位员工暂不能上岗，请先召回或取消转让');
+    const available = new Set(h.workers.filter(w => w.enabled).map(w => w.id));
+    const retained = selected.filter(id => available.has(id));
+    if (retained.includes(id)) return;
+    if (retained.length >= 2) throw new Error('本班已有 2 人，请先在店里换下一位');
+    const taken = retained.map(x => roles[x]);
+    const role: TeaRole = taken.includes('maker') ? 'cashier' : taken.includes('cashier') ? 'maker' : w.production >= w.service ? 'maker' : 'cashier';
+    setSelected([...retained, id]);
+    updateRoles(old => ({ ...old, [id]: role, self: 'support' }));
+    setToast(`${w.name} 已安排${role === 'maker' ? '制作' : '端送'}，准备好再开店`);
+  };
   const setRole = (id: string, role: TeaRole) => { if (!active) updateRoles(old => ({ ...old, [id]: role })); };
   const setStock = (n: TeaPlan['stock']) => { if (!active) updateStock(n); };
   const setStrategy = (s: TeaStrategy) => { if (!active) updateStrategy(s); };
@@ -271,7 +288,7 @@ export function useTeaChapter() {
   useTeaAudio({ view: outside ? 'street' : view === 'ending' ? 'report' : view, run, frame, shopLevel: home?.shop.level ?? 0, teamKey: selected.join('|') });
 
   return { home, business: home?.business, error, toast, busy, view, lesson, goal, hiresNeeded, team, pool, roles, stock, strategy, totalCost, problems,
-    session, run, frame, events, supportAt, paused, speed, canAssign, dismissGuide, load, pick, setRole, setStock, setStrategy,
+    session, run, frame, events, supportAt, paused, speed, canAssign, dismissGuide, load, pick, assignStaff, setRole, setStock, setStrategy,
     goShop, goStreet, start, assign, togglePause, pause, setOutside, acceptMission, refresh, setSpeed, skip, next, upgrade, openRun, toggleHire, logout };
 }
 export type TeaChapterController = ReturnType<typeof useTeaChapter>;

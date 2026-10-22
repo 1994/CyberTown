@@ -149,7 +149,7 @@ func townEnsure(tx storage.Tx, player string, now int64) error {
 }
 
 // Legacy Tea APIs keep their frozen hire rules. Private-town players can staff
-// stores only with their own Lv2+ clones that are not currently on another job.
+// stores with their own clones, including apprentices that are not currently on another job.
 func teaWorkers(tx storage.Tx, player, day string) ([]TeaWorker, error) {
 	ws, err := teaWorkerCatalog(tx, player, day)
 	if err != nil || !townExists(tx, player) {
@@ -165,7 +165,7 @@ func teaWorkers(tx storage.Tx, player, day string) ([]TeaWorker, error) {
 		if err != nil {
 			return nil, err
 		}
-		if cloneLevel(xp) < 2 || active > 0 || townIsListed(tx, player, w.ID) {
+		if active > 0 || townIsListed(tx, player, w.ID) {
 			continue
 		}
 		w.Enabled = true
@@ -339,7 +339,7 @@ func townRead(tx storage.Tx, viewer, owner string, now int64) (TownHome, error) 
 			if tx.QueryRow("SELECT id FROM town_employee_market WHERE seller_id=? AND source_id=? AND status='active'", owner, w.ID).Scan(&id) == nil {
 				listingID = &id
 			}
-			h.Clones = append(h.Clones, TownClone{townGrownWorker(w, xp), lv, xp, next, lv >= 2 && listingID == nil, lv >= 3 && listingID == nil, price, active[w.ID], avatar, listingID})
+			h.Clones = append(h.Clones, TownClone{townGrownWorker(w, xp), lv, xp, next, listingID == nil, lv >= 3 && listingID == nil, price, active[w.ID], avatar, listingID})
 		}
 		if !h.Visitor {
 			h.Candidates = append(h.Candidates, TownCandidate{w, clonePrice(count), count, owned, avatar})

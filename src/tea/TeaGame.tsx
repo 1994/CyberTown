@@ -58,7 +58,7 @@ export function WorkerCard({ w, on, onClick, disabled }: { w: TeaWorker; on: boo
 }
 
 function LegacyTeaGame({ controller: c, onExit, onPhone, onHall }: { controller: TeaChapterController; onExit: () => void; onPhone: () => void; onHall: () => void }) {
-  // 自有分身的职级/经理能力：只作展示，可排员工以 controller pool（服务端：Lv2+、已召回）为准
+  // 自有分身的职级/经理能力：只作展示，可排员工以 controller pool（服务端：学徒也可、已召回）为准
   const clones = useTownState(s => s.home?.clones);
   const me = useGame(s => s.snapshot?.me);
   const { home, team, frame, run } = c;
@@ -184,7 +184,7 @@ function LegacyTeaGame({ controller: c, onExit, onPhone, onHall }: { controller:
               <span><b>{w.name}</b><small>{cl ? `Lv${cl.level} ${cl.canManage ? '经理' : '店员'}` : '店员'} · 每班 {w.salary}</small></span>
             </button>;
           })}</div>
-          : <div className="tea-staff-empty"><p>还没有可入店的店员（Lv2 且已召回）</p>
+          : <div className="tea-staff-empty"><p>还没有待命员工，雇学徒即可上岗</p>
             <button className="tea-btn" onClick={onHall} data-testid="tea-go-hall">去雇佣大厅养成店员</button></div>}
         {c.pool.length > 0 && <button className="tea-linkbtn" onClick={onHall}>雇佣大厅 ›</button>}
       </div>

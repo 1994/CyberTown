@@ -1,0 +1,11 @@
+{
+  "backend": "go test ./... passed",
+  "frontend": "npm run typecheck and production build passed",
+  "ui": {
+    "desktop": "hire two level-1 apprentices; automatic maker/server roles; official 60-second shift; report 20 served, 0 lost, 310 profit including 200 first award, wallet 2070; recall odd-job employee and assign succeeded",
+    "mobile": "390x640 same-origin iframe; recruit cards and confirmation fit; hire and assign then automatic navigation reached shop"
+  },
+  "livePreview": "http://127.0.0.1:8897/",
+  "liveSave": ".run/tea-final.db preserved; QA used .run/minute-qa.db",
+  "compatibility": "Existing active .1/.2 sessions retain frozen timing; new shifts use counter.3 / 60 seconds"
+}
