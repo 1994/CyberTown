@@ -100,3 +100,77 @@ func TestMockScenarioValidationAndProduction(t *testing.T) {
 		t.Fatal("production accepted mock")
 	}
 }
+
+func TestMockScenarioColleaguesRecruitmentAndPersistence(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "colleagues.db")
+	g, err := Open(path, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	fixture := `{"id":"colleagues-test","colleagues":[{"playerId":"mock-lin","name":"小林","avatarUrl":"https://example.com/lin.png","color":"#aabbcc"}],"players":[{"playerId":"wang","clones":[{"sourceId":"employee:mock-lin","xp":60}]}]}`
+	s, err := DecodeMockScenario(strings.NewReader(fixture))
+	if err != nil {
+		t.Fatal(err)
+	}
+	for range 2 {
+		if err = g.ApplyMockScenario(s); err != nil {
+			t.Fatal(err)
+		}
+	}
+	h, err := g.TownHome("wang", "wang")
+	if err != nil {
+		t.Fatal(err)
+	}
+	found := 0
+	for _, c := range h.Candidates {
+		if c.PlayerID == "mock-lin" {
+			found++
+			if c.Name != "小林" || c.AvatarURL != "https://example.com/lin.png" || !c.Owned || !c.Enabled {
+				t.Fatalf("bad colleague: %+v", c)
+			}
+		}
+	}
+	if found != 1 || len(h.Clones) != 1 {
+		t.Fatalf("recruitment missing: %d %+v", found, h.Clones)
+	}
+	var sessions int
+	if err = g.DB.QueryRow("SELECT COUNT(*) FROM sessions WHERE player_id='mock-lin'").Scan(&sessions); err != nil || sessions != 0 {
+		t.Fatal("fixture issued login credentials", err)
+	}
+	g.Close()
+	g, err = Open(path, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer g.Close()
+	if err = g.ApplyMockScenario(s); err != nil {
+		t.Fatal(err)
+	}
+	// A different fixture must not overwrite an existing colleague or add an earlier entry partially.
+	bad := MockScenario{ID: "conflict", Colleagues: []MockColleague{{PlayerID: "mock-new", Name: "新同事"}, {PlayerID: "mock-lin", Name: "被覆盖"}}}
+	if err = g.ApplyMockScenario(bad); err == nil {
+		t.Fatal("duplicate colleague overwritten")
+	}
+	var n int
+	if err = g.DB.QueryRow("SELECT COUNT(*) FROM players WHERE id='mock-new'").Scan(&n); err != nil || n != 0 {
+		t.Fatal("partial import survived", err)
+	}
+	var name string
+	if err = g.DB.QueryRow("SELECT name FROM players WHERE id='mock-lin'").Scan(&name); err != nil || name != "小林" {
+		t.Fatal("existing profile changed", err)
+	}
+}
+
+func TestMockScenarioColleagueValidation(t *testing.T) {
+	for _, raw := range []string{
+		`{"id":"x","colleagues":[{"playerId":"wang","name":"x"}]}`,
+		`{"id":"x","colleagues":[{"playerId":"mock-a","name":""}]}`,
+		`{"id":"x","colleagues":[{"playerId":"mock-a","name":"x","color":"red"}]}`,
+		`{"id":"x","colleagues":[{"playerId":"mock-a","name":"x","avatarUrl":"javascript:alert(1)"}]}`,
+		`{"id":"x","colleagues":[{"playerId":"mock-a","name":"x"},{"playerId":"mock-a","name":"y"}]}`,
+	} {
+		if _, err := DecodeMockScenario(strings.NewReader(raw)); err == nil {
+			t.Fatalf("accepted %s", raw)
+		}
+	}
+}

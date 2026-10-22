@@ -175,3 +175,20 @@
 .hall-clone{border-radius:0;border-left:3px solid #5ae0d2;background:linear-gradient(130deg,#29405566,#162438)}.hall-clone .hall-assign{min-height:48px;justify-content:center}.hall-clone .hall-more{margin:0}.hall-clone .hall-jobs{grid-template-columns:1fr 1fr;margin-bottom:8px}.hall-clone .hall-xp{height:4px;margin:5px 0 8px}.hall-clone .hall-xp small{display:none}.hall-confirm-wrap{z-index:40}.hall-confirm .tea-sheet-actions{flex-wrap:wrap}
 @media(max-width:900px){.hall-recruit-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.hall-mission-strip{flex-wrap:wrap;gap:6px 12px;padding:12px}.hall-mission-strip small{width:100%;margin:0}.hall-body.tab-candidates>.hall-candidates{padding:0}.hall-tabs button{padding:6px 8px}.hall-title b{font-size:22px}}
 @media(max-width:540px){.hall-recruit-grid .hall-cand{display:flex;flex-direction:column;align-items:flex-start;padding:12px;min-height:205px}.hall-recruit-grid .hall-cand-main{width:100%}.hall-recruit-grid .hall-cand-price{width:100%;margin-top:auto}.hall-recruit-grid .hall-cand-main b{font-size:15px}.hall-tools button{padding:4px 10px}.hall-tools select{max-width:110px}.hall-mission-strip>span{font-size:17px}.hall-mission-strip strong{font-size:12px}}
+
+/* Keep colleague avatars and fictional employees in distinct recruitment columns. */
+.hall-recruit-columns{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.hall-recruit-column{min-width:0;border-top:2px solid #63ecdf;padding-top:12px}
+.hall-recruit-column.source-npc{border-top-color:#ffcf72}
+.hall-recruit-column>h3{display:flex;align-items:center;justify-content:space-between;margin:0 0 12px;color:#63ecdf;font-size:18px}
+.hall-recruit-column.source-npc>h3{color:#ffcf72}
+.hall-recruit-column>h3>span{font:12px system-ui;color:#a5b7cb}
+.hall-recruit-column .hall-recruit-grid{grid-template-columns:1fr}
+@media(max-width:540px){
+ .hall-recruit-columns{gap:10px}
+ .hall-recruit-column>h3{font-size:15px;gap:4px}
+ .hall-recruit-column .hall-cand{padding:10px;min-height:210px}
+ .hall-recruit-column .hall-cand-main small{font-size:11px}
+ .hall-recruit-column .hall-cand-price{flex-wrap:wrap;gap:4px}
+ .hall-recruit-column .tea-empty{padding:14px 6px;font-size:12px}
+}

@@ -1,0 +1,8 @@
+{
+  "id": "colleagues-v1",
+  "colleagues": [
+    {"playerId": "mock-design", "name": "小林", "title": "设计同事", "color": "#f38aca"},
+    {"playerId": "mock-engineer", "name": "阿杰", "title": "研发同事", "color": "#59dce8"},
+    {"playerId": "mock-operations", "name": "小周", "title": "运营同事", "color": "#ffd166"}
+  ]
+}

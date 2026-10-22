@@ -51,7 +51,7 @@ func main() {
 	seedOnly := flag.Bool("seed", false, "initialize demo data if absent and exit")
 	authMode := flag.String("auth", env("AUTH_MODE", "demo"), "test identity: demo or mock; intranet uses a private server.Run entry")
 	mockFile := flag.String("mock-identities", env("MOCK_IDENTITIES_FILE", ""), "mock token-to-user JSON fixture file")
-	mockData := flag.String("mock-data", env("MOCK_DATA_FILE", ""), "test-only game scenario JSON (coins, shop, staff); applied once")
+	mockData := flag.String("mock-data", env("MOCK_DATA_FILE", ""), "test-only game scenario JSON (colleagues, coins, shop, staff); applied once")
 	flag.Parse()
 	provider, err := identityProvider(*authMode, *mockFile)
 	if err != nil {

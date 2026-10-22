@@ -66,7 +66,7 @@ JSON 格式：
 ```
 
 - `id` 是整个场景的幂等键。同 ID、同数据重复启动不重复发钱/创建员工；同 ID 改数据会报错。新增场景用新 ID；已有员工不会被覆盖，新场景再次插入同一员工会整体失败。
-- `playerId` 必须已存在。demo 自带 wang/li/mei/liu；使用身份 SPI 的测试账号要先登录完成 provisioning，再通过 `Game.ApplyMockScenario` 注入，或重启加载该文件。生产环境禁止 mock。
+- `players[].playerId` 必须已存在，或由同一文件的 `colleagues` 先创建。demo 自带 wang/li/mei/liu；使用身份 SPI 的测试账号要先登录完成 provisioning，再通过 `Game.ApplyMockScenario` 注入，或重启加载该文件。生产环境禁止 mock。
 - `coinsGrant` 是额外补助，0..10000000，写入玩家及系统双向账本；不算经营收入。`shopLevel` 省略或0保持现状，1..3设置等级。
 - `sourceId` 必须是该玩家可雇佣的有效候选；XP 0..1000000。60经验解锁店员，180解锁经理。单镇最多12人；mock 员工签约成本记0，累计签约需求随新增员工增加。
 - 全部玩家、金币、经验、需求计数和场景标记在同一个事务内导入；任何错误整批回滚。不会重置原有数据；已应用的场景在重启后仍被记住。
@@ -74,6 +74,34 @@ JSON 格式：
 - `Game.ApplyMockScenario` 可由测试代码调用；`DecodeMockScenario(io.Reader)` 可读取你生成的数据。数据之外的自定义测试条件可在测试工程用注入的 `Store.Writer().Begin()` 设置，务必把账本和关联表一起维护。
 
 `--reset` 仍是显式清空演示存档的命令，不作为导入流程的一部分。mock 文件不是每次登录补发。
+
+## 启动时导入同事候选（无需先登录）
+
+保留原 `--mock-data` / `MOCK_DATA_FILE` 入口，使用 `examples/storage/colleagues.json`：
+
+```sh
+APP_ENV=test go run ./cmd/boss-server \
+  --db .run/colleagues-demo.db --host 127.0.0.1 --port 8901 \
+  --mock-data examples/storage/colleagues.json --static dist
+```
+
+```json
+{
+  "id": "my-colleagues-v1",
+  "colleagues": [
+    {"playerId": "mock-lin", "name": "小林", "title": "设计同事", "color": "#f38aca", "avatarUrl": "https://your-intranet.example/avatar/lin.png"}
+  ]
+}
+```
+
+- 每条包含稳定的 `playerId` 和姓名；ID 格式为 `mock-` 加 1～64 位字母、数字、下划线或连字符。职位、头像和颜色可省略；颜色为六位十六进制，头像沿用身份 SPI 的 URL 校验。
+- 导入会在同一个事务创建测试玩家资料、同事外观和已开放的招募分身，启动后所有其他玩家即可在“同事分身”列看到。不需要这些同事先登录，也不自动雇佣他们。
+- 不创建登录令牌或身份绑定，不授予初始金币，不覆盖已有同事。此入口用于模拟通讯录候选；真实登录仍由 `identity.Provider` 提供。
+- `players` 可省略，也可与 `colleagues` 同时配置。若需要预先雇佣新同事，在 `players[].clones` 中使用 `sourceId: "employee:mock-lin"`。同事先导入，再处理金币和员工安排。
+- 同 `id`、同内容重复启动是无操作；修改内容需换场景 ID。新增同事用新 ID 的增量文件，仅写新增条目；若同事 `playerId` 已存在，整个文件报错并回滚，不会覆盖名字、头像、金币或员工归属。
+- 可通过 `server.Config{Storage: yourStore, MockDataFile: path}` 使用自己的存储实现；程序内仍可调用 `DecodeMockScenario` / `Game.ApplyMockScenario`。仍只在测试环境开启，生产的存储和身份 SPI 无需改动。
+
+招募大厅用候选的 `playerId` 区分同事和 NPC：有玩家来源的是同事分身，无玩家来源的是 NPC 员工。两列各自保留岗位筛选、排序和空态，手机端也保持两列。
 
 ## 适配器验收
 

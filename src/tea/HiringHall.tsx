@@ -230,8 +230,13 @@ export function HiringHall({ onClose, onChanged, onShop, canAssign = true, assig
             {(Object.keys(FILTER_LABEL) as Filter[]).map(f => <button key={f} className={filter===f?'on':''} onClick={()=>setFilter(f)} data-testid="hire-filter" data-filter={f}>{FILTER_LABEL[f]}</button>)}
             <select value={sort} onChange={e=>setSort(e.target.value as Sort)} aria-label="排序"><option value="price">价格优先</option><option value="potential">能力优先</option></select>
           </div>
-          <ul className="hall-list hall-recruit-grid">
-            {shown.map(c => <li key={c.id}>
+          <div className="hall-recruit-columns">
+          {(['colleague','npc'] as const).map(kind=>{
+           const candidates=shown.filter(c=>kind==='colleague'?!!c.playerId:!c.playerId);
+           return <section key={kind} className={`hall-recruit-column source-${kind}`} aria-label={kind==='colleague'?'同事分身':'NPC 员工'} data-testid={`hire-group-${kind}`}>
+           <h3>{kind==='colleague'?'同事分身':'NPC 员工'}<span>{candidates.length}</span></h3>
+           <ul className="hall-list hall-recruit-grid">
+            {candidates.map(c => <li key={c.id}>
               <button className={`hall-cand ${c.owned ? 'owned' : ''}`} disabled={busy || full || c.owned || !c.enabled || home.coins<c.price} onClick={() => {setErr('');setQuoted(c.price);setConfirmId(c.id);}}
                 data-testid={`hire-candidate-${c.id}`} data-owned={c.owned ? 'true' : undefined}>
                 <Face w={c} size={64} />
@@ -239,8 +244,9 @@ export function HiringHall({ onClose, onChanged, onShop, canAssign = true, assig
                 <span className="hall-cand-price">{c.owned ? <em>已雇佣</em> : <><b>{c.price} <small>金币</small></b><small>{home.coins<c.price?'金币不足':full?'员工已满':'雇佣 →'}</small></>}</span>
               </button>
             </li>)}
-            {!shown.length && <li className="tea-empty">没有符合的候选</li>}
-          </ul>
+            {!candidates.length && <li className="tea-empty">{kind==='colleague'&&!home.candidates.some(c=>!!c.playerId)?'暂无同事分身':'没有符合的候选'}</li>}
+          </ul></section>;
+          })}</div>
         </section>
         <section className="hall-staff" aria-label="我的员工">
           <h3>我的员工 <em>{home.clones.length}/{MAX_STAFF}</em></h3>

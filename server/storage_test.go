@@ -47,3 +47,28 @@ func TestMockFileFailureClosesInjectedStore(t *testing.T) {
 		t.Fatal("failed runtime leaked storage")
 	}
 }
+
+func TestStorageInjectionStartupColleagueFile(t *testing.T) {
+	st, err := sqlite.Open(":memory:")
+	if err != nil {
+		t.Fatal(err)
+	}
+	r, err := New(Config{Environment: "test", Storage: st, MockDataFile: "../examples/storage/colleagues.json"}, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer r.Close()
+	h, err := r.Game.TownEnter("wang", "wang")
+	if err != nil {
+		t.Fatal(err)
+	}
+	count := 0
+	for _, c := range h.Candidates {
+		if c.PlayerID == "mock-design" || c.PlayerID == "mock-engineer" || c.PlayerID == "mock-operations" {
+			count++
+		}
+	}
+	if count != 3 {
+		t.Fatalf("expected 3 startup colleagues, got %d", count)
+	}
+}
