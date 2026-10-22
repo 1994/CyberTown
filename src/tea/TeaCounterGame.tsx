@@ -9,6 +9,7 @@ import { Face } from './HiringHall.tsx';
 import { useGame } from '../store.ts';
 import { SoundMenu } from '../ui/SoundControl.tsx';
 import './counter.css';
+import { workSteps } from './counterFeedback.ts';
 import { useTouchUi } from '../ui/useTouchUi.ts';
 
 const time = (n:number) => `${Math.floor(n/60)}:${String(n%60).padStart(2,'0')}`;
@@ -44,7 +45,6 @@ export function TeaCounterGame({controller:c,onExit,onPhone,onHall}:{controller:
  const selfTask=frame?.selfTask;
  const taskActive=!!selfTask&&selfTask.role!=='idle';
  const phase=!playing?'准备开店':(frame?.t??0)>=ch.duration-Math.min(10,ch.duration/4)?'收尾中':'营业中';
- const guide=!home.counter?.guideSeen||help;
  const made=(currentRun?.result.selfMade??0)+(frame?.customersState.filter(x=>['ready','delivering','served'].includes(x.state)).length??0),served=frame?.served??0;
  const recommended = !c.paused && !selfTask?.queuedRole ? ready>0 && selfTask?.role!=='cashier' ? 'cashier' : !taskActive && orders>0 ? 'maker' : null : null;
  const hint=c.paused?'已暂停 · 点继续恢复营业':selfTask?.queuedRole?`已安排${roleName(selfTask.queuedRole)} · 当前这批完成后自动换岗`
@@ -71,6 +71,15 @@ export function TeaCounterGame({controller:c,onExit,onPhone,onHall}:{controller:
   </div>}
   <section className="counter-scene" aria-label="奶茶店：左边制作台，右边取餐台，前方客人座位" inert={modal}>
    <TeaCounterScene level={home.shop.level} team={team} roles={roles} frame={frame} liveFrame={frame} stockMax={currentRun?.plan.stock??c.stock} events={c.events} supportAt={c.supportAt} selfAvatar={me?.avatarUrl} selfId="self" live={playing&&!c.paused} canAssign={playing&&!c.paused&&!modal&&!selfTask?.queuedRole} onAssign={assign}/>
+   {playing&&frame&&<div className="counter-mobile-progress" aria-label="岗位进度">
+    {(['maker','cashier'] as const).map(role=>{
+     const workers=frame.workersState.filter(w=>w.role===role&&w.customerId!=null);
+     const worker=workers.find(w=>w.id==='self')??workers[0];
+     return <section key={role} className={`station-${role}`}><header><b>{roleName(role)}</b><span>{worker?`${Math.round(worker.progress*100)}%`:role==='maker'?`${orders} 单待做`:`${ready} 杯待送`}</span></header>
+      {workSteps(role,worker?.progress??0).map((step,i)=><div key={step.label} className={step.progress>=1?'done':step.progress>0?'active':''}><span>{step.progress>=1?'✓':i+1} {step.label}</span><progress aria-label={`${roleName(role)}：${step.label}`} max={1} value={step.progress}/></div>)}
+     </section>;
+    })}
+   </div>}
    <div className="counter-legend" aria-label="人物标识"><span className="legend-self">◆ 你</span><span className="legend-staff">▰ 员工</span><span className="legend-guest">● 顾客 NPC</span></div>
    {playing&&help&&<div className="counter-orders" aria-label="当前订单" data-testid="counter-orders">
     <div><b>订单</b><span>{orders} 待做 · {ready} 待送</span></div>
@@ -80,8 +89,11 @@ export function TeaCounterGame({controller:c,onExit,onPhone,onHall}:{controller:
    </div>}
   </section>
   {view==='prep'&&<aside className="counter-prep tea-prep" inert={modal}>
-   <div className="counter-section-title"><h2>开店准备</h2><p>{ch.arrivals} 位客人 · 约 {Math.ceil(ch.duration/60)} 分钟 · 送达 {ch.target} 杯达标</p></div>
+   <div className="counter-section-title"><h2>备料开店</h2><p>营业 {Math.ceil(ch.duration/60)} 分钟 · 目标 {ch.target} 杯</p></div>
+   {help&&<p className="counter-prep-help">选好备料后开店；营业时点制作、端送，员工自动工作。</p>}
    <div className="counter-recipe"><CupSoda size={26}/><div><b>招牌珍珠奶茶</b></div><strong>{ch.price}<small>金币 / 杯</small></strong></div>
+   <div className="counter-stock"><h3><Package size={16}/>备料</h3><div>{(home.business?.stockOptions??[20,40,60]).map(n=><button key={n} aria-pressed={c.stock===n} onClick={()=>c.setStock(n as typeof c.stock)}>{n} 份{n===home.business?.recommendedStock&&<small>推荐</small>}</button>)}</div></div>
+   <details className="counter-staff-settings"><summary>员工安排 <span>{staff.length ? `${staff.length} 人上岗` : '亲自经营'}</span></summary>
    <div className="counter-positions">
     {(['maker','cashier'] as const).map(r=><div key={r}><span>{r==='maker'?<CupSoda size={20}/>:<HandPlatter size={20}/>}<b>{roleName(r)}岗</b></span><strong>{cover(r).length?cover(r).map(w=>w.name).join('、'):'你亲自来'}</strong><small>{cover(r).length?'自动':`熟练 Lv.${1+Math.min(5,Math.floor((r==='maker'?(home.counter?.makerXp??0):(home.counter?.serviceXp??0))/10))}`}</small></div>)}
    </div>
@@ -89,9 +101,9 @@ export function TeaCounterGame({controller:c,onExit,onPhone,onHall}:{controller:
     {c.pool.length?<div className="counter-crew-list">{c.pool.map(w=>{const on=c.team.some(x=>x.id===w.id);return <div className={on?'selected':''} key={w.id}>
      <button data-testid={`tea-staff-${w.id}`} aria-pressed={on} onClick={()=>c.pick(w.id)}><Face w={w} size={32}/><span><b>{w.name}</b><small>{w.salary} 金币 / 班</small></span>{on&&<Check size={16}/>}</button>
      {on&&<select aria-label={`${w.name}的岗位`} value={c.roles[w.id]??'maker'} onChange={e=>c.setRole(w.id,e.target.value as TeaRole)}><option value="maker">制作</option><option value="cashier">端送</option><option value="support">忙时补位</option></select>}
-    </div>})}</div>:<p className="counter-empty">你可亲自经营，也可雇学徒立即上岗</p>}
+    </div>})}</div>:<p className="counter-empty">暂无员工 · 可直接亲自营业</p>}
    </section>
-   <div className="counter-stock"><h3><Package size={16}/>备原料</h3><div>{(home.business?.stockOptions??[20,40,60]).map(n=><button key={n} aria-pressed={c.stock===n} onClick={()=>c.setStock(n as typeof c.stock)}>{n} 份{n===home.business?.recommendedStock&&<small>推荐</small>}</button>)}</div></div>
+   </details>
    <div className="counter-budget"><span>预付成本 <strong>{c.totalCost}</strong></span><small>原料 {c.stock*ch.materialCost} + 工资 {staff.reduce((n,w)=>n+w.salary,0)} + 运营 {ch.operatingCost}</small></div>
    {c.problems.map(p=><p className="counter-warning" key={p}>{p}</p>)}
    {home.mission.status==='offered'&&<button className="tea-btn" data-testid="town-accept-mission" disabled={c.busy} onClick={()=>void c.acceptMission()}>接下手机里的救店任务</button>}
@@ -100,12 +112,12 @@ export function TeaCounterGame({controller:c,onExit,onPhone,onHall}:{controller:
    {home.business?.upgradeReady&&home.shop.level<3&&<button className="counter-upgrade" disabled={c.busy||home.wallet.balance<home.shop.nextUpgradeCost} onClick={()=>void c.upgrade()}>升级门店 · {home.shop.nextUpgradeCost} 金币</button>}
   </aside>}
   {playing&&<footer className="counter-dock" inert={modal}>
-   {guide&&<section className="counter-coach" data-testid="counter-guide" aria-label="第一杯引导">
+   {help&&<section className="counter-coach" data-testid="counter-guide" aria-label="第一杯引导">
     <header><b>{fullyAuto?'员工已接手':`第一杯 · ${tutorialStep}/3`}</b><button onClick={finishGuide}>{served>0?'完成引导':'跳过'}</button></header>
     <div className="counter-coach-steps"><span className={tutorialStep===1?'current':made>0?'done':''}>① 制作</span><ChevronRight size={12}/><span className={tutorialStep===2?'current':served>0?'done':''}>② 端送</span><ChevronRight size={12}/><span className={tutorialStep===3?'current':''}>③ 收钱</span></div>
     <small>{served>0?'首杯已收款！继续营业，结束后查看日报':fullyAuto?'制作、端送都由员工自动完成':touch?'轻点下方按钮 · 角色自动走位，每批最多 3 杯':'点击按钮或按 1 / 2 · 角色自动走位，每批最多 3 杯'}</small>
    </section>}
-   <div className="counter-hint" role="status" data-testid="counter-next-action">{hint}</div>
+   <div className="counter-hint" role="status" data-testid="counter-next-action">{hint}{!home.counter?.guideSeen&&<button className="counter-guide-dismiss" onClick={finishGuide}>{served>0?'完成引导':'跳过引导'}</button>}</div>
    <div className="counter-action-row">
     {(['maker','cashier'] as const).map(r=><button key={r} data-testid={`counter-${r}`} className={`counter-action action-${r} ${recommended===r?'needs-you':''}`} disabled={!can(r)} onClick={()=>assign(r)}>
      {r==='maker'?<CupSoda size={26}/>:<HandPlatter size={26}/>}<span><b>{r==='maker'?'制作':'端送'}{recommended===r&&<em className="counter-tap">{touch?'点这里':'下一步'}</em>}</b><small>{r==='maker'?`${orders} 单`:`${ready} 杯`}{cover(r).length?' · 自动':''}</small></span>{!touch&&<kbd>{r==='maker'?'1':'2'}</kbd>}
@@ -113,9 +125,6 @@ export function TeaCounterGame({controller:c,onExit,onPhone,onHall}:{controller:
    </div>
    <div className="counter-jobline"><span data-testid="counter-occupancy">店内 {occupants-waiting}/8 · 等位 {waiting}/2</span><span aria-label={`剩余原料 ${Math.floor(frame?.stock??0)}份`} title="剩余原料"><Package size={13} aria-hidden="true"/>{Math.floor(frame?.stock??0)}</span></div>
   </footer>}
-  {guide&&!modal&&view==='prep'&&<section className="counter-guide" data-testid="counter-guide"><header><b>你来指挥，角色自动跑位</b><button onClick={finishGuide} aria-label="跳过店内引导">跳过</button></header>
-   <p>{touch?'轻点':'点击'}「制作」→「端送」→ 收钱</p><small>先备料开店 · 雇员会自动工作</small>
-  </section>}
   {c.toast&&<div className="counter-toast" role="status">{c.toast}</div>}
   {confirm&&view==='prep'&&<OpenConfirm mode={confirm} challenge={ch} team={team} roles={roles} stock={c.stock} strategy={c.strategy} cost={{material:c.stock*ch.materialCost,wages:staff.reduce((n,w)=>n+w.salary,0),operating:ch.operatingCost,total:c.totalCost}} balance={home.wallet.balance} busy={c.busy} blocked={c.problems[0]??(confirm==='official'&&home.wallet.balance<c.totalCost?'金币不足':'')} onCancel={()=>setConfirm(null)} onStart={()=>void c.start(confirm).then(()=>setConfirm(null))}/>}
   {report&&c.run&&<ReportDialog run={c.run} home={home} busy={c.busy} bonusFor={home.mission.runId===c.run.id} canUpgrade={!!home.business?.upgradeReady&&home.shop.level<3} nextGoal={home.business?.goal??''} onUpgrade={()=>void c.upgrade()} onPrep={c.next} onExit={onExit}/>}

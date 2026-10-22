@@ -9,6 +9,7 @@ import { LOW_FX } from '../scene/Office.tsx';
 import { glow, std } from '../scene/materials.ts';
 import { shopSignTexture } from './shopSignTexture.ts';
 import { Label3D } from './Label3D.tsx';
+import { customerMood, workSteps } from './counterFeedback.ts';
 import { STILL, lookOf, type ShopProps } from './TeaScene.tsx';
 import { TeaAtmosphere } from './TeaAtmosphere.tsx';
 import { shopFloorTexture } from './TeaDecor.tsx';
@@ -241,9 +242,9 @@ function PickStation({ ready }: { ready: number }) {
 
 // ───────── 人物 ─────────
 /** 平滑走向目标；移动时摆腿，坐下时屈腿；carry=手上拿杯 */
-function Actor({ look, target, sit = false, act = false, carry = false, fade = false, dots, patience = null, pop, spawn, frozen = false, staff = false, identity = 'guest' }: {
+function Actor({ look, target, sit = false, act = false, carry = false, fade = false, dots, patience = null, pop, mood, spawn, frozen = false, staff = false, identity = 'guest' }: {
   look: ReturnType<typeof lookOf>; target: Spot; sit?: boolean; act?: boolean; carry?: boolean;
-  fade?: boolean; dots?: { done: number; total: number } | null; patience?: number | null; pop?: string;
+  fade?: boolean; dots?: { done: number; total: number } | null; patience?: number | null; pop?: string; mood?: ReturnType<typeof customerMood>;
   /** 首次出现的位置（顾客从门口进来）；frozen=暂停时原地定格 */ spawn?: P3; frozen?: boolean; staff?: boolean; identity?: 'self' | 'staff' | 'guest';
 }) {
   const g = useRef<THREE.Group>(null);
@@ -298,8 +299,9 @@ function Actor({ look, target, sit = false, act = false, carry = false, fade = f
     <mesh rotation-x={-Math.PI/2} position-y={.025} material={glow(identity==='self'?'#ffd400':identity==='staff'?'#3ef0ff':'#8794a8',identity==='guest'?.35:1.3)}>
       <ringGeometry args={identity==='self'?[.43,.52,4]:identity==='staff'?[.37,.43,24]:[.3,.32,20]}/>
     </mesh>
-    {!fade&&<Label3D text={identity==='self'?'◆ 你':identity==='staff'?'员工':'NPC'} tone={identity==='self'?'self':identity==='staff'?'on':'off'} position={[0,1.98,0]} height={identity==='guest'?.26:.38} minPixels={identity==='guest'?12:17}/>}
+    {identity!=='guest'&&!fade&&<Label3D text={identity==='self'?'◆ 你':identity==='staff'?'员工':'NPC'} tone={identity==='self'?'self':identity==='staff'?'on':'off'} position={[0,1.98,0]} height={.38} minPixels={17}/>}
 
+    {mood&&<Label3D text={mood.icon} tone={mood.tone} position={[0,2.02,0]} height={.42} minPixels={23}/>}
     {carry && <group position={[0, 0.95, 0.42]}><mesh material={std('#2a313d', 0.4, 0.4)}><boxGeometry args={[0.46, 0.03, 0.32]} /></mesh><Cup position={[0, 0.02, 0]} scale={1.35} /></group>}
     {/* 耐心：头顶短条，绿→黄→红 */}
     {patience != null && <group position={[0, 2.26, 0]}>
@@ -342,7 +344,7 @@ function Customers({ frame, frozen }: { frame: TeaLiveFrame; frozen: boolean }) 
       const sitting = !!seat && !leaving;
       return <group key={c.id}>
         <Actor look={guestLook(c.id)} target={target} spawn={restoredAt > 0 && c.at <= restoredAt ? target.pos : DOOR} sit={sitting} fade={leaving} frozen={frozen}
-          patience={leaving || c.state === 'served' ? null : c.patience ?? null}
+          mood={customerMood(c)} patience={leaving || c.state === 'served' ? null : c.patience ?? null}
           pop={c.state === 'served' && !leaving ? '+金币' : c.state==='lost' ? '离开' : undefined} />
         {c.state === 'served' && seat && !leaving && <Cup position={[seat.pos[0] + (seat.rot > 0 ? 0.42 : -0.42), 0.77, seat.pos[2]]} />}
       </group>;
@@ -373,6 +375,44 @@ function Staff({ team, roles, frame, selfId, selfAvatar, frozen }: { team: TeaWo
         dots={st && st.role !== 'idle' ? { done: st.done, total: Math.min(3, st.done + st.remaining) } : null} />;
     })}
   </group>;
+}
+
+/** Readable station HUD, billboarded toward camera; never captures pointer events. */
+function StationProgress({ frame, role, position }: { frame: TeaLiveFrame; role: TeaWorkRole; position: P3 }) {
+  const workers = frame.workersState.filter(w => w.role === role && w.customerId != null);
+  const worker = workers.find(w => w.id === 'self') ?? workers[0];
+  const ready = role === 'maker' ? frame.cashierQueue : frame.served;
+  const resource = useMemo(() => {
+    const canvas = document.createElement('canvas'); canvas.width = 600; canvas.height = 150;
+    const texture = new THREE.CanvasTexture(canvas); texture.colorSpace = THREE.SRGBColorSpace;
+    return { canvas, texture };
+  }, []);
+  useEffect(() => () => resource.texture.dispose(), [resource]);
+  useEffect(() => {
+    const g = resource.canvas.getContext('2d')!;
+    g.clearRect(0,0,600,150);
+    g.fillStyle = '#091925ed'; g.fillRect(0,0,600,150);
+    const color = role === 'maker' ? '#ffda70' : '#63ecdf';
+    g.fillStyle = color; g.fillRect(0,0,600,4);
+    g.textAlign = 'left'; g.font = 'bold 28px "PingFang SC", sans-serif';
+    const title = worker ? `${worker.id === 'self' ? '你' : '员工'} · ${role === 'maker' ? '制作中' : '端送中'}` : role === 'maker' ? (frame.makerQueue ? `${frame.makerQueue} 单待制作` : '等待订单') : (frame.cashierQueue ? `${frame.cashierQueue} 杯待送` : '等待出杯');
+    g.fillText(title,20,39);
+    g.textAlign = 'right'; g.font = '24px "PingFang SC", sans-serif';
+    g.fillText(worker ? `#${worker.customerId} · ${Math.round(worker.progress*100)}%` : role === 'maker' ? `${ready} 杯待送` : `${ready} 杯已送达`,580,39);
+    const steps = workSteps(role, worker?.progress ?? 0);
+    steps.forEach((step,i) => {
+      const x = 20+i*194;
+      g.fillStyle = step.progress >= 1 ? '#79f2bd' : step.progress > 0 ? color : '#8b9aaa';
+      g.textAlign = 'left'; g.font = 'bold 26px "PingFang SC", sans-serif';
+      g.fillText(`${step.progress >= 1 ? '✓' : i+1} ${step.label}`,x,91);
+      g.fillStyle = '#2b3b4a'; g.fillRect(x,110,174,13);
+      g.fillStyle = color; g.fillRect(x,110,174*step.progress,13);
+    });
+    resource.texture.needsUpdate = true;
+  }, [resource, role, worker?.id, worker?.customerId, worker?.progress, ready, frame.makerQueue, frame.cashierQueue]);
+  return <sprite position={position} scale={[4.1,1.025,1]} renderOrder={12} raycast={() => {}}>
+    <spriteMaterial map={resource.texture} transparent depthTest={false} depthWrite={false} toneMapped={false}/>
+  </sprite>;
 }
 
 // ───────── 正交镜头取景 ─────────
@@ -426,6 +466,10 @@ export function TeaCounterScene(props: ShopProps) {
       onClick={onAssign ? () => onAssign('maker') : undefined} />
     <StationSign position={[PICK_COUNTER.x, 1.75, PICK_COUNTER.z + 0.1]} text="端送" color="#3ef0ff" hot={hot('cashier', cashQ)} can={can} count={frame ? cashQ : 0}
       onClick={onAssign ? () => onAssign('cashier') : undefined} />
+    {frame&&!(portrait&&window.innerWidth<=650)&&<>
+      <StationProgress frame={frame} role="maker" position={[-3.7,3.45,-.55]}/>
+      <StationProgress frame={frame} role="cashier" position={[3.8,3.45,-.45]}/>
+    </>}
     <Staff team={team} roles={roles} frame={frame} selfId={selfId} selfAvatar={selfAvatar} frozen={frozen} />
     {frame && <Customers frame={frame} frozen={frozen} />}
     <OrthoFit portrait={portrait} />

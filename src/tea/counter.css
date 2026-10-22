@@ -51,3 +51,33 @@
  .counter-coach-steps{grid-column:2;grid-row:1;font-size:11px}
  .counter-dock{gap:3px}.counter-hint{font-size:11px;min-height:16px}
 }
+
+/* Preparation has one primary decision; staffing is optional. */
+.counter-staff-settings{border:1px solid #63ecdf35;background:#0c1c28;padding:12px}
+.counter-staff-settings summary{cursor:pointer;font-size:13px;color:#63ecdf;min-height:24px}
+.counter-staff-settings summary span{float:right;font-size:12px;color:#afbdc5}
+.counter-staff-settings[open] summary{margin-bottom:16px}
+.counter-staff-settings .counter-crew{margin-top:14px}
+.counter-stock h3{color:#ffdb39}
+@media(max-width:650px) and (orientation:portrait){
+ .counter-planning .counter-scene{height:200px;min-height:200px}
+ .counter-prep{gap:12px;padding:14px}
+}
+.counter-mobile-progress{display:none;pointer-events:none}
+@media(max-width:650px) and (orientation:portrait){
+ .counter-mobile-progress{position:absolute;top:8px;left:10px;right:10px;display:grid;grid-template-columns:1fr 1fr;gap:22px}
+ .counter-mobile-progress section{padding:8px;background:#091925e8;border-top:2px solid #ffda70;color:#ffda70}
+ .counter-mobile-progress .station-cashier{border-color:#63ecdf;color:#63ecdf}
+ .counter-mobile-progress header{display:flex;justify-content:space-between;gap:4px;font-size:11px;margin-bottom:5px}
+ .counter-mobile-progress section>div{display:flex;align-items:center;gap:8px;font-size:10px;color:#9aabba;margin-top:4px}
+ .counter-mobile-progress .active{color:#ffda70}.counter-mobile-progress .done{color:#79f2bd}
+ .counter-mobile-progress progress{width:100%;min-width:0;height:4px;accent-color:#63ecdf}
+ .counter-mobile-progress section>div span{white-space:nowrap}
+}
+.counter-mobile-progress progress{appearance:none;border:0;background:#2b3b4a;border-radius:0}
+.counter-mobile-progress progress::-webkit-progress-bar{background:#2b3b4a}
+.counter-mobile-progress progress::-webkit-progress-value{background:#63ecdf}
+.counter-mobile-progress .station-maker progress::-webkit-progress-value{background:#ffda70}
+.counter-mobile-progress progress::-moz-progress-bar{background:#63ecdf}
+.counter-prep-help{font-size:12px;color:#afbdc5;line-height:1.6}
+.counter-root .counter-guide-dismiss{margin-left:12px;padding:4px 8px;font-size:10px;background:transparent;color:#afbdc5}

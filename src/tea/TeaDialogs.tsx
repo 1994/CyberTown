@@ -44,6 +44,7 @@ export function OpenConfirm({ mode, team, roles, stock, strategy, cost, challeng
   const ref = useRef<HTMLElement>(null);
   useDialogFocus(ref, true);
   const official = mode === 'official';
+  const counter = challenge.flow?.startsWith('counter.');
   return <div className="tea-modal" onKeyDown={e => { if (e.key === 'Escape' && !busy) onCancel(); }}>
     <section ref={ref} className="tea-sheet tea-confirm" role="dialog" aria-modal="true" aria-labelledby="tea-confirm-title" data-testid="tea-open-confirm" tabIndex={-1}>
       <header>
@@ -51,12 +52,12 @@ export function OpenConfirm({ mode, team, roles, stock, strategy, cost, challeng
         <h2 id="tea-confirm-title">准备开门</h2>
         <span className="tea-chip">{challenge.arrivals} 位客人 · 目标 {challenge.target} 杯 · {fmtTime(challenge.duration)}</span>
       </header>
-      <ul className="tea-crewlist">
+      {!counter&&<ul className="tea-crewlist">
         {team.map(w => <li key={w.id} style={{ '--c': w.color } as React.CSSProperties}>
           <i /><b>{w.id === 'self' ? '你' : w.name}</b><span>{challenge.flow?.startsWith('counter.') ? ({cashier:'端送',maker:'制作',support:w.id==='self'?'随时帮忙':'忙时补位'}[roles[w.id]??'support']) : ROLE[roles[w.id]??'support']}</span><em>{w.id === 'self' ? '半自动' : '全自动'}</em>
         </li>)}
-      </ul>
-      <div className="tea-confirm-plan"><span>备货 <b>{stock}</b> 份</span><span>策略 <b>{STRATEGY[strategy]}</b></span><span>售价 <b>{challenge.price}</b></span></div>
+      </ul>}
+      <div className="tea-confirm-plan"><span>备货 <b>{stock}</b> 份</span>{!counter&&<span>策略 <b>{STRATEGY[strategy]}</b></span>}<span>售价 <b>{challenge.price}</b></span></div>
       {official
         ? <dl className="tea-slip">
           <dt>原料</dt><dd>{cost.material}</dd><dt>工资</dt><dd>{cost.wages}</dd><dt>运营</dt><dd>{cost.operating}</dd>
