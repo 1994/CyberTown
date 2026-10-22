@@ -1,3 +1,4 @@
+import { useShowcase } from '../scene/showcaseState';
 import { ShoppingStreet } from './ShoppingStreet';
 import { useRide, mountBike, parkBike, resetRide } from './rideState';
 import { SHOPPING_STORES, BIKE_STAND } from '../../shared/townActivities';
@@ -41,13 +42,22 @@ const distDest = (d: DestinationId) => {const p=d==='bicycle'?useRide.getState()
 const reach = (d: DestinationId) => d === 'shop' || d === 'recruit' || d === 'arcade' ? SITES[d].range : 2.2;
 /** 考察按钮出现距离（服务端校验 4.2m，前端更保守） */
 const SURVEY_RANGE = 2.8;
-const DEST_ORDER: DestinationId[] = ['shop', 'shopping', 'basketball', 'bicycle', 'arcade', 'plaza', 'recruit', 'north-ring'];
+const DEST_ORDER: DestinationId[] = ['shop', 'shopping', 'basketball', 'bicycle', 'arcade', 'plaza', 'recruit', 'north-ring', 'neon-quarter'];
 const DEST_LABEL: Record<DestinationId, string> = {
-  'north-ring': '北环街区', shopping: '霓虹购物街', bicycle: '路边单车', basketball: '运动区 · 篮球场', arcade: '小游戏大厅', shop: '商业街 · 奶茶店', leisure: '娱乐街', plaza: '回广场', recruit: '雇佣大厅',
+  'neon-quarter': '霓虹都会 · 带路', 'north-ring': '北环街区', shopping: '霓虹购物街', bicycle: '路边单车', basketball: '运动区 · 篮球场', arcade: '小游戏大厅', shop: '商业街 · 奶茶店', leisure: '娱乐街', plaza: '回广场', recruit: '雇佣大厅',
   ...Object.fromEntries(TOWN_OPPORTUNITIES.map(o => [o.id, o.name])) as Record<SiteId, string>,
 };
 
 export function TownGame() {
+  const showcase = useShowcase(s => s.active);
+  useEffect(() => {
+    if (!showcase) return;
+    useWorld.getState().lock('showcase');
+    const exit = (e: KeyboardEvent) => { if (e.key === 'Escape') useShowcase.getState().set(false); };
+    window.addEventListener('keydown', exit);
+    return () => { useWorld.getState().unlock('showcase'); window.removeEventListener('keydown', exit); };
+  }, [showcase]);
+  useEffect(() => () => useShowcase.getState().set(false), []);
   const myId = useGame(s => s.snapshot!.me.id);
   const ride = useRide();
   const catalog = useGame(s=>s.snapshot?.shop);
@@ -154,7 +164,7 @@ export function TownGame() {
     useWorld.getState().lock('town');
     return () => useWorld.getState().unlock('town');
   }, [away]);
-  const locked = away || phoneOpen || introPlaying;
+  const locked = away || phoneOpen || introPlaying || showcase;
 
   // 小镇模式不挂旧抽屉/小游戏/庆祝弹窗：旧世界对象若把它们置位，会变成看不见又关不掉的输入锁，这里直接复位
   useEffect(() => {
@@ -191,6 +201,7 @@ export function TownGame() {
   // 导航：只设置真实寻路，不瞬移、不自动开店
   const [pendingShop, setPendingShop] = useState(false);
   const go = (s: DestinationId) => {
+    useShowcase.getState().set(false);
     closePhone();
     setNotice(false);
     setMap(false);
@@ -276,6 +287,7 @@ export function TownGame() {
         </nav>
         <div className="town-map-legend"><span><LogIn/>可进入</span><span><Gamepad2/>小游戏大厅</span><span><MapPin/>户外考察</span><span><LockKeyhole/>未开放</span></div>
         <TownMap target={travel} view={mapView} visited={visited} onWalk={() => { setTravel(null); setArrived(null); }} />
+        <div className="town-showcase-card"><div><b>霓虹都会</b><small>未解锁 · 建设尚未开放</small></div><p>建设门槛 <strong>100 万金币</strong> · <strong>12 名员工</strong></p><button className="tea-btn" onClick={() => { setMap(false); closePhone(); setArrival(false); setNotice(false); rt.path = null; useShowcase.getState().set(true); }}>预览都会远景 ↗</button></div>
         <div className="town-dests">
           <small>老镇</small>
           {DEST_ORDER.map(d => <button key={d} className={`tea-btn ${d === 'shop' ? 'primary' : ''} dest-${d}`} onClick={() => go(d)}
@@ -286,8 +298,9 @@ export function TownGame() {
         </div>
       </div>}
 
+      {showcase && <div className="town-showcase-view"><small>未来版图 / 东北角</small><h2>霓虹都会</h2><p>建设需 100 万金币 · 12 名员工</p><span>未解锁 · 建设尚未开放</span><button className="tea-btn" onClick={() => useShowcase.getState().set(false)}>返回小镇视角</button></div>}
       {/* 地图打开时让位：位置条与通知不盖住地图 */}
-      {!map && <TownPresence myId={myId} ready={worldReady} collapsed={guided} />}
+      {!map && !showcase && <TownPresence myId={myId} ready={worldReady} collapsed={guided} />}
 
       {guided &&
         <TownArrival myId={myId} touch={touch} onClose={closeArrival} onPhone={() => { closeArrival(); setNotice(false); openPhone('mission'); }} />}
@@ -332,7 +345,7 @@ export function TownGame() {
         </div>}
       </>}
       </div>
-      {touch && !locked && <Joystick />}
+      {touch && !locked && !showcase && <Joystick />}
       {(hint || c.toast) && <div className="tea-toast" role="status">{hint || c.toast}</div>}
       {c.error && <div className="tea-banner">{c.error}<button onClick={() => void c.load()}>刷新</button></div>}
     </div>

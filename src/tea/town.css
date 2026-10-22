@@ -356,3 +356,12 @@
 .touch-ui .town-action-dock .town-interact .tea-btn{min-height:52px;padding:10px 14px;font-size:14px;white-space:normal}
 .touch-ui .town-action-dock .ride-controls{align-items:flex-end;max-width:100%}
 .touch-ui .town-action-dock .town-survey{width:100%;box-sizing:border-box;max-height:38dvh;overflow:auto}
+
+.town-showcase-card { margin: 10px 0; padding: 12px; border: 1px solid #f5c87166; background: linear-gradient(120deg,#333042,#10283a); }
+.town-showcase-card > div { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.town-showcase-card b { color: #ffda85; }.town-showcase-card small { color: #9cb9ce; font-size: 10px; }
+.town-showcase-card p { font-size: 12px; color: #b8cddd; margin: 8px 0; }.town-showcase-card strong { color: #ffe5a6; }
+.town-showcase-card .tea-btn { width: 100%; }
+.town-showcase-view { position: absolute; left: 24px; bottom: 34px; pointer-events: auto; padding: 18px 22px; border-left: 3px solid #ffcf72; background: linear-gradient(110deg,#071425f2,#07142599); max-width: calc(100vw - 48px); }
+.town-showcase-view small { letter-spacing: 3px; color: #87dce9; font-size: 10px; }.town-showcase-view h2 { color: #ffdd8b; font-size: 30px; margin: 6px 0; letter-spacing: 5px; }.town-showcase-view p { font-size: 12px; color: #d8e7f4; margin: 8px 0; }.town-showcase-view > span { display:block; color: #9fb8c7; font-size: 11px; margin-bottom: 12px; }
+@media(max-width:600px) { .town-showcase-view { left: 12px; bottom: 24px; padding: 12px; }.town-showcase-view h2 { font-size: 24px; } }

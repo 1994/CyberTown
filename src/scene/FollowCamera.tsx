@@ -1,3 +1,4 @@
+import { useShowcase } from './showcaseState';
 import { townFogRange } from './cameraAtmosphere';
 import { useEffect, useRef } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
@@ -40,6 +41,7 @@ export function FollowCamera({ active }: { active: boolean }) {
   const introNonce = useGame((s) => s.introNonce);
   const introPlaying = useGame((s) => s.introPlaying);
   const setIntroPlaying = useGame((s) => s.setIntroPlaying);
+  const showcase = useShowcase(s => s.active);
   const overview = useWorld((s) => s.overview);
   const zoomGoal = useRef<number | null>(null);
   const intro = useRef<Intro | null>(null);
@@ -184,7 +186,7 @@ export function FollowCamera({ active }: { active: boolean }) {
     const dt = Math.min(dtRaw, 0.05);
     const now = performance.now();
     if (camera instanceof THREE.PerspectiveCamera) {
-      const goal = active && useWorld.getState().overview ? overviewFov : 38;
+      const goal = useShowcase.getState().active ? (portrait ? 68 : 52) : active && useWorld.getState().overview ? overviewFov : 38;
       const fov = THREE.MathUtils.damp(camera.fov, goal, 4, dt);
       if (Math.abs(camera.fov - goal) > 0.01) {
         camera.fov = Math.abs(fov - goal) < 0.01 ? goal : fov;
@@ -225,6 +227,16 @@ export function FollowCamera({ active }: { active: boolean }) {
       return;
     }
 
+    if (active && useShowcase.getState().active) {
+      if (!focus.current) focus.current = { offset: camera.position.clone().sub(c.target) };
+      tmp.current.set(50, 18, -59);
+      desiredPos.current.set(portrait ? 80 : 87, portrait ? 35 : 30, portrait ? 50 : 3);
+      const snap = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      camera.position.lerp(desiredPos.current, snap ? 1 : 1 - Math.exp(-2.3 * dt));
+      c.target.lerp(tmp.current, snap ? 1 : 1 - Math.exp(-2.3 * dt));
+      c.update();
+      return;
+    }
     const shot = useCinema.getState().shot;
     if (shot && now >= shot.until) useCinema.getState().clear();
     const actor = shot && now < shot.until ? rt.colleaguePos.get(shot.colleagueId) : null;
@@ -273,14 +285,14 @@ export function FollowCamera({ active }: { active: boolean }) {
   return <OrbitControls
     ref={controls}
     makeDefault
-    enabled={!introPlaying}
+    enabled={!introPlaying && !showcase}
     enablePan={false}
     enableDamping
     dampingFactor={0.1}
     minDistance={6}
     maxDistance={active ? overviewDist + 6 : overviewDist + 30}
     minPolarAngle={0.3}
-    maxPolarAngle={1.2}
+    maxPolarAngle={showcase ? 1.55 : 1.2}
     zoomSpeed={0.8}
   />;
 }

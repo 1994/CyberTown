@@ -1,3 +1,4 @@
+import { NeonTower, NeonQuarterStatic, NeonQuarterLife } from './NeonQuarter';
 import { useMemo } from 'react';
 import * as THREE from 'three';
 import {
@@ -219,12 +220,14 @@ export function TownDistricts() {
   if (!town) return null;
   return <group name="town-districts">
     <StaticBatch worldStatic>
-      {TOWN_SHOPHOUSES.map((h, i) => <House key={`${h.x},${h.z}`} h={h} i={i} />)}
+      {TOWN_SHOPHOUSES.map((h, i) => h.z === -60 && h.x >= 16 ? <NeonTower key={`${h.x},${h.z}`} h={h} index={[16,24,42,50,66,74,82].indexOf(h.x)}/> : <House key={`${h.x},${h.z}`} h={h} i={i} />)}
+      <NeonQuarterStatic/>
       {TOWN_GATES.map(g => <Gate key={g.x} {...g} />)}
       <StreetFloor />
       <CivicCenter />
       <ExpansionFence />
     </StaticBatch>
+    <NeonQuarterLife/>
     <TownExpansion />
     <OuterBlocks />
   </group>;

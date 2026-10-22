@@ -30,11 +30,12 @@ export function districtAt(x: number, z: number): TownDistrict {
 }
 
 export type SiteId = 'west-market' | 'river-dock' | 'star-park' | 'river-walk';
-export type DestinationId = 'shop' | 'recruit' | 'arcade' | 'shopping' | 'bicycle' | 'basketball' | 'north-ring' | 'leisure' | 'plaza' | SiteId;
+export type DestinationId = 'shop' | 'recruit' | 'arcade' | 'shopping' | 'bicycle' | 'basketball' | 'north-ring' | 'neon-quarter' | 'leisure' | 'plaza' | SiteId;
 export const SITE_IDS = TOWN_OPPORTUNITIES.map(o => o.id) as SiteId[];
 export const isSite = (d: string): d is SiteId => (SITE_IDS as string[]).includes(d);
 /** 可站立的导航终点（不进入建筑、不触发任何玩法） */
 export const TOWN_DESTINATIONS: Record<DestinationId, { name: string; x: number; z: number; district: DistrictId }> = {
+  'neon-quarter': {name:'霓虹都会 · 示范街角',x:58,z:-50,district:'expansion'},
   'north-ring': {name:'北环街区',x:0,z:-50,district:'expansion'},
   shopping: { name: '霓虹购物街', ...SHOPPING, district: 'commerce' },
   bicycle: { name: '路边单车', ...BIKE_STAND, district: 'plaza' },
@@ -112,7 +113,7 @@ function northHouses(): Shophouse[] {
   const xs=[-82,-74,-66,-50,-42,-24,-16,16,24,42,50,66,74,82];
   const west=['机修','零件','快递','工具','夜班食堂','仓储','旧物'];
   const east=['唱片','模型','光影','甜品','花店','书屋','画室'];
-  return [-60,-41].flatMap((z,row)=>xs.map((x,i)=>({x,z,w:5.6+(i%2)*.6,d:5.2,h:row===0?5+(i%3)*1.4:3+(i%3)*.45,face:(row===0?1:-1) as 1|-1,district:(x<0?'commerce':'leisure') as DistrictId,sign:(x<0?west:east)[i%7]})));
+  return [-60,-41].flatMap((z,row)=>xs.map((x,i)=>({x,z,w:5.6+(i%2)*.6,d:5.2,h:row===0&&x>=16?([22,30,26,38,28,34,20][i-7]):row===0?5+(i%3)*1.4:3+(i%3)*.45,face:(row===0?1:-1) as 1|-1,district:(x<0?'commerce':'leisure') as DistrictId,sign:(x<0?west:east)[i%7]})));
 }
 
 /** 外区街屋：西街大道/西二街（商业）与星光大道/乐园街（娱乐）两侧围合，留出据点口袋广场。 */
