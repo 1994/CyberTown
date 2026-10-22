@@ -6,7 +6,6 @@ import type { TownClone, TownJobKind } from '../../shared/town.ts';
 import { dressedColleague } from '../look.ts';
 import { Character } from '../scene/Character.tsx';
 import { useGame } from '../store.ts';
-import { Label3D } from './Label3D.tsx';
 import { useTownState } from './townState.ts';
 
 // 私人小镇里只显示自己雇佣的分身（TownHome.clones）：闲置在镇中心喷泉旁，派工的在对应杂活点忙碌。
@@ -28,7 +27,6 @@ const SPOTS: Record<'idle' | Exclude<TownJobKind, 'rest'>, [number, number, numb
   // 奶茶店门口巡检
   manage: Array.from({ length: 12 }, (_, i) => [-17.6 + (i % 3) * 0.6, -3.4 + Math.floor(i / 3) * 1.6, -Math.PI / 2] as [number, number, number]),
 };
-const JOB_TEXT: Record<Exclude<TownJobKind, 'rest'>, string> = { clean: '保洁中', stock: '补货中', manage: '巡检中' };
 
 function fallbackLook(c: TownClone): Look {
   return { skin: '#f1c7a1', hair: '#2b2b33', hairStyle: 'short', shirt: c.color, pants: '#2a3142', accessory: 'none', avatarUrl: c.avatarUrl, avatarName: c.name };
@@ -46,7 +44,6 @@ function Actor({ c, look, spot, busy }: { c: TownClone; look: Look; spot: [numbe
   });
   return <group name={`town-staff-${c.id}`} position={[spot[0], 0, spot[1]]} rotation-y={spot[2]}>
     <group ref={body}><Character look={look} scale={SCALE} /></group>
-    <Label3D text={busy && busy !== 'rest' ? `${c.name} · ${JOB_TEXT[busy]}` : `${c.name} · Lv${c.level}`} tone={busy && busy !== 'rest' ? 'hot' : 'tag'} position={[0, 2.3, 0]} height={0.26} />
   </group>;
 }
 

@@ -35,7 +35,6 @@ const TABLES: [number, number][] = [[-1.0, 1.4], [2.0, 1.4], [0.5, 3.3], [3.5, 3
 const SEATS: Spot[] = TABLES.flatMap(([x, z]) => [{ pos: [x - 0.72, 0, z] as P3, rot: Math.PI / 2 }, { pos: [x + 0.72, 0, z] as P3, rot: -Math.PI / 2 }]);
 const QUEUE: P3[] = [[-4.6, 0, 3.5], [-5.3, 0, 3.9], [-6.0, 0, 4.3], [-5.6, 0, 3.0], [-6.3, 0, 3.4]];
 
-const ROLE_SHORT: Record<string, string> = { maker: '制作', cashier: '端送', support: '补位', idle: '待命' };
 
 // ───────── 小部件 ─────────
 function Neon({ text, color, w, h, position, rotation }: { text: string; color: string; w: number; h: number; position: P3; rotation?: P3; size?: number }) {
@@ -133,7 +132,7 @@ function Shell({ level, makerBusy, ready }: { level: number; makerBusy: number; 
       <mesh material={std('#0b1016', 0.5, 0.4)}><boxGeometry args={[3.0, 1.35, 0.05]} /></mesh>
       <mesh position-z={0.03} material={glow('#ffd400', 1.2)}><boxGeometry args={[3.0, 0.03, 0.01]} /></mesh>
       <Neon text="MENU" color="#ffd400" w={1.2} h={0.32} position={[0, 0.45, 0.03]} size={170} />
-      {['招牌珍珠奶茶', '现点 · 现做', '温暖每一天'].map((t, i) =>
+      {['珍珠奶茶'].map((t, i) =>
         <Neon key={t} text={t} color={['#ffe2b0', '#d6c6ff', '#9ef8ff'][i]} w={2.4} h={0.26} position={[0, 0.08 - i * 0.3, 0.03]} size={120} />)}
     </group>
     {[-6.5,1.4,6.5].map(x=><group key={'sconce'+x} position={[x,2.2,FLOOR.minZ+.2]}>
@@ -150,7 +149,6 @@ function Shell({ level, makerBusy, ready }: { level: number; makerBusy: number; 
     <group position={DOOR}>
       {[-0.65, 0.65].map(z => <mesh key={z} position={[0, 1.2, z]} material={std('#1a232b', 0.4, 0.6)}><boxGeometry args={[0.16, 2.4, 0.12]} /></mesh>)}
       <mesh position={[0, 2.42, 0]} material={glow(accent, 1.6)}><boxGeometry args={[0.18, 0.08, 1.42]} /></mesh>
-      <Label3D text="入口" tone="tag" position={[0.3, 2.75, 0]} height={0.24} />
     </group>
     {/* 吊灯：发光球，无实时灯 */}
     {[-4.2, -1.4, 1.4, 4.2].map(x => <group key={x} position={[x, 3.0, 0.4]}>
@@ -166,7 +164,6 @@ function Shell({ level, makerBusy, ready }: { level: number; makerBusy: number; 
     <group position={KIOSK} rotation-y={Math.PI / 5}>
       <mesh position-y={0.7} material={std('#1a2230', 0.4, 0.5)}><boxGeometry args={[0.5, 1.4, 0.3]} /></mesh>
       <mesh position={[0, 1.15, 0.16]} rotation-x={-0.25}><planeGeometry args={[0.42, 0.5]} /><meshBasicMaterial color={new THREE.Color('#3ef0ff').multiplyScalar(1.3)} toneMapped={false} /></mesh>
-      <Label3D text="自助点单" tone="tag" position={[0, 1.75, 0]} height={0.22} />
     </group>
     {/* 绿植与杂物，让店里有人气 */}
     {[[-6.6, -2.9], [6.7, -2.9], [6.7, 4.1]].map(([x, z], i) => <group key={i} position={[x, 0, z]}>
@@ -188,12 +185,10 @@ function MakeStation({ busy }: { busy: number }) {
       <mesh position-y={0.32} material={std('#c0c8d4', 0.25, 0.85)}><cylinderGeometry args={[0.2, 0.2, 0.64, 16]} /></mesh>
       <mesh position-y={0.66} material={std('#2a313d', 0.4, 0.6)}><cylinderGeometry args={[0.21, 0.21, 0.04, 16]} /></mesh>
       <mesh position={[0, 0.12, 0.2]} material={std('#2a313d', 0.4, 0.6)}><boxGeometry args={[0.06, 0.06, 0.1]} /></mesh>
-      <Label3D text={i ? '乌龙' : '红茶'} tone="tag" position={[0, 0.9, 0]} height={0.16} />
     </group>)}
     <group position={[x - 0.4, 1.0, -2.8]}>
       <mesh position-y={0.28} material={std('#e8eef6', 0.4, 0.3)}><boxGeometry args={[0.5, 0.56, 0.45]} /></mesh>
       <mesh position={[0, 0.36, 0.23]} material={glow(busy ? '#ff9a3d' : '#5a6478', busy ? 2 : 0.6)}><boxGeometry args={[0.3, 0.08, 0.01]} /></mesh>
-      <Label3D text="封口" tone={busy ? 'hot' : 'tag'} position={[0, 0.8, 0]} height={0.16} />
     </group>
     <group position={[x + 0.5, 1.0, -2.8]}>
       {[0, 1, 2, 3].map(k => <mesh key={k} position={[(k % 2) * 0.24 - 0.12, 0.15 + Math.floor(k / 2) * 0.32, 0]} material={std(['#ffcf8a', '#d6c6ff', '#9ef8ff', '#ff9aa2'][k], 0.3, 0, { transparent: true, opacity: 0.85 })}>
@@ -246,8 +241,8 @@ function PickStation({ ready }: { ready: number }) {
 
 // ───────── 人物 ─────────
 /** 平滑走向目标；移动时摆腿，坐下时屈腿；carry=手上拿杯 */
-function Actor({ look, target, sit = false, act = false, carry = false, label, tone = 'tag', fade = false, dots, patience = null, pop, spawn, frozen = false, staff = false }: {
-  look: ReturnType<typeof lookOf>; target: Spot; sit?: boolean; act?: boolean; carry?: boolean; label?: string; tone?: Parameters<typeof Label3D>[0]['tone'];
+function Actor({ look, target, sit = false, act = false, carry = false, fade = false, dots, patience = null, pop, spawn, frozen = false, staff = false }: {
+  look: ReturnType<typeof lookOf>; target: Spot; sit?: boolean; act?: boolean; carry?: boolean;
   fade?: boolean; dots?: { done: number; total: number } | null; patience?: number | null; pop?: string;
   /** 首次出现的位置（顾客从门口进来）；frozen=暂停时原地定格 */ spawn?: P3; frozen?: boolean; staff?: boolean;
 }) {
@@ -301,7 +296,6 @@ function Actor({ look, target, sit = false, act = false, carry = false, label, t
   return <group ref={g}>
     <Character ref={rig} look={look} scale={1.03} />
     {carry && <group position={[0, 0.95, 0.42]}><mesh material={std('#2a313d', 0.4, 0.4)}><boxGeometry args={[0.46, 0.03, 0.32]} /></mesh><Cup position={[0, 0.02, 0]} scale={1.35} /></group>}
-    {label && <Label3D text={label} tone={tone} position={[0, 2.0, 0]} height={0.22} />}
     {/* 耐心：头顶短条，绿→黄→红 */}
     {patience != null && <group position={[0, 2.26, 0]}>
       <mesh material={std('#1a1f2b', 0.6)}><boxGeometry args={[0.5, 0.06, 0.02]} /></mesh>
@@ -321,9 +315,6 @@ const serveSpot = (c: TeaLiveCustomer): Spot => {
   return s ? { pos: [s.pos[0] + (s.rot > 0 ? 0.35 : -0.35), 0, s.pos[2] + 0.7], rot: Math.PI } : { pos: [PICK_COUNTER.x, 0, PICK_COUNTER.z + 0.9], rot: 0 };
 };
 const guestLook = (id: number) => lookOf('guest-' + id, '顾客', ['#5ab8ff', '#ff6b4a', '#7dffa8', '#b18bff', '#ffd166', '#e8f4ff'][id % 6]);
-const BUBBLE: Partial<Record<TeaLiveCustomer['state'], string>> = {
-  waiting: '等位', cashier: '点单', ordering: '点单中', maker: '已下单', making: '制作中', ready: '杯好了·待送', delivering: '送来了', served: '收到',
-};
 const SERVED_STAY = 2; // 收到杯后坐约 2 秒再走向门口
 
 function Customers({ frame, frozen }: { frame: TeaLiveFrame; frozen: boolean }) {
@@ -344,16 +335,14 @@ function Customers({ frame, frozen }: { frame: TeaLiveFrame; frozen: boolean }) 
       else if (seat) target = seat;
       else target = { pos: (c.state === 'ordering' || c.state === 'cashier') && qi === 0 ? [KIOSK[0] + 0.1, 0, KIOSK[2] + 0.55] : QUEUE[qi!], rot: Math.PI * 0.75 };
       const sitting = !!seat && !leaving;
-      const tone = c.state === 'lost' ? 'bad' : c.state === 'served' ? 'ok' : c.state === 'ready' || c.state === 'delivering' ? 'hot' : c.patience != null && c.patience < 0.33 ? 'bad' : 'tag';
-      const label = c.state === 'lost' ? `#${c.id} 等太久离开` : leaving ? `#${c.id} 谢谢！` : `#${c.id} ${BUBBLE[c.state] ?? ''}`;
       return <group key={c.id}>
         <Actor look={guestLook(c.id)} target={target} spawn={restoredAt > 0 && c.at <= restoredAt ? target.pos : DOOR} sit={sitting} fade={leaving} frozen={frozen}
-          label={label} tone={tone} patience={leaving || c.state === 'served' ? null : c.patience ?? null}
-          pop={c.state === 'served' && !leaving ? '付款 ✓' : undefined} />
+          patience={leaving || c.state === 'served' || (c.patience ?? 1) > .5 ? null : c.patience ?? null}
+          pop={c.state === 'served' && !leaving ? '✓' : undefined} />
         {c.state === 'served' && seat && !leaving && <Cup position={[seat.pos[0] + (seat.rot > 0 ? 0.42 : -0.42), 0.77, seat.pos[2]]} />}
       </group>;
     })}
-    {overflow > 0 && <Label3D text={`+${overflow} 位等位`} tone="hot" position={[DOOR[0] + 0.6, 2.2, DOOR[2] - 1.2]} height={0.24} />}
+    {overflow > 0 && <Label3D text={`+${overflow}`} tone="hot" position={[DOOR[0] + 0.6, 2.2, DOOR[2] - 1.2]} height={0.24} />}
   </group>;
 }
 
@@ -374,9 +363,8 @@ function Staff({ team, roles, frame, selfId, selfAvatar, frozen }: { team: TeaWo
       else spot = SUPPORT_SPOT;
       const working = !!frame && (role === 'maker' || role === 'cashier') && (ws ? ws.progress > 0 || ws.customerId != null : true);
       const st = isSelf && frame ? frame.selfTask : null;
-      const label = isSelf ? `你 · ${ROLE_SHORT[role]}` : `${w.name} · ${ROLE_SHORT[role]}`;
       return <Actor key={w.id} look={lookOf(w.id, w.name, w.color, isSelf ? selfAvatar : undefined)} target={spot}
-        staff act={working && !delivering && !frozen} carry={delivering} frozen={frozen} label={label} tone={isSelf ? 'self' : working ? 'on' : 'tag'}
+        staff act={working && !delivering && !frozen} carry={delivering} frozen={frozen}
         dots={st && st.role !== 'idle' ? { done: st.done, total: Math.min(3, st.done + st.remaining) } : null} />;
     })}
   </group>;

@@ -41,7 +41,6 @@ function useDistrict() {
 export function TownPresence({ myId, ready, collapsed = false }: { myId: string; ready: boolean; collapsed?: boolean }) {
   const conn = useGame(s => s.conn);
   const snapPlayers = useGame(s => s.snapshot?.players);
-  const me = snapPlayers?.find(p => p.id === myId);
   const players = useWorld(s => s.players);
   const district = useDistrict();
   const [open, setOpen] = useState(false);
@@ -51,13 +50,13 @@ export function TownPresence({ myId, ready, collapsed = false }: { myId: string;
   // 引导卡显示时收起名单（同步内部 open，避免父子状态不一致）
   useEffect(() => { if (collapsed) setOpen(false); }, [collapsed]);
   const expanded = open && live && near.length > 0 && !collapsed;
-  const status = conn === 'offline' ? '重连中…' : !live ? '正在进入小镇…' : near.length ? `附近 ${near.length} 位玩家` : '你的小镇 · 独处中';
+  const status = conn === 'offline' ? '重连中…' : !live ? '正在进入小镇…' : near.length ? `附近 ${near.length} 位玩家` : '';
   return <div className="town-presence" data-testid="town-presence"
     data-state={conn === 'offline' ? 'offline' : live ? 'live' : 'connecting'} data-nearby={near.length}>
     <button className="town-presence-main" data-testid="town-presence-toggle" onClick={() => { if (!collapsed) setOpen(v => !v); }} disabled={!live || !near.length || collapsed} aria-expanded={expanded}>
       <i className={`town-conn ${live ? 'on' : conn === 'offline' ? 'off' : ''}`} aria-hidden />
-      <span><b data-testid="town-district" data-district={live ? district.id : undefined}>{live ? district.name : '连接中'}</b>{me && <em>{me.name}</em>}</span>
-      <small>{status}</small>
+      <span><b data-testid="town-district" data-district={live ? district.id : undefined}>{live ? district.name : '连接中'}</b></span>
+      {status && <small>{status}</small>}
     </button>
     {expanded && <ul className="town-nearby" data-testid="town-nearby-list">
       {near.slice(0, 8).map(p => {
@@ -83,7 +82,7 @@ export function TownArrival({ myId, touch, onPhone, onClose }: { myId: string; t
     <button className="town-x" onClick={onClose} aria-label="关闭引导，自由逛逛" data-testid="town-arrival-dismiss">×</button>
     <div className="town-arrival-me">
       <Face p={me} size={44} />
-      <div><small>已到达</small><b>{zone}</b>{me && <em>{me.name}</em>}</div>
+      <div><small>已到达</small><b>{zone}</b></div>
     </div>
     <ul className="town-guide">
       <li><b>移动</b><span>{touch ? '左下摇杆，或点地面' : '点地面，或 WASD'}</span></li>

@@ -98,7 +98,7 @@ function Bubble({
   name,
   you,
   color,
-  rankName,
+  rankName: _rankName,
 }: {
   entry: SocialEntry | undefined;
   name: string;
@@ -126,11 +126,7 @@ function Bubble({
     >
       {said && <div className="bubble">{said}</div>}
       {emote && <div className="emote-pop">{EMOTE_ICON[emote] ?? ''}</div>}
-      <div className="pname">
-        {you ? <b>你</b> : <i>玩家</i>}
-        {name}
-        <small className="world-rank">{rankName}</small>
-      </div>
+      {!you && <div className="pname">{name}</div>}
     </div>
   );
 }
