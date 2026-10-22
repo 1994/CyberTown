@@ -240,8 +240,9 @@ export function HiringHall({ onClose, onChanged, onShop, canAssign = true, assig
               <button className={`hall-cand ${c.owned ? 'owned' : ''}`} disabled={busy || full || c.owned || !c.enabled || home.coins<c.price} onClick={() => {setErr('');setQuoted(c.price);setConfirmId(c.id);}}
                 data-testid={`hire-candidate-${c.id}`} data-owned={c.owned ? 'true' : undefined}>
                 <Face w={c} size={64} />
-                <span className="hall-cand-main"><b>{c.name}</b><small className="hall-role-tag">{POTENTIAL[best(c)]}</small><small>工资 {shiftWage(c)} / 班 · 学徒</small></span>
-                <span className="hall-cand-price">{c.owned ? <em>已雇佣</em> : <><b>{c.price} <small>金币</small></b><small>{home.coins<c.price?'金币不足':full?'员工已满':'雇佣 →'}</small></>}</span>
+                <span className="hall-cand-main"><b>{c.name}</b><small className="hall-role-tag">{POTENTIAL[best(c)]}</small><span className="hall-recruit-level">Lv.1 <strong>学徒</strong></span></span>
+                <span className="hall-recruit-cost"><span><small>雇佣费</small><b>{c.price}<small> 金币</small></b></span><span className="hall-recruit-wage"><small>每班工资</small><b>{shiftWage(c)}<small> 金币</small></b></span></span>
+                <span className="hall-recruit-cta">{c.owned?'已雇佣':!c.enabled?'暂不可雇佣':home.coins<c.price?'金币不足':full?'员工已满':busy?'处理中…':'雇佣这位员工 →'}</span>
               </button>
             </li>)}
             {!candidates.length && <li className="tea-empty">{kind==='colleague'&&!home.candidates.some(c=>!!c.playerId)?'暂无同事分身':'没有符合的候选'}</li>}

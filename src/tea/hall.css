@@ -192,3 +192,35 @@
  .hall-recruit-column .hall-cand-price{flex-wrap:wrap;gap:4px}
  .hall-recruit-column .tea-empty{padding:14px 6px;font-size:12px}
 }
+
+/* Recruitment hierarchy: identity / level / cost / a full-width action. */
+.hall-recruit-grid .hall-cand { gap: 12px; min-height: 218px; text-align: left; }
+.hall-recruit-grid .hall-recruit-level { display: inline-flex; align-items: center; gap: 7px; align-self: start; width: fit-content; padding: 4px 9px; border: 1px solid #6de9db99; background: #1e505c; color: #baffef; font: 800 15px/1.2 system-ui; }
+.hall-recruit-level strong { font: 600 12px system-ui; color: #ecfff9; }
+.hall-recruit-cost { grid-column: 1/-1; display: grid; grid-template-columns: 1fr auto; gap: 12px; width: 100%; padding-top: 10px; border-top: 1px solid #839bad44; }
+.hall-recruit-cost > span { display: grid; gap: 3px; }
+.hall-recruit-cost small { color: #b9cbd8; font-size: 11px; font-weight: 500; }
+.hall-recruit-cost b { color: #ffe27d; font: 800 30px/1.15 system-ui; font-variant-numeric: tabular-nums; }
+.hall-recruit-cost b small { color: #ffe6a3; }
+.hall-recruit-cost .hall-recruit-wage { text-align: right; align-content: end; }
+.hall-recruit-wage b { color: #d3e5ef; font-size: 19px; }
+.hall-recruit-wage b small { color: #a7bac8; }
+.hall-recruit-cta { grid-column: 1/-1; display: flex; align-items: center; justify-content: center; width: 100%; min-height: 44px; background: #ffe44d; color: #131c29; font: 800 16px/1.3 CyberTownDisplay,system-ui; letter-spacing: 1px; clip-path: polygon(8px 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%,0 8px); box-shadow: inset 0 -3px #bd982b; }
+.hall-recruit-grid .hall-cand:focus-visible { outline: 3px solid #fff2a6; outline-offset: -3px; }
+.hall-recruit-grid .hall-cand:hover:not(:disabled) .hall-recruit-cta { background: #fff090; }
+.hall-recruit-grid .hall-cand:disabled { opacity: .85; }
+.hall-cand:disabled .hall-recruit-cta { background: #2c3b50; color: #c0cfdd; box-shadow: inset 0 -2px #41566e; }
+@media(max-width:540px) {
+ .hall-recruit-column .hall-cand { min-height: 288px; gap: 10px; }
+ .hall-recruit-grid .hall-cand-main .hall-recruit-level { font-size: 14px; }
+ .hall-recruit-cost { grid-template-columns: 1fr; gap: 5px; margin-top: auto; }
+ .hall-recruit-cost > .hall-recruit-wage { display: flex; align-items: baseline; justify-content: space-between; text-align: left; }
+ .hall-recruit-cost b { font-size: 27px; }.hall-recruit-wage b { font-size: 14px; }
+ .hall-recruit-cta { font-size: 13px; letter-spacing: 0; flex-shrink: 0; }
+}
+.hall-recruit-grid .hall-cand .hall-recruit-cost b { font: 800 30px/1.15 system-ui; }
+.hall-recruit-grid .hall-cand .hall-recruit-wage b { font-size: 19px; }
+@media(max-width:540px) {
+ .hall-recruit-grid .hall-cand .hall-recruit-cost b { font-size: 27px; }
+ .hall-recruit-grid .hall-cand .hall-recruit-wage b { font-size: 14px; }
+}
