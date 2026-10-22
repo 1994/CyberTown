@@ -1,4 +1,5 @@
-import { useMemo } from 'react';
+import { useMemo, useRef } from 'react';
+import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import {
   BRIDGES, EXPANSION_PLOTS, POCKET_GARDENS, RIVER, TOWN_KIOSKS, TOWN_LANDMARK_BOXES, TOWN_LANDMARK_CIRCLES, TOWN_POSTS, TOWN_ROADS, type DistrictId,
@@ -136,22 +137,20 @@ function RiverDock() {
   </group>;
 }
 
-/** 星光乐园：摩天轮（底座占地）+ 旋转木马（碰撞圆）。静态造型，不加实时灯。 */
+/** 星光乐园静态支架/登乘平台与旋转木马；轮体独立动画，不加实时灯。 */
 function StarPark() {
   const base = lm('wheel-base'), car = lc('carousel');
   const cx = (base.minX + base.maxX) / 2, cz = (base.minZ + base.maxZ) / 2;
-  // 尺度收小：从星光乐园入口默认镜头能看到整圈
-  const R = 4.2, cy = 5.6;
-  const pods = Array.from({ length: 12 }, (_, i) => (i / 12) * Math.PI * 2);
   return <group>
     <mesh position={[cx, 0.4, cz]} material={std('#2b2350', 0.6, 0.3)}><boxGeometry args={[base.maxX - base.minX, 0.8, base.maxZ - base.minZ]} /></mesh>
-    {[-1, 1].map(s => <mesh key={s} position={[cx + s * 1.3, cy / 2, cz]} rotation-z={s * -0.16} material={std('#cfd6e6', 0.4, 0.6)}><boxGeometry args={[0.25, cy + 0.6, 0.25]} /></mesh>)}
-    <mesh position={[cx, cy, cz]} material={glow('#b18bff', 1.6)}><torusGeometry args={[R, 0.09, 6, 48]} /></mesh>
-    <mesh position={[cx, cy, cz]} material={glow('#3ef0ff', 1.3)}><torusGeometry args={[R * 0.55, 0.05, 6, 32]} /></mesh>
-    {pods.map((a, i) => <group key={i}>
-      <mesh position={[cx + (Math.cos(a) * R) / 2, cy + (Math.sin(a) * R) / 2, cz]} rotation-z={a} material={std('#9aa4b8', 0.4, 0.6)}><boxGeometry args={[R, 0.05, 0.05]} /></mesh>
-      <mesh position={[cx + Math.cos(a) * R, cy + Math.sin(a) * R - 0.45, cz]} material={std(i % 3 ? '#ff6fd8' : '#3ef0ff', 0.5, 0.2)}><boxGeometry args={[0.6, 0.55, 0.6]} /></mesh>
+    {/* A-frame supports and boarding rails remain inside the existing solid base. */}
+    {[-.65,.65].flatMap(z=>[-1,1].map(side=><mesh key={`${z}:${side}`} position={[cx+side*1.15,3.25,cz+z]} rotation-z={side*.37} material={std('#a7c4d8',.4,.65)}><boxGeometry args={[.22,5.65,.22]}/></mesh>))}
+    <mesh position={[cx,6,cz]} rotation-x={Math.PI/2} material={std('#f3cb76',.35,.7)}><cylinderGeometry args={[.24,.24,1.8,12]}/></mesh>
+    {[-1,1].map(side=><group key={side}>
+      <mesh position={[cx+side*2.2,1,cz+.5]} material={std('#527d9b',.4,.6)}><boxGeometry args={[.08,.4,1.4]}/></mesh>
+      <mesh position={[cx+side*2.2,1.24,cz+.5]} material={glow('#7fe9ef',1.4)}><boxGeometry args={[.1,.05,1.4]}/></mesh>
     </group>)}
+    {[0,1,2].map(i=><mesh key={i} position={[cx,.82,cz+.6+i*.25]} material={glow(i%2?'#ffe19a':'#80ecff',.7)}><boxGeometry args={[1.6,.025,.045]}/></mesh>)}
     <Sign2 text="星光乐园" color="#d6c6ff" w={3.6} h={0.62} position={[cx, 1.4, base.maxZ + 0.05]} />
     <group position={[car.x, 0, car.z]}>
       <mesh position-y={0.15} material={std('#3a2e52', 0.6, 0.2)}><cylinderGeometry args={[car.r, car.r, 0.3, 24]} /></mesh>
@@ -162,6 +161,47 @@ function StarPark() {
       <mesh position-y={1.5} material={std('#cfd6e6', 0.4, 0.5)}><cylinderGeometry args={[0.25, 0.25, 2.6, 10]} /></mesh>
       <mesh position-y={3.2} material={std('#7a4fd6', 0.5, 0.2)}><coneGeometry args={[car.r + 0.3, 1.2, 16]} /></mesh>
       <mesh position-y={2.62} rotation-x={Math.PI / 2} material={glow('#ffd166', 1.6)}><torusGeometry args={[car.r + 0.25, 0.04, 4, 32]} /></mesh>
+    </group>
+  </group>;
+}
+
+/** Wheel animation stays outside worldStatic batches; cabins counter-rotate to remain upright. */
+function FerrisWheel() {
+  const rotor=useRef<THREE.Group>(null);
+  const cabins=useRef<(THREE.Group|null)[]>([]);
+  const angle=useRef(0);
+  const reduced=useMemo(()=>matchMedia('(prefers-reduced-motion: reduce)').matches,[]);
+  const base=lm('wheel-base');
+  const cx=(base.minX+base.maxX)/2,cz=(base.minZ+base.maxZ)/2;
+  const radius=4.2, height=6;
+  const positions=useMemo(()=>Array.from({length:12},(_,i)=>i*Math.PI/6),[]);
+  useFrame((_,dt)=>{
+    if(reduced||!rotor.current||document.hidden)return;
+    angle.current=(angle.current+Math.min(dt,.05)*Math.PI*2/64)%(Math.PI*2);
+    rotor.current.rotation.z=angle.current;
+    cabins.current.forEach(c=>{if(c)c.rotation.z=-angle.current;});
+  });
+  return <group name="ferris-wheel-live" position={[cx,height,cz]}>
+    <group ref={rotor}>
+      <StaticBatch>
+        {[-.2,.2].map(z=><mesh key={z} position-z={z} material={glow('#b58cff',1.4)}><torusGeometry args={[radius,.07,6,64]}/></mesh>)}
+        <mesh material={glow('#65eaff',1.2)}><torusGeometry args={[radius*.5,.045,6,40]}/></mesh>
+        <mesh rotation-x={Math.PI/2} material={glow('#ffe49a',1.3)}><cylinderGeometry args={[.35,.35,.55,16]}/></mesh>
+        {positions.map((a,i)=><group key={i}>
+          <mesh position={[Math.cos(a)*radius/2,Math.sin(a)*radius/2,0]} rotation-z={a} material={std('#bdcde1',.4,.6)}><boxGeometry args={[radius,.065,.09]}/></mesh>
+          {[0,1,2,3].map(j=><mesh key={j} position={[Math.cos(a+j*Math.PI/24)*radius,Math.sin(a+j*Math.PI/24)*radius,.29]} material={glow(i%2?'#ff8ee5':'#8bf4ff',1.5)}><sphereGeometry args={[.065,6,4]}/></mesh>)}
+        </group>)}
+      </StaticBatch>
+      {positions.map((a,i)=>{const color=['#ef82cf','#6cdae3','#f2cb7b'][i%3];return <group key={i} ref={n=>{cabins.current[i]=n;}} position={[Math.cos(a)*radius,Math.sin(a)*radius,0]}>
+        <StaticBatch>
+          <mesh position-y={-.16} material={std('#b6ccdc',.4,.7)}><boxGeometry args={[.06,.32,.06]}/></mesh>
+          <mesh position-y={-.53} material={std(color,.4,.3)}><boxGeometry args={[.68,.38,.58]}/></mesh>
+          <mesh position={[0,-.35,.3]} material={std('#a9ecff',.2,.4)}><boxGeometry args={[.5,.24,.025]}/></mesh>
+          <mesh position={[0,-.35,-.3]} material={std('#a9ecff',.2,.4)}><boxGeometry args={[.5,.24,.025]}/></mesh>
+          {[-1,1].map(side=><mesh key={side} position={[side*.3,-.33,0]} material={std('#d3e6ed',.35,.6)}><boxGeometry args={[.045,.32,.58]}/></mesh>)}
+          <mesh position-y={-.18} material={glow(color,.9)}><boxGeometry args={[.76,.065,.66]}/></mesh>
+        </StaticBatch>
+      </group>;})}
     </group>
   </group>;
 }
@@ -249,5 +289,6 @@ export function TownExpansion() {
       <PocketGardens />
       <NorthPlots />
     </StaticBatch>
+    <FerrisWheel />
   </group>;
 }
