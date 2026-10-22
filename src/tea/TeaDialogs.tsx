@@ -1,4 +1,5 @@
-import { useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { Trophy, Coins, CupSoda, Sparkles, ArrowUpRight, Check, Wallet } from 'lucide-react';
 import type { TeaChallenge, TeaRole, TeaRun, TeaSkill, TeaStrategy, TeaWorker } from '../../shared/tea.ts';
 import type { TeaLiveHome } from '../../shared/teaLive.ts';
 import { useDialogFocus } from '../ui/useDialogFocus.ts';
@@ -75,7 +76,24 @@ export function OpenConfirm({ mode, team, roles, stock, strategy, cost, challeng
   </div>;
 }
 
-/** 经营报表：收银小票式，主要财务默认展开。 */
+/** 只动画展示已结算结果；打开、重播、关闭均不触发奖励请求。 */
+function RewardNumber({ value, runId }: { value: number; runId: string }) {
+  const [shown, setShown] = useState(value);
+  useEffect(() => {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) { setShown(value); return; }
+    let id = 0;
+    const start = performance.now();
+    const tick = (now: number) => {
+      const t = Math.min(1, (now - start) / 950);
+      setShown(Math.round(value * (1 - Math.pow(1 - t, 3))));
+      if (t < 1) id = requestAnimationFrame(tick);
+    };
+    setShown(0); id = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(id);
+  }, [value, runId]);
+  return <><span aria-hidden="true">{signed(shown)}</span><span className="reward-sr">{signed(value)}</span></>;
+}
+
 export function ReportDialog({ run, home, busy, bonusFor, canUpgrade, nextGoal, onUpgrade, onPrep, onExit }: {
   run: TeaRun; home: TeaLiveHome; busy: boolean; bonusFor: boolean; canUpgrade: boolean; nextGoal: string;
   onUpgrade: () => void; onPrep: () => void; onExit: () => void;
@@ -86,59 +104,47 @@ export function ReportDialog({ run, home, busy, bonusFor, canUpgrade, nextGoal, 
   const official = run.mode === 'official';
   const net = r.profit + r.bonus;
   const ch = run.challenge;
-  const when = new Date(run.settledAt < 1e12 ? run.settledAt * 1000 : run.settledAt).toLocaleString('zh-CN', { hour12: false, month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' });
-  return <div className="tea-modal">
-    <section ref={ref} className="tea-sheet tea-report tea-receipt" role="dialog" aria-modal="true" aria-labelledby="tea-report-title" data-testid="tea-report-dialog" tabIndex={-1}>
-      <header>
-        <small>{ch.shopLevel ? `Lv.${ch.shopLevel} · ` : ''}{ch.name}</small>
-        <h2 id="tea-report-title">{ch.flow?.startsWith('counter.')?`第 ${ch.businessDay} 天 · 营业日报`:'夜间营业报告'}</h2>
-        <span className={`tea-chip ${official ? '' : 'dim'}`}>{official ? '正式' : '试营业'} · {when}</span>
+  const rescued = official && bonusFor;
+  const celebrate = official && net > 0;
+  const title = !official ? '手感练起来了' : rescued ? '小店，被你救活了！' : net > 0 ? '今天的努力，到账了' : net === 0 ? '稳住了，继续加油' : '收工，下次赚回来';
+  return <div className="tea-modal tea-result-backdrop">
+    <section ref={ref} className={`tea-sheet tea-report tea-result ${celebrate ? 'is-success' : ''}`} role="dialog" aria-modal="true" aria-labelledby="tea-report-title" data-testid="tea-report-dialog" tabIndex={-1}>
+      <header className="result-heading">
+        <small>{ch.shopLevel === 3 ? '夜城茶饮' : ch.shopLevel === 2 ? '霓虹奶茶' : '街角奶茶'} / {ch.flow?.startsWith('counter.') ? `第 ${ch.businessDay} 天` : ch.name} · {official ? '营业结束' : '试营业结束'}</small>
+        <div className="result-emblem" aria-hidden="true">{celebrate ? <Trophy/> : <CupSoda/>}</div>
+        <h2 id="tea-report-title">{title}</h2>
+        <span className="result-stamp">{rescued ? '救店任务完成' : r.completed >= ch.target ? '出杯目标达成' : `已服务 ${r.completed} 位顾客`}</span>
       </header>
-
-      <div className="tea-net-big">
-        {official
-          ? <><small>本班净赚</small><b className={net >= 0 ? 'ok' : 'bad'} data-testid="tea-report-net">{signed(net)}</b><em>金币</em></>
-          : <><small>试营业</small><b className="dim">无结算</b><em>不扣金币 · 不计进度</em></>}
+      <div className={`result-income ${official && net < 0 ? 'is-loss' : ''}`}>
+        {celebrate && <div className="result-rays" aria-hidden="true">{Array.from({length: 12}, (_, i) => <i key={i} style={{'--i': i} as React.CSSProperties}/>)}</div>}
+        <small>{official ? net < 0 ? '本班亏损' : '本班净赚' : '练习完成'}</small>
+        <b data-testid="tea-report-net">{official ? <RewardNumber value={net} runId={String(run.id)}/> : '不计收支'}</b>
+        <span>{official ? '金币 · 已计入钱包' : '不扣金币 · 不计任务进度'}</span>
       </div>
-
-      <div className="tea-kpi3">
-        <span className={r.completed >= ch.target ? 'ok' : ''}><b>{r.completed}</b><small>/ {ch.target} 杯</small></span>
-        <span><b>{r.arrivals}</b><small>到店</small></span>
-        <span className={r.lost > 0 ? 'bad' : ''}><b>{r.lost}</b><small>流失</small></span>
-      </div>
-
-      <Curve run={run} />
-      {ch.flow?.startsWith('counter.') && official && <div className="tea-kpi3"><span><b>+{r.selfMade??0}</b><small>制作熟练度</small></span><span><b>+{r.selfServed??0}</b><small>端送熟练度</small></span><span><b>{home.counter?.day??1}</b><small>下一经营日</small></span></div>}
-
-      {official && <dl className="tea-slip">
-        <dt>营收</dt><dd className="ok">+{r.revenue}</dd>
-        <dt>原料</dt><dd className="bad">−{r.materialCost}</dd>
-        <dt>工资</dt><dd className="bad">−{r.wages}</dd>
-        <dt>运营</dt><dd className="bad">−{r.operatingCost}</dd>
-        {r.bonus > 0 && <><dt>达标奖</dt><dd className="ok">+{r.bonus}</dd></>}
-        <dt className="sum">净赚</dt><dd className={`sum ${net >= 0 ? 'ok' : 'bad'}`}>{signed(net)}</dd>
-        <dt className="cut">预付已扣</dt><dd className="cut">−{r.totalCost}</dd>
-        <dt>实际到账</dt><dd>+{r.revenue + r.bonus}</dd>
-        <dt>结算后钱包</dt><dd>{run.coinsAfter}</dd>
-      </dl>}
-
-      <p className="tea-cause"><b>{r.bottleneck}</b>{r.suggestion && <span>{r.suggestion}</span>}</p>
-      {official && bonusFor && <p className="tea-rescued">✓ 救店任务完成</p>}
-      {nextGoal && <p className="tea-nextgoal"><small>下一目标</small>{nextGoal}</p>}
-
-      <details className="tea-more"><summary>更多</summary>
-        <div className="tea-loss">
-          <span>前台流失 <b>{r.lostCashier}</b></span><span>制作流失 <b>{r.lostMaker}</b></span>{r.lostStock > 0 && <span>缺货 <b>{r.lostStock}</b></span>}
-          <span>前台等待 <b>{r.avgCashierWait.toFixed(1)}s</b></span><span>制作等待 <b>{r.avgMakerWait.toFixed(1)}s</b></span><span>剩余原料 <b>{r.stockLeft.toFixed(1)}</b></span>
-        </div>
+      {official && <div className="result-rewards" aria-label="本班收获">
+        <div className="result-reward"><Coins size={20}/><span>营业到账<small>营收 {r.revenue}{r.bonus > 0 ? ` + 奖励 ${r.bonus}` : ''}</small></span><b>+{r.revenue + r.bonus}</b></div>
+        {r.bonus > 0 && <div className="result-bonus"><Sparkles size={16}/><span>其中 · 达标奖励</span><b>+{r.bonus}</b></div>}
+        {ch.flow?.startsWith('counter.') && <div className="result-growth"><span><CupSoda size={16}/>制作熟练度 <b>+{r.selfMade ?? 0}</b></span><span><ArrowUpRight size={16}/>端送熟练度 <b>+{r.selfServed ?? 0}</b></span></div>}
+        <div className="result-wallet"><Wallet size={15}/>钱包余额 <b>{run.coinsAfter}</b><Check size={14}/></div>
+      </div>}
+      <div className="result-next"><small>{celebrate ? '下一站' : '下一班试试'}</small><p>{celebrate ? nextGoal || '继续经营，让小店更上一层楼' : r.suggestion || nextGoal || '再熟悉一次制作和端送的节奏'}</p></div>
+      <details className="tea-more result-details"><summary>经营明细 <span>{r.completed}/{ch.target} 杯 · 流失 {r.lost}</span></summary>
+        <Curve run={run}/>
+        {official && <dl className="tea-slip">
+          <dt>营收</dt><dd className="ok">+{r.revenue}</dd>
+          <dt>原料</dt><dd>−{r.materialCost}</dd><dt>工资</dt><dd>−{r.wages}</dd><dt>运营</dt><dd>−{r.operatingCost}</dd>
+          {r.bonus > 0 && <><dt>达标奖（已含在到账中）</dt><dd>+{r.bonus}</dd></>}
+          <dt className="sum">净收益</dt><dd className="sum">{signed(net)}</dd>
+          <dt>预付已扣</dt><dd>−{r.totalCost}</dd><dt>本次到账</dt><dd>+{r.revenue + r.bonus}</dd>
+        </dl>}
+        <p className="tea-cause">{r.bottleneck}</p>
+        <div className="tea-loss"><span>到店 {r.arrivals}</span><span>制作流失 {r.lostMaker}</span><span>端送流失 {r.lostCashier}</span><span>缺货流失 {r.lostStock}</span><span>制作等待 {r.avgMakerWait.toFixed(1)}s</span><span>端送等待 {r.avgCashierWait.toFixed(1)}s</span><span>剩余原料 {r.stockLeft.toFixed(1)}</span></div>
         <div className="tea-skills">{Object.entries(r.skillCounts).filter(([, v]) => v > 0).map(([k, v]) => <i key={k}>{SKILL[k as TeaSkill] ?? '技能'} ×{v}</i>)}</div>
       </details>
-
       <div className="tea-sheet-actions">
         <button className="tea-btn ghost" onClick={onExit}>回小镇</button>
-        <button className="tea-btn" disabled={busy} onClick={onPrep} data-testid="tea-report-prep">{ch.flow?.startsWith('counter.')?'准备下一天':'回筹备'}</button>
-        {canUpgrade && <button className="tea-btn primary" disabled={busy || home.wallet.balance < home.shop.nextUpgradeCost} onClick={onUpgrade} data-testid="tea-report-upgrade">
-          升级 {home.shop.nextUpgradeCost}</button>}
+        <button className={`tea-btn ${!canUpgrade ? 'primary' : ''}`} disabled={busy} onClick={onPrep} data-testid="tea-report-prep">{!official ? '回店准备 →' : ch.flow?.startsWith('counter.') ? '准备下一天 →' : '回筹备 →'}</button>
+        {canUpgrade && <button className="tea-btn primary" disabled={busy || home.wallet.balance < home.shop.nextUpgradeCost} onClick={onUpgrade} data-testid="tea-report-upgrade">升级小店 · {home.shop.nextUpgradeCost}</button>}
       </div>
     </section>
   </div>;
