@@ -215,6 +215,20 @@ function OuterBlocks() {
   </group>;
 }
 
+/** Open southern forecourt: flat paving and low light strips leave the camera sightline clear. */
+function SouthForecourt() {
+  return <group name="south-arrival-square">
+    <mesh rotation-x={-Math.PI/2} position={[0,.018,28.5]} receiveShadow><planeGeometry args={[18,11]}/><meshStandardMaterial color="#40576a" roughness={.72}/></mesh>
+    {[-8.6,8.6].map(x=><mesh key={x} position={[x,.035,28.5]} material={glow(x<0?'#ffc584':'#70eadf',1.4)}><boxGeometry args={[.06,.025,10.5]}/></mesh>)}
+    {[24,28.5,33].map(z=><group key={z}>{[-1,1].map(side=><mesh key={side} position={[side*5.2,.037,z]} material={glow(side<0?'#ffc584':'#70eadf',.7)}><boxGeometry args={[6,.018,.035]}/></mesh>)}</group>)}
+    <mesh rotation-x={-Math.PI/2} position={[0,.04,28.5]}><ringGeometry args={[1.25,1.31,32]}/><meshBasicMaterial color="#91e7dc" transparent opacity={.6} depthWrite={false}/></mesh>
+    {[-23,-14,12,17].map((x,i)=><group key={x}>
+      <mesh rotation-x={-Math.PI/2} position={[x,.018,15.6]}><planeGeometry args={[3.2,2.5]}/><meshStandardMaterial color={i<2?'#655568':'#425d71'} roughness={.8}/></mesh>
+      <mesh position={[x,.035,16.8]} material={glow(i<2?'#ffc584':'#83e5f0',1)}><boxGeometry args={[3.2,.025,.04]}/></mesh>
+    </group>)}
+  </group>;
+}
+
 export function TownDistricts() {
   const town = useTownMode();
   if (!town) return null;
@@ -224,6 +238,7 @@ export function TownDistricts() {
       <NeonQuarterStatic/>
       {TOWN_GATES.map(g => <Gate key={g.x} {...g} />)}
       <StreetFloor />
+      <SouthForecourt />
       <CivicCenter />
       <ExpansionFence />
     </StaticBatch>

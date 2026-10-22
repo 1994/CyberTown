@@ -90,20 +90,13 @@ export interface Shophouse { x: number; z: number; w: number; d: number; h: numb
  * 靠镜头一侧（+z）只做一层，避免挡住街上的玩家。
  */
 export const TOWN_SHOPHOUSES: Shophouse[] = [
-  // 商业街南侧（门脸朝主街 -z）
-  { x: -26, z: 15.6, w: 4.6, d: 3.6, h: 2.6, district: 'commerce', face: -1, sign: '杂货' },
-  { x: -20.4, z: 15.6, w: 4.2, d: 3.6, h: 2.9, district: 'commerce', face: -1, sign: '面馆' },
-  { x: -15, z: 15.6, w: 4.2, d: 3.6, h: 2.5, district: 'commerce', face: -1, sign: '夜骑车行' },
-  { x: -10.35, z: 15.6, w: 2.7, d: 3.6, h: 2.4, district: 'commerce', face: -1, sign: '烘焙' },
+  // 主街南侧保持开放：旧街屋遮挡购物街/小游戏入口，改为低矮休闲前场。
   // 商业街北侧（门脸朝主街 +z）
   { x: -26.8, z: 7.2, w: 4.4, d: 2.8, h: 3.6, district: 'commerce', face: 1, sign: '霓虹衣橱' },
   { x: -21.6, z: 7.2, w: 3.6, d: 2.8, h: 3.0, district: 'commerce', face: 1, sign: '面具工坊' },
   // 娱乐街北侧
   { x: 22, z: 7.2, w: 3.0, d: 2.8, h: 3.4, district: 'leisure', face: 1, sign: '桌游' },
   { x: 26.3, z: 7.2, w: 3.0, d: 2.8, h: 4.0, district: 'leisure', face: 1, sign: '唱片' },
-  // 娱乐街南侧
-  { x: 11.3, z: 15.6, w: 3.0, d: 3.6, h: 2.7, district: 'leisure', face: -1, sign: '抓娃娃' },
-  { x: 15.6, z: 15.6, w: 3.0, d: 3.6, h: 2.4, district: 'leisure', face: -1, sign: '甜品' },
   ...outerHouses(),
   ...northHouses(),
 ];
@@ -221,6 +214,9 @@ export const TOWN_KIOSKS: { x: number; z: number; w: number; d: number; district
   { x: -69.5, z: -7.5, w: 2.4, d: 1.6, district: 'commerce', color: '#ff9f43' },
   { x: -64, z: -6.6, w: 2.4, d: 1.6, district: 'commerce', color: '#ff5f8f' },
   { x: -58.5, z: -7.5, w: 2.4, d: 1.6, district: 'commerce', color: '#ffd166' },
+  // 出生点南侧休闲广场：摊亭分列两翼，中轴与漫步道保持畅通。
+  { x: -16, z: 30, w: 2.4, d: 1.6, district: 'commerce', color: '#ffba70' },
+  { x: 16, z: 30, w: 2.4, d: 1.6, district: 'leisure', color: '#6debdc' },
   // 南岸公园
   { x: -20, z: 59, w: 2.2, d: 1.6, district: 'plaza', color: '#ffd166' },
   { x: 20, z: 59, w: 2.2, d: 1.6, district: 'plaza', color: '#b18bff' },

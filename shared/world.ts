@@ -35,7 +35,7 @@ export const STREET_BUILDINGS = [
   { x: -11, z: -28, w: 10, d: 6, h: 4, color: '#b18bff', sign: '准点下班' },
   { x: 11, z: -28, w: 10, d: 6, h: 4, color: '#ffd166', sign: '天台放空' },
 ];
-export const STREET_BENCHES: [number, number][] = [[-12, 28], [12, 28], [-39, 12], [39, 12]];
+export const STREET_BENCHES: [number, number][] = [[-12, 28], [12, 28], [-39, 12], [39, 12], [-5, 28], [5, 28], [-5, 31.5], [5, 31.5]];
 /** Thin street furniture still blocks feet; shared lamp positions keep art aligned. */
 export const STREET_LAMP_POLES: Circle[] = (() => {
   const poles: Circle[] = [];
