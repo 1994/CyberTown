@@ -1,3 +1,4 @@
+import { TEA_TOWN_SITES } from '../shared/teaTown.ts';
 // Independent reachability check: follow each returned path at fine intervals,
 // rather than trusting the pathfinder's own line-of-sight decision.
 import assert from 'node:assert/strict';
@@ -74,3 +75,10 @@ for (const route of TOWN_WALKERS) {
   for (let x = route.a; x <= route.b; x += .1) assert.equal(blockedAt(x, route.z, .35), false, `resident crosses an obstacle at ${x},${route.z}`);
 }
 console.log(`环境居民 ${TOWN_WALKERS.length} 条步道连续碰撞检查通过`);
+
+for (const start of Object.values(SPAWNS)) for (const site of Object.values(TEA_TOWN_SITES)) {
+ assert.equal(blockedAt(site.x,site.z),false,site.name);
+ const path=findPath(...start,site.x,site.z);assert.ok(path?.length,site.name);
+ const last=path.at(-1)!;assert.ok(Math.hypot(last[0]-site.x,last[1]-site.z)<site.range,site.name);
+}
+console.log('全部可进入场所的出生点路线与交互范围通过');

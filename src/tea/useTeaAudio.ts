@@ -1,4 +1,6 @@
-import { useEffect, useRef } from 'react';
+import { districtAt } from '../../shared/townPlan';
+import { rt } from '../world/runtime';
+import { useEffect, useRef, useState } from 'react';
 import { sound } from '../audio.ts';
 import type { MusicScene, TeaSoundCue } from '../musicScore.ts';
 import type { TeaEvent, TeaFrame, TeaRun } from '../../shared/tea.ts';
@@ -48,6 +50,15 @@ function sceneFor(view: TeaAudioInput['view'], frame: TeaFrame | null): MusicSce
 /** 将已结算回放事件映射为真实音效；音乐与生命周期交给 sound 统一处理。 */
 export function useTeaAudio(input: TeaAudioInput): void {
   const { view, run, frame, shopLevel, teamKey } = input;
+  const [streetScene,setStreetScene]=useState<MusicScene>('street');
+  useEffect(()=>{
+    if(view!=='street')return;
+    let candidate:MusicScene='street',since=0;
+    const sample=()=>{const d=districtAt(rt.me.x,rt.me.z).id;const next:MusicScene=d==='leisure'?'leisure':d==='commerce'?'commerce':'street';
+      if(next!==candidate){candidate=next;since=performance.now();}
+      if(performance.now()-since>=1200)setStreetScene(next);
+    };sample();const id=setInterval(sample,300);return()=>clearInterval(id);
+  },[view]);
   const musicScene = useRef<MusicScene | null>(null);
   const runId = useRef<string | null>(null);
   const lastT = useRef(0);
@@ -55,11 +66,11 @@ export function useTeaAudio(input: TeaAudioInput): void {
   const team = useRef<string | null>(null);
 
   useEffect(() => {
-    const desired = sceneFor(view, frame);
+    const desired = view === 'street' ? streetScene : sceneFor(view, frame);
     if (musicScene.current === desired) return;
     musicScene.current = desired;
     audio.setMusicScene?.(desired);
-  }, [view, frame?.t]);
+  }, [view, frame?.t, streetScene]);
 
   useEffect(() => () => {
     musicScene.current = 'silent';

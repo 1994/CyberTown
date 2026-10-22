@@ -3,7 +3,7 @@ import type { SoundNote } from './audioCues.ts';
 // 赛博小镇原创配乐：电子夜市 / 温暖 lofi。同一主题（A 小调五声）在街区、筹备、营业、高峰、复盘间变奏；
 // 高峰靠更密的节奏与琶音制造张力，而不是加音量。纯数据，无运行依赖。
 
-export type MusicScene = 'silent' | 'street' | 'prep' | 'business' | 'rush' | 'report';
+export type MusicScene = 'silent' | 'commerce' | 'leisure' | 'street' | 'prep' | 'business' | 'rush' | 'report';
 export type MusicInstrument = 'pad' | 'keys' | 'bass' | 'pluck' | 'kick' | 'hat';
 export interface MusicNote { step: number; midi: number; duration: number; velocity: number; instrument: MusicInstrument }
 export interface MusicScore { bpm: number; steps: number; notes: MusicNote[] }
@@ -98,6 +98,20 @@ export const MUSIC_SCORES: Record<Exclude<MusicScene, 'silent'>, MusicScore> = {
     bass: { steps: [0, 10], dur: 1.2, vel: 0.5 },
     kick: { step: [0, 7, 10], vel: [0.5, 0.3, 0.38] },
     hat: { step: [4, 12], vel: [0.16, 0.2] },
+  }),
+  commerce: build({
+    bpm: 98, chords: HOME, roots: HOME_ROOTS, padVel: 0.22,
+    arp: { steps: [0, 3, 6, 10, 14], instrument: 'keys', vel: 0.3, up: 12 },
+    bass: { steps: [0, 6, 10], dur: 0.65, vel: 0.42 },
+    kick: { step: [0, 8], vel: [0.4, 0.32] }, hat: { step: [4, 12], vel: [0.14] },
+  }),
+  leisure: build({
+    bpm: 122, chords: HOME, roots: HOME_ROOTS, padVel: 0.16,
+    melody: { phrase: THEME, instrument: 'pluck', transpose: 12, vel: 0.32 },
+    arp: { steps: [2, 6, 10, 14], instrument: 'keys', vel: 0.22, up: 12 },
+    bass: { steps: [0, 6, 8, 14], dur: 0.4, vel: 0.42, octaveJump: true },
+    kick: { step: [0, 4, 8, 12], vel: [0.42, 0.3, 0.38, 0.3] },
+    hat: { step: [2, 6, 10, 14], vel: [0.16, 0.22] },
   }),
   // 筹备：安静思考，无鼓，电钢分解和弦
   prep: build({

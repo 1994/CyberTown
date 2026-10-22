@@ -2,6 +2,7 @@ package backend
 
 import (
 	"encoding/json"
+	"github.com/1994/boss-works-for-me/gameplay"
 	"io"
 	"net/http"
 	"strings"
@@ -34,6 +35,25 @@ func (a *App) handleTea(w http.ResponseWriter, r *http.Request, player string) e
 		}
 	}
 	switch {
+	case path == "/api/tea/arcade" && r.Method == "GET":
+		respond(w, 200, gameplay.Arcade())
+	case path == "/api/tea/arcade/register" && r.Method == "POST":
+		var body struct {
+			GameID string `json:"gameId"`
+			Key    string `json:"key"`
+		}
+		if err := teaDecode(w, r, &body); err != nil {
+			return err
+		}
+		a.mu.Lock()
+		pos := a.ensureWorldLocked(player)
+		a.mu.Unlock()
+		ticket, err := a.Game.ArcadeRegister(player, body.GameID, body.Key, pos.X, pos.Z)
+		if err != nil {
+			return err
+		}
+		respond(w, 200, ticket)
+
 	case path == "/api/tea/guide" && r.Method == "POST":
 		var body struct{}
 		if err := teaDecode(w, r, &body); err != nil {

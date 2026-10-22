@@ -8,7 +8,7 @@ import type { DestinationId, SiteId } from '../../shared/townPlan.ts';
 
 // 复用原游戏手机机身与 KIM 标志；经营数据仍由服务端提供。
 const KIND: Record<string, string> = {
-  tea_hold: '开店预付', tea_sales: '营业收入', tea_wage: '打工工资', tea_upgrade: '门店升级',
+  arcade_entry: '小游戏报名', tea_hold: '开店预付', tea_sales: '营业收入', tea_wage: '打工工资', tea_upgrade: '门店升级',
   tea_cost: '开店成本', tea_opening_grant: '启动金', tea_mission: '救店奖励', town_explore: '商圈考察', town_hire: '员工签约', town_job: '派工收入', town_market_buy: '买入合同', town_market_sell: '转让收入', town_build: '小镇建设',
 };
 const kindName = (k: string) => KIND[k] ?? (k.startsWith('tea') ? '奶茶店' : '其他');

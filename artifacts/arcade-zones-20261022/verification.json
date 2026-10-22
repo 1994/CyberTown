@@ -1,0 +1,26 @@
+{
+  "checks": [
+    "typecheck",
+    "production build",
+    "backend and gameplay Go tests",
+    "4 arcade fee cases plus ledger rollback",
+    "all entrance routes and collision",
+    "music 7 checks",
+    "render budget 14 checks",
+    "UI login -> map -> arcade -> leave -> plaza -> shop",
+    "audio diagnostics leisure / street / commerce / prep all playing=true"
+  ],
+  "fee": {
+    "default": 20,
+    "currency": "game coins",
+    "ready": false,
+    "note": "Lobby free; registration disabled until real game is registered. Server decides fee and availability. Storage SPI ledger records payment and idempotent receipt."
+  },
+  "integration": {
+    "catalog": "gameplay/arcade.json",
+    "frontend": "src/tea/ArcadeHall.tsx arcadeGames",
+    "api": "POST /api/tea/arcade/register {gameId,key}",
+    "receipt": "ArcadeTicket passed to game component; onExit ends admission; pending keys scoped to player and game"
+  },
+  "preview": "8897 same .run/tea-final.db; isolated UI tests use 8903"
+}

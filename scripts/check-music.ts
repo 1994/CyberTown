@@ -91,9 +91,9 @@ test('a removed audio device cannot throw from scene changes or break game state
   ctx.fail = false; music.start(); assert.ok(music.activeVoices > 0); music.stop();
 });
 
-test('all five original arrangements are complete, finite and fit polyphony across their loop seam', () => {
+test('all district and shop arrangements are complete, finite and fit polyphony across their loop seam', () => {
   for (const [name, score] of Object.entries(MUSIC_SCORES)) {
-    assert.ok(score.bpm >= 76 && score.bpm <= 116, name);
+    assert.ok(score.bpm >= 76 && score.bpm <= 126, name);
     assert.ok(score.steps >= 128 && score.steps % 16 === 0, name);
     assert.ok(new Set(score.notes.map(n => n.instrument)).size >= 3, name);
     const edges: [number, number][] = [];
@@ -113,3 +113,5 @@ test('all five original arrangements are complete, finite and fit polyphony acro
     assert.ok(peak <= MAX_MUSIC_VOICES, `${name}: ${peak} voices`);
   }
 });
+
+test("entertainment is faster than commerce and plaza",()=>{assert.ok(MUSIC_SCORES.leisure.bpm>MUSIC_SCORES.commerce.bpm);assert.ok(MUSIC_SCORES.commerce.bpm>MUSIC_SCORES.street.bpm);});

@@ -1,3 +1,4 @@
+import { EntranceMarkers } from './EntranceMarkers';
 import { useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import type { ThreeElements } from '@react-three/fiber';
@@ -210,7 +211,14 @@ export function TownLandmarks() {
     <Beacon x={SHOP.x} z={SHOP.z} color={LOOK[Math.max(0, Math.min(2, level - 1))].color} hot={target === 'shop' || mission === 'accepted'} />
     <RecruitStand hot={target === 'recruit'} />
     <TownGate />
+    <group position={[18,0,11.2]}>
+      <mesh rotation-x={-Math.PI/2} position-y={.026} material={glow('#aa79ff',1.3)}><ringGeometry args={[2.3,2.48,6]}/></mesh>
+      <mesh rotation-x={-Math.PI/2} position-y={.028} material={glow('#65ffe7',1.5)}><ringGeometry args={[2.65,2.72,6]}/></mesh>
+      <LocalPointLight position={[0,3.5,0]} color="#d8bdff" intensity={24} distance={13} decay={2}/>
+      <LocalPointLight position={[-4,2.5,-4]} color="#79ffdf" intensity={18} distance={10} decay={2}/>
+    </group>
     <TownRoute />
+    {active && <EntranceMarkers />}
     {active && TOWN_OPPORTUNITIES.map(o => <SiteMarker key={o.id} {...o} visited={visited.includes(o.id)} hot={target === o.id} />)}
   </group>;
 }

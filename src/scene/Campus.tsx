@@ -763,7 +763,7 @@ function ProjectZone() {
               <planeGeometry args={[1.6, 0.4]} />
               <meshBasicMaterial
                 map={signTexture(
-                  town ? '街机厅 · 筹备中' : `${name}的工位组`,
+                  town ? '小游戏大厅' : `${name}的工位组`,
                   color,
                 )}
                 toneMapped={false}
@@ -793,7 +793,7 @@ function ProjectZone() {
           <planeGeometry args={[3.2, 0.8]} />
           <meshBasicMaterial
             map={neonText([
-              { text: town ? '街机厅 · 筹备中' : '老板来接招', color: '#f4bd67', size: 130 },
+              { text: town ? '小游戏大厅' : '老板来接招', color: '#f4bd67', size: 130 },
             ])}
             transparent
             toneMapped={false}
@@ -828,7 +828,7 @@ function ProjectZone() {
       </group>
       <Sign
         position={[11.4, 0, 7.6]}
-        text={town ? "街机厅" : "小游戏俱乐部"}
+        text={town ? "小游戏大厅" : "小游戏俱乐部"}
         color="#dc9bfc"
         rotation={-0.3}
       />

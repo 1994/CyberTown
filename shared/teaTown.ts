@@ -1,3 +1,4 @@
+import arcade from '../gameplay/arcade.json' with { type: 'json' };
 export interface TeaMission {
   status: 'offered' | 'accepted' | 'completed';
   acceptedAt: number;
@@ -20,6 +21,7 @@ export interface TeaWallet {
 }
 
 export const TEA_TOWN_SITES = {
+  arcade: { id: 'town-arcade', name: '小游戏大厅', x: arcade.x, z: arcade.z, range: arcade.range },
   recruit: { id: 'tea-recruit', name: '广场招募', x: -5, z: 12, range: 2.8 },
   shop: { id: 'tea-shop', name: '奶茶小镇·街角奶茶', x: -19.4, z: -1, range: 2.8 },
 } as const;

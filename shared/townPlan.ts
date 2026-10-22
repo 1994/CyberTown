@@ -1,3 +1,4 @@
+import arcade from '../gameplay/arcade.json' with { type: 'json' };
 import { TOWN_OPPORTUNITIES } from './townExplore.ts';
 // 赛博小镇规划：大区、街道、目的地与街屋。纯数据，渲染/小地图/导航/碰撞共用；不依赖 world.ts，避免循环引用。
 // 扩展新街区时只需在这里追加大区与街屋，再跑 test:map / test:collision。
@@ -28,11 +29,12 @@ export function districtAt(x: number, z: number): TownDistrict {
 }
 
 export type SiteId = 'west-market' | 'river-dock' | 'star-park' | 'river-walk';
-export type DestinationId = 'shop' | 'recruit' | 'leisure' | 'plaza' | SiteId;
+export type DestinationId = 'shop' | 'recruit' | 'arcade' | 'leisure' | 'plaza' | SiteId;
 export const SITE_IDS = TOWN_OPPORTUNITIES.map(o => o.id) as SiteId[];
 export const isSite = (d: string): d is SiteId => (SITE_IDS as string[]).includes(d);
 /** 可站立的导航终点（不进入建筑、不触发任何玩法） */
 export const TOWN_DESTINATIONS: Record<DestinationId, { name: string; x: number; z: number; district: DistrictId }> = {
+  arcade: { name: '小游戏大厅', x: arcade.x, z: arcade.z, district: 'leisure' },
   shop: { name: '奶茶店', x: -19.4, z: -1, district: 'commerce' },
   recruit: { name: '雇佣大厅', x: -5, z: 12, district: 'plaza' },
   leisure: { name: '娱乐街', x: 18, z: 11.2, district: 'leisure' },
@@ -63,9 +65,9 @@ export const TOWN_LANDMARKS: { name: string; x: number; z: number; district: Dis
   { name: '奶茶店', x: -22.5, z: -1, district: 'commerce', open: true },
   { name: '集市', x: -17, z: -13, district: 'commerce', open: true },
   { name: '夜市', x: -39, z: -8, district: 'commerce', open: false },
-  { name: '社区中心', x: 0, z: 0, district: 'plaza', open: true },
+  { name: '社区中心', x: 0, z: 0, district: 'plaza', open: false },
   { name: '喷泉', x: 0, z: 16, district: 'plaza', open: true },
-  { name: '街机厅', x: 18, z: 0, district: 'leisure', open: false },
+  { name: '小游戏大厅', x: 18, z: 0, district: 'leisure', open: true },
   { name: '花园', x: 18, z: -13, district: 'leisure', open: true },
   { name: '舞台', x: 22, z: 16.5, district: 'leisure', open: false },
   { name: '合影馆', x: 39, z: -8, district: 'leisure', open: false },

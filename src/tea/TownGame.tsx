@@ -1,7 +1,8 @@
 import { GameLogo } from '../ui/GameLogo';
 import { useEffect, useRef, useState } from 'react';
 import { CinematicOverlay } from '../ui/CinematicOverlay.tsx';
-import { Smartphone } from 'lucide-react';
+import { ArcadeHall } from './ArcadeHall';
+import { Smartphone, LogIn, LockKeyhole, Gamepad2, MapPin } from 'lucide-react';
 import { TEA_TOWN_SITES } from '../../shared/teaTown.ts';
 import { SITE_IDS, TOWN_DESTINATIONS, type DestinationId, type SiteId } from '../../shared/townPlan.ts';
 import { TOWN_OPPORTUNITIES } from '../../shared/townExplore.ts';
@@ -26,19 +27,19 @@ import './tea.css';
 import './town.css';
 
 // 大地图主线：TownGame 唯一持有 useTeaChapter；地图位置/室内由这里管理，营业规则全在 controller 与服务端。
-type Place = 'map' | 'recruit' | 'shop';
-type Site = 'shop' | 'recruit';
+type Place = 'map' | 'recruit' | 'shop' | 'arcade';
+type Site = keyof typeof TEA_TOWN_SITES;
 const SITES = TEA_TOWN_SITES;
 const distTo = (s: Site) => Math.hypot(rt.me.x - SITES[s].x, rt.me.z - SITES[s].z);
 const DEST = TOWN_DESTINATIONS;
 const distDest = (d: DestinationId) => Math.hypot(rt.me.x - DEST[d].x, rt.me.z - DEST[d].z);
 // 交互点沿用各自范围；街区目的地走到 2.2m 内即算到达
-const reach = (d: DestinationId) => d === 'shop' || d === 'recruit' ? SITES[d].range : 2.2;
+const reach = (d: DestinationId) => d === 'shop' || d === 'recruit' || d === 'arcade' ? SITES[d].range : 2.2;
 /** 考察按钮出现距离（服务端校验 4.2m，前端更保守） */
 const SURVEY_RANGE = 2.8;
-const DEST_ORDER: DestinationId[] = ['shop', 'leisure', 'plaza', 'recruit'];
+const DEST_ORDER: DestinationId[] = ['shop', 'arcade', 'leisure', 'plaza', 'recruit'];
 const DEST_LABEL: Record<DestinationId, string> = {
-  shop: '商业街 · 奶茶店', leisure: '娱乐街', plaza: '回广场', recruit: '雇佣大厅',
+  arcade: '小游戏大厅', shop: '商业街 · 奶茶店', leisure: '娱乐街', plaza: '回广场', recruit: '雇佣大厅',
   ...Object.fromEntries(TOWN_OPPORTUNITIES.map(o => [o.id, o.name])) as Record<SiteId, string>,
 };
 
@@ -103,7 +104,7 @@ export function TownGame() {
   useEffect(() => {
     if (place === 'shop') return;
     const id = setInterval(() => {
-      const n: Site | null = distTo('shop') <= SITES.shop.range ? 'shop' : distTo('recruit') <= SITES.recruit.range ? 'recruit' : null;
+      const n: Site | null = distTo('shop') <= SITES.shop.range ? 'shop' : distTo('recruit') <= SITES.recruit.range ? 'recruit' : distTo('arcade') <= SITES.arcade.range ? 'arcade' : null;
       setNear(n);
       let site: SiteId | null = null;
       for (const id of SITE_IDS) if (distDest(id) <= SURVEY_RANGE) site = id;
@@ -163,6 +164,7 @@ export function TownGame() {
     rt.path = null;
     setTravel(null);
     if (s === 'recruit') { setHallTab('candidates'); setPlace('recruit'); }
+    else if (s === 'arcade') setPlace('arcade');
     else { c.goShop(); setPlace('shop'); }
   };
   // E 键 / 手机互动：复用原世界的 world-interact 事件
@@ -226,8 +228,8 @@ export function TownGame() {
   const guided = !introPlaying && worldReady && !!home && arrival && place === 'map' && !phone && !map;
 
   return <div className="town" data-testid="town-world">
-    <OfficeCanvas myId={myId} covered={!!phone || place === 'recruit'} />
-    <div inert={introPlaying} aria-hidden={introPlaying} style={introPlaying ? { visibility: 'hidden' } : undefined} className={`hud town-hud ${touch ? 'touch-ui' : ''}`}>
+    <OfficeCanvas myId={myId} covered={!!phone || away} />
+    <div inert={introPlaying || away} aria-hidden={introPlaying || away} style={introPlaying ? { visibility: 'hidden' } : undefined} className={`hud town-hud ${touch ? 'touch-ui' : ''}`}>
       <header className="town-top">
         <div className="tea-brand"><GameLogo compact /></div>
         <button className="town-coins" onClick={() => openPhone('wallet')} aria-label="钱包">
@@ -254,6 +256,7 @@ export function TownGame() {
           {(Object.keys(MAP_VIEW_LABEL) as MapView[]).map(v => <button key={v} className={mapView === v ? 'on' : ''} aria-pressed={mapView === v}
             onClick={() => setMapView(v)} data-testid="town-map-view" data-view={v}>{MAP_VIEW_LABEL[v]}</button>)}
         </nav>
+        <div className="town-map-legend"><span><LogIn/>可进入</span><span><Gamepad2/>小游戏大厅</span><span><MapPin/>户外考察</span><span><LockKeyhole/>未开放</span></div>
         <TownMap target={travel} view={mapView} visited={visited} onWalk={() => { setTravel(null); setArrived(null); }} />
         <div className="town-dests">
           <small>老镇</small>
@@ -292,6 +295,7 @@ export function TownGame() {
         {near === 'shop'
           ? <button className="tea-btn primary" onClick={() => enter('shop')} data-testid="town-enter-shop">
             进{['街角奶茶', '霓虹奶茶', '夜城茶饮旗舰'][(home?.shop.level ?? 1) - 1] ?? '奶茶店'}{!touch && <kbd>E</kbd>}</button>
+          : near === 'arcade' ? <button className="tea-btn primary" onClick={() => enter('arcade')} data-testid="town-enter-arcade"><Gamepad2 size={18}/>进小游戏大厅{!touch && <kbd>E</kbd>}</button>
           : <button className="tea-btn" onClick={() => enter('recruit')} data-testid="town-recruit">
             进雇佣大厅 <small>可选</small>{!touch && <kbd>E</kbd>}</button>}
       </div>}
@@ -305,6 +309,7 @@ export function TownGame() {
     </div>
     <CinematicOverlay />
     {phoneUi}
+    {place === 'arcade' && <ArcadeHall playerId={myId} coins={home?.wallet.balance ?? 0} onClose={() => setPlace('map')} onPaid={syncTea} />}
     {place === 'recruit' && <HiringHall initialTab={hallTab} onClose={() => setPlace('map')} onChanged={syncTea}
       onShop={id => {
         // 召回的店员：选入本班（只在 controller 可排名单里时）并带路去奶茶店，不自动营业

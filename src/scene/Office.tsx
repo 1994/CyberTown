@@ -1,3 +1,4 @@
+import { TownAmbientLight } from './TownAtmosphere';
 import { TownLife } from './TownLife.tsx';
 import { LocalPointLight, LocalLightPool } from './LocalLights.tsx';
 import { Suspense, useCallback, useEffect, useRef } from 'react';
@@ -91,7 +92,7 @@ function Sun() {
 function Lights() {
   return (
     <>
-      <hemisphereLight args={['#b5cfdf', '#526475', 1.3]} />
+      <TownAmbientLight />
       <Sun />
       <directionalLight
         position={[-24, 12, -18]}
