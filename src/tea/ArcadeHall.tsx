@@ -3,6 +3,7 @@ import { Gamepad2, LockKeyhole, Ticket, X } from 'lucide-react';
 import { teaCall } from './liveApi';
 import './arcade.css';
 
+const FishingGame = lazy(() => import('../minigames/FishingGame'));
 const TableGames = lazy(() => import('../minigames/TableGames'));
 
 export interface ArcadeTicket { id: string; gameId: string; fee: number }
@@ -10,8 +11,8 @@ export interface ArcadeTicket { id: string; gameId: string; fee: number }
 export const arcadeGames: Record<string, ComponentType<{ ticket: ArcadeTicket; onExit: () => void }>> = {};
 type Catalog = { games: { id: string; name: string; fee: number; ready: boolean }[] };
 export function ArcadeHall({ playerId, coins, onClose, onPaid }: { playerId: string; coins: number; onClose: () => void; onPaid: () => void }) {
- const [demo,updateDemo]=useState<'coin'|'shell'|null>(()=>{const v=sessionStorage.getItem('table-demo-screen');return v==='coin'||v==='shell'?v:null;});
- const setDemo=(v:'coin'|'shell'|null)=>{if(v)sessionStorage.setItem('table-demo-screen',v);else sessionStorage.removeItem('table-demo-screen');updateDemo(v);};
+ const [demo,updateDemo]=useState<'coin'|'shell'|'fishing'|null>(()=>{const v=sessionStorage.getItem('table-demo-screen');return v==='coin'||v==='shell'||v==='fishing'?v:null;});
+ const setDemo=(v:'coin'|'shell'|'fishing'|null)=>{if(v)sessionStorage.setItem('table-demo-screen',v);else sessionStorage.removeItem('table-demo-screen');updateDemo(v);};
  const [catalog,setCatalog]=useState<Catalog|null>(null),[error,setError]=useState(''),[busy,setBusy]=useState(false);
  const enterDemo=async(id:'coin'|'shell')=>{
    if(busy)return;setBusy(true);setError('');
@@ -35,6 +36,7 @@ export function ArcadeHall({ playerId, coins, onClose, onPaid }: { playerId: str
  const game=catalog?.games.find(g=>g.id===selected);
  const join=async()=>{if(!game||!arcadeGames[game.id]||busy)return;setBusy(true);setError('');try{const t=await teaCall<ArcadeTicket>('POST','/api/tea/arcade/register',{gameId:game.id,key:key.current});setTicket(t);onPaid();}catch(e){setError(e instanceof Error?e.message:'报名失败，可重试');}finally{setBusy(false);}};
  const Play=ticket&&arcadeGames[ticket.gameId];
+ if(demo==='fishing')return <Suspense fallback={<div className="arcade-backdrop">正在准备鱼竿…</div>}><FishingGame onExit={()=>setDemo(null)}/></Suspense>;
  if(demo)return <Suspense fallback={<div className="arcade-backdrop">正在准备赌摊…</div>}><TableGames initialGame={demo} onExit={()=>setDemo(null)}/></Suspense>;
  return <div className="arcade-backdrop" onKeyDown={e=>{if(e.key==='Tab'){const buttons=[...e.currentTarget.querySelectorAll<HTMLButtonElement>('button:not(:disabled)')];const first=buttons[0],last=buttons.at(-1);if(e.shiftKey&&document.activeElement===first){e.preventDefault();last?.focus();}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first?.focus();}}}}>
  <section className="arcade-hall" role="dialog" aria-modal="true" aria-label="小游戏大厅" data-testid="arcade-hall">
@@ -43,6 +45,7 @@ export function ArcadeHall({ playerId, coins, onClose, onPaid }: { playerId: str
  <div className="arcade-marquee" aria-hidden="true"><Gamepad2/><i>PLAY<br/>YOUR WAY</i><span>✦</span></div>
  <p className="arcade-slogan">富贵险中求</p><p className="arcade-caption">免费试玩 · 猜中双倍到账 · 仅试玩金币</p>
  <div className="arcade-cabinets">{(["coin","shell"] as const).map(id=><article key={id} className="arcade-cabinet ready"><div className="arcade-screen"><span style={{fontSize:54,color:id==='coin'?'#ffda70':'#64eade'}}>{id==='coin'?'★ ☾':'◒ ◒ ◒'}</span></div><h2>{id==='coin'?'幸运翻币':'三杯幻影'}</h2><p>{id==='coin'?'亲手挥锤 · 猜星或月':'高速换位 · 找能量核心'}</p><button className="tea-btn primary" disabled={busy} onClick={()=>void enterDemo(id)}>免费试玩</button></article>)}</div>
+ <div className="arcade-cabinets"><article className="arcade-cabinet ready"><div className="arcade-screen"><span style={{fontSize:54,color:'#6affe1'}}>♓</span></div><h2>霓虹夜钓</h2><p>等鱼咬钩 · 收线控张力 · 60 秒鱼获挑战</p><button className="tea-btn primary" disabled={busy} onClick={()=>setDemo('fishing')}>免费夜钓</button></article></div>
  {!catalog&&!error&&<p role="status">读取机台…</p>}
  <div className="arcade-cabinets">{catalog?.games.map(g=>{const ready=g.ready&&!!arcadeGames[g.id];return <article key={g.id} className={`arcade-cabinet ${ready?'ready':''}`}><div className="arcade-screen"><Gamepad2 size={52}/>{!ready&&<LockKeyhole size={20}/>}</div><h2>{g.name}</h2><p><Ticket size={16}/>报名 {g.fee} 金币 / 次</p><button className="tea-btn primary" disabled={!ready||busy||coins<g.fee} onClick={()=>select(g.id)}>{!ready?'即将开放':coins<g.fee?'金币不足':'报名'}</button>{!ready&&<small>上线前不扣金币</small>}</article>;})}</div>
  {game&&<div className="arcade-confirm"><h2>报名 {game.name}</h2><p>本次支付 {game.fee} 金币</p><button className="tea-btn" disabled={busy} onClick={()=>setSelected(null)}>再看看</button><button className="tea-btn primary" disabled={busy||coins<game.fee} onClick={()=>void join()}>{busy?'报名中…':'确认支付并进入'}</button></div>}

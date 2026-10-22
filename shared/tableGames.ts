@@ -4,7 +4,7 @@ export type Phase = 'toss'|'hammer'|'strike'|'flip'|'settle'|'shuffle'|'pick'|'r
 export type V3 = [number,number,number];
 export const TABLE = { initial:2000, minBet:10, maxBet:1000, step:10, coinRadius:.16, coinThickness:.06, heroRadius:.4, heroThickness:.10, landingRadius:.8, flightHeight:5.8, flightSeconds:3.15, settleSeconds:.65, swaps:18, swapSeconds:.1, cupRadius:.48, cupSpacing:1.55, bypass: 1.12, stackStep:.085, tossSeconds:1.65, returnDuration:1.65, returnStagger:.19, hand:[-1.35,.22,2.7] as V3 } as const;
 export interface Round { id:string; game:TableGame; phase:Phase; at:number; opening:number; bet:number; face:0|1; outcome:0|1; swaps:[number,number][]; picked:number|null; win:boolean|null; credited:number; count:number; }
-export interface DemoWallet { version:1; balance:number; round:Round|null; }
+export interface DemoWallet { version:1; balance:number; round:Round|null; fishingReceipts?:string[]; }
 export const clamp01=(v:number)=>Math.max(0,Math.min(1,v));
 export const ease=(v:number)=>{const t=clamp01(v);return t*t*(3-2*t);};
 export function validBet(value:number,balance:number){return Number.isInteger(value)&&value>=10&&value<=1000&&value%10===0&&value<=balance;}
@@ -29,7 +29,7 @@ export function arc(from:V3,to:V3,p:number,height:number,lane=0):V3{const t=clam
 export function returnOrder(count:number){return Array.from({length:count},(_,i)=>i).sort((a,b)=>Math.floor(b/4)-Math.floor(a/4)||a%4-b%4);}
 export function returnFrame(i:number,seconds:number,count:number){const source=returnOrder(count)[i];const p=clamp01((seconds-i*TABLE.returnStagger)/TABLE.returnDuration);return {p,source,position:arc(tableStack(source),handWorld(catchPad(i)),ease(p),1.45+(i%4)*.16,(i%4-1.5)*.13),rotation:Math.PI*4*(1-ease(Math.min(1,p/.7)))};}
 export function creditThrough(wallet:DemoWallet,n:number):DemoWallet {const r=wallet.round;if(!r||r.phase!=='payout'||!r.win)return wallet;const through=Math.min(r.count*2,Math.max(r.credited,Math.floor(n)));const before=Math.floor(award(r.bet,true)*r.credited/(r.count*2));const after=Math.floor(award(r.bet,true)*through/(r.count*2));return {...wallet,balance:wallet.balance+after-before,round:{...r,credited:through}};}
-export function startRound(wallet:DemoWallet,game:TableGame,bet:number,face:0|1,id:string,random:()=>number,now:number):DemoWallet {if(wallet.round&&wallet.round.phase!=='result'||!validBet(bet,wallet.balance))return wallet;return {version:1,balance:wallet.balance-bet,round:{id,game,phase:'toss',at:now,opening:wallet.balance,bet,face,outcome:random()<.5?0:1,swaps:makeSwaps(random),picked:null,win:null,credited:0,count:visualCount(bet)}};}
+export function startRound(wallet:DemoWallet,game:TableGame,bet:number,face:0|1,id:string,random:()=>number,now:number):DemoWallet {if(wallet.round&&wallet.round.phase!=='result'||!validBet(bet,wallet.balance))return wallet;return {...wallet,version:1,balance:wallet.balance-bet,round:{id,game,phase:'toss',at:now,opening:wallet.balance,bet,face,outcome:random()<.5?0:1,swaps:makeSwaps(random),picked:null,win:null,credited:0,count:visualCount(bet)}};}
 
 /** Enter another table without carrying over its result or touching settled winnings. */
 export function clearFinishedRound(wallet:DemoWallet):DemoWallet {return wallet.round?.phase==='result'?{...wallet,round:null}:wallet;}

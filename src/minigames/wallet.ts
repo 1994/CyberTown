@@ -1,3 +1,4 @@
+import {creditFishing} from '../../shared/fishing';
 import {useSyncExternalStore} from 'react';
 import {TABLE,clearFinishedRound,creditThrough,startRound,shellFrame,type DemoWallet,type Phase,type TableGame} from '../../shared/tableGames';
 const KEY='cyber-town.table-demo.v1';
@@ -22,3 +23,6 @@ export function advance(id:string,from:Phase,to:Phase){return transact(s=>{
 });}
 export const choose=(id:string,slot:number)=>transact(s=>{const r=s.round;if(!r||r.id!==id||r.phase!=='pick')return s;return {...s,round:{...r,phase:'reveal',at:Date.now(),picked:slot,win:shellFrame(r.swaps,2).coreSlot===slot}};});
 export const credit=(id:string,n:number)=>transact(s=>s.round?.id===id?creditThrough(s,n):s);
+
+/** Idempotent deposit: a saved fishing result can be retried after reload. */
+export const settleFishing=(id:string,amount:number)=>transact(s=>creditFishing(s,id,amount));

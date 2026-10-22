@@ -36,7 +36,7 @@
     "test:audio": "node scripts/check-audio.ts",
     "test:music": "node scripts/check-music.ts",
     "audio:preview": "node scripts/render-tea-music.ts",
-    "test:web": "npm run typecheck && npm run test:contract && npm run test:transport && npm run test:proximity && npm run test:map && npm run test:traffic && npm run test:activities && npm run test:collision && npm run test:render && npm run test:arcade && npm run test:audio && npm run test:music && npm run test:sync && npm run test:player-contract && npm run test:town-expansion && npm run test:table-games",
+    "test:web": "npm run typecheck && npm run test:contract && npm run test:transport && npm run test:proximity && npm run test:map && npm run test:traffic && npm run test:activities && npm run test:collision && npm run test:render && npm run test:arcade && npm run test:audio && npm run test:music && npm run test:sync && npm run test:player-contract && npm run test:town-expansion && npm run test:table-games && npm run test:fishing",
     "test:api": "go test ./...",
     "test:transport": "node scripts/check-transport.ts",
     "test:deployment": "node scripts/check-deployment.mjs",
@@ -46,7 +46,8 @@
     "test:tea-town": "node scripts/check-tea-town.ts",
     "test:town-expansion": "node scripts/check-town-expansion.ts",
     "test:activities": "node scripts/check-town-activities.ts",
-    "test:table-games": "node scripts/check-table-games.ts"
+    "test:table-games": "node scripts/check-table-games.ts",
+    "test:fishing": "node scripts/check-fishing.ts"
   },
   "dependencies": {
     "@react-three/drei": "^10.7.9",

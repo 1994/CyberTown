@@ -72,7 +72,7 @@ export function TownGame() {
   const touch = useTouchUi();
   const placeKey = `town-place:${myId}`;
   // 只记住“在店里”这一件事，刷新后回到同一处（营业 session 由 controller 从服务端恢复）
-  const [place, setPlaceState] = useState<Place>(() => { if (useGame.getState().introPlaying) return 'map'; try { if (['coin','shell'].includes(sessionStorage.getItem('table-demo-screen') ?? '')) return 'arcade'; return localStorage.getItem(placeKey) === 'shop' ? 'shop' : 'map'; } catch { return 'map'; } });
+  const [place, setPlaceState] = useState<Place>(() => { if (useGame.getState().introPlaying) return 'map'; try { if (['coin','shell','fishing'].includes(sessionStorage.getItem('table-demo-screen') ?? '')) return 'arcade'; return localStorage.getItem(placeKey) === 'shop' ? 'shop' : 'map'; } catch { return 'map'; } });
   const setPlace = (p: Place) => {
     if(p!=='map')parkBike();
     setPlaceState(p);
