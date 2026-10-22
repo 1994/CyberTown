@@ -1,6 +1,6 @@
 import { useShowcase } from './showcaseState';
 import { townFogRange } from './cameraAtmosphere';
-import { useEffect, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
 import type { OrbitControls as OrbitImpl } from 'three-stdlib';
@@ -34,6 +34,7 @@ interface Intro {
 
 /** Claude's city → desks → neon elevator film, adapted to the free-roam campus. */
 export function FollowCamera({ active }: { active: boolean }) {
+  const reducedMotion = useMemo(() => window.matchMedia('(prefers-reduced-motion: reduce)'), []);
   const controls = useRef<OrbitImpl>(null);
   const { camera, size, scene } = useThree();
   const myId = useGame(s => s.snapshot?.me.id);
@@ -231,7 +232,7 @@ export function FollowCamera({ active }: { active: boolean }) {
       if (!focus.current) focus.current = { offset: camera.position.clone().sub(c.target) };
       tmp.current.set(50, 18, -59);
       desiredPos.current.set(portrait ? 80 : 87, portrait ? 35 : 30, portrait ? 50 : 3);
-      const snap = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const snap = reducedMotion.matches;
       camera.position.lerp(desiredPos.current, snap ? 1 : 1 - Math.exp(-2.3 * dt));
       c.target.lerp(tmp.current, snap ? 1 : 1 - Math.exp(-2.3 * dt));
       c.update();

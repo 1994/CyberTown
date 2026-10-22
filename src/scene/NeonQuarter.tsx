@@ -1,4 +1,5 @@
-import { useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
+import { makeNeonFacade } from './neonFacade';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import type { Shophouse } from '../../shared/townPlan';
@@ -6,12 +7,14 @@ import { glow, std } from './materials';
 import { Neon } from './TownDistricts';
 import { LocalPointLight } from './LocalLights';
 
+const WINDOW_MATERIAL = new THREE.MeshBasicMaterial({vertexColors:true,toneMapped:false});
 const ACCENTS = ['#45e7ff','#ff4fa8','#ffc46b'];
 const SIGNS = ['云端酒店','星河资本','光域科技','霓虹都会','极光中心','夜航公馆','天际汇'];
 /** Reuses the original street-house footprint: height only, no new ground obstacles. */
 export function NeonTower({ h, index }: { h: Shophouse; index: number }) {
   const c = ACCENTS[index % 3], w = h.w, d = h.d, height = h.h;
-  const floors = Math.floor((height-5)/1.45);
+  const facade = useMemo(() => makeNeonFacade(w,d,height,index,c), [w,d,height,index,c]);
+  useEffect(() => () => {facade.windows.dispose();facade.recess.dispose();}, [facade]);
   return <group position={[h.x,0,h.z]}>
     <mesh position={[0,2,0]} material={std('#24374b',.3,.65)} castShadow><boxGeometry args={[w,4,d]}/></mesh>
     <mesh position={[0,height/2,0]} material={std(index%2?'#172d44':'#26334f',.24,.72)} castShadow><boxGeometry args={[w*.88,height,d*.9]}/></mesh>
@@ -26,12 +29,9 @@ export function NeonTower({ h, index }: { h: Shophouse; index: number }) {
     {[-1,1].map(side=><group key={side}>
       <mesh position={[side*w*.442,height/2,d*.451]} material={glow(c,1.5)}><boxGeometry args={[.07,height,.07]}/></mesh>
       <mesh position={[side*w*.445,height/2,0]} material={std('#50637c',.35,.7)}><boxGeometry args={[.12,height,d*.9]}/></mesh>
-      {Array.from({length:floors},(_,f)=><group key={f}>
-        <mesh position={[0,4.8+f*1.45,side*d*.455]} material={std('#0d1d31',.22,.65)}><boxGeometry args={[w*.84,1.1,.025]}/></mesh>
-        {[0,1,2,3,4].map(k=><mesh key={k} position={[(k-2)*w*.16,4.8+f*1.45,side*d*.46]} material={glow((k+f+index)%5===0?c:'#ffddb3',(k*3+f+index)%7===0?.15:.65)}><boxGeometry args={[w*.09,.65,.025]}/></mesh>)}
-        <mesh position={[side*w*.452,4.8+f*1.45,0]} material={glow((f+index)%3===0?c:'#91bad8',.5)}><boxGeometry args={[.025,.18,d*.8]}/></mesh>
-      </group>)}
     </group>)}
+    <mesh geometry={facade.windows} material={WINDOW_MATERIAL}/>
+    <mesh geometry={facade.recess} material={std('#0d1d31',.22,.65)}/>
     {[4,height*.54,height-.6].map(y=><mesh key={y} position={[0,y,0]} material={glow(c,1.35)}><boxGeometry args={[w*.91,.09,d*.94]}/></mesh>)}
     {/* Large framed ads, rather than scattered instruction labels. */}
     <mesh position={[0,height*.68,d*.48]} material={std('#081522',.4,.4)}><boxGeometry args={[w*.78,4.7,.18]}/></mesh>
@@ -77,9 +77,15 @@ export function NeonQuarterStatic() {
 /** A distant airborne shuttle adds life; it stays above roofs and uses no physics. */
 export function NeonQuarterLife() {
   const shuttle=useRef<THREE.Group>(null!);
-  useFrame(({clock})=>{
+  const lastUpdate=useRef(-Infinity);
+  useFrame(({clock,camera})=>{
     if(!shuttle.current)return;
-    const t=clock.elapsedTime*.07;
+    const now=clock.elapsedTime;
+    const far=camera.position.distanceToSquared(shuttle.current.position)>180*180;
+    shuttle.current.visible=!far;
+    if(far||now-lastUpdate.current<1/30)return;
+    lastUpdate.current=now;
+    const t=now*.07;
     shuttle.current.position.set(50+Math.sin(t)*30,42+Math.sin(t*2)*.6,-61+Math.cos(t)*3);
     shuttle.current.rotation.y=Math.cos(t)>0?Math.PI/2:-Math.PI/2;
   });

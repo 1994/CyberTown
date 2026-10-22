@@ -32,7 +32,7 @@
     "test:collision": "node scripts/check-collision.ts",
     "test:arcade": "node scripts/check-arcade.ts",
     "perf:cpu": "node scripts/benchmark-cpu.ts",
-    "test:render": "node scripts/check-render-budget.ts",
+    "test:render": "node scripts/check-render-budget.ts && node scripts/check-neon-facade.ts",
     "test:audio": "node scripts/check-audio.ts",
     "test:music": "node scripts/check-music.ts",
     "audio:preview": "node scripts/render-tea-music.ts",
