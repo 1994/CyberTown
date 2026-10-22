@@ -82,7 +82,7 @@ export function TownMap({ target, view, visited, onWalk }: { target: Destination
     {TOWN_LOCKED_AREAS.map(area=><g key={area.id} data-testid={`map-locked-area-${area.id}`}>
       <title>{area.name} · 未解锁：{area.hint}</title>
       <rect x={area.minX} y={area.minZ} width={area.maxX-area.minX} height={area.maxZ-area.minZ} fill="none" stroke="#a0acc3" strokeOpacity={.4} strokeWidth={.25*k} strokeDasharray={`${1.2*k} ${.8*k}`}/>
-      {detail&&<text x={area.x} y={area.z} textAnchor="middle" fill="#b6c0cf" fontSize={1.65}>{area.name} · 未解锁</text>}
+      {detail&&<text x={area.x} y={area.z} textAnchor="middle" fill="#ffe1a0" stroke="#081323" strokeWidth={.65*k} paintOrder="stroke" fontWeight={700} fontSize={2.3*k}>{area.name} · 未解锁</text>}
     </g>)}
     {(Object.keys(TOWN_DESTINATIONS) as DestinationId[]).map(id => {
       if (id === 'leisure') return null;

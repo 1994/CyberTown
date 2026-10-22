@@ -57,8 +57,8 @@ function LockedArea({area}:{area:typeof TOWN_LOCKED_AREAS[number]}) {
   if(detail.current)detail.current.style.display=distance<10?'block':'none';
  });
  return <WorldLabel position={[area.x,4.3,area.z]} center zIndexRange={[4,0]} style={{pointerEvents:'none'}}>
-  <div ref={badge} data-testid={`locked-area-${area.id}`} style={{display:'none',alignItems:'center',gap:5,padding:'5px 7px',border:'1px solid #8b9bb355',background:'#101927e8',color:'#b7c3d5',fontSize:10,whiteSpace:'nowrap',borderRadius:4,pointerEvents:'none'}}>
-   <LockKeyhole size={12}/><div><span>{area.name} · 未解锁</span><div ref={detail} style={{display:'none',fontSize:10,color:'#e2cd9e',marginTop:5}}>{area.hint}</div></div>
+  <div ref={badge} data-testid={`locked-area-${area.id}`} className="town-locked-area" style={{display:'none'}}>
+   <LockKeyhole size={24} aria-hidden="true"/><div><strong>{area.name}</strong><span className="town-locked-status">未解锁 · 后续开放</span><div ref={detail} className="town-locked-hint" style={{display:'none'}}>{area.hint}</div></div>
   </div>
  </WorldLabel>;
 }
