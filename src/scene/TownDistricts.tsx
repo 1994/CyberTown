@@ -1,3 +1,4 @@
+import { SouthLeisure } from './SouthLeisure';
 import { NeonTower, NeonQuarterStatic, NeonQuarterLife } from './NeonQuarter';
 import { useMemo } from 'react';
 import * as THREE from 'three';
@@ -244,6 +245,7 @@ export function TownDistricts() {
     </StaticBatch>
     <NeonQuarterLife/>
     <TownExpansion />
+    <SouthLeisure />
     <OuterBlocks />
   </group>;
 }

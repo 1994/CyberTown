@@ -1,3 +1,4 @@
+import { SOUTH_BOXES } from './southLeisure.ts';
 import { SPORTS_BOXES } from './townActivities.ts';
 import { TOWN_VEHICLES, TOWN_CRATES } from './townLife.ts';
 // 园区地图：区域、出生点、碰撞体与寻路（前端使用；数值与 /api/world 的边界一致）。
@@ -35,7 +36,7 @@ export const STREET_BUILDINGS = [
   { x: -11, z: -28, w: 10, d: 6, h: 4, color: '#b18bff', sign: '准点下班' },
   { x: 11, z: -28, w: 10, d: 6, h: 4, color: '#ffd166', sign: '天台放空' },
 ];
-export const STREET_BENCHES: [number, number][] = [[-12, 28], [12, 28], [-39, 12], [39, 12], [-5, 28], [5, 28], [-5, 31.5], [5, 31.5]];
+export const STREET_BENCHES: [number, number][] = [[-12, 28], [12, 28], [-39, 12], [39, 12], [-5, 28], [5, 28], [-5, 31.5], [5, 31.5], [-11, 37.5], [-11, 41], [6, 41]];
 /** Thin street furniture still blocks feet; shared lamp positions keep art aligned. */
 export const STREET_LAMP_POLES: Circle[] = (() => {
   const poles: Circle[] = [];
@@ -173,6 +174,7 @@ export const OFFICE_DOORS = {
 
 export const BOXES: Box[] = [
   ...SPORTS_BOXES,
+  ...SOUTH_BOXES,
   ...TOWN_VEHICLES.map(v => centered(v.x, v.z, 2.1, 4.1)),
   ...TOWN_CRATES.map(v => centered(v.x, v.z, .9, .9)),
   ...STREET_BUILDINGS.map(b => centered(b.x, b.z, b.w, b.d)),

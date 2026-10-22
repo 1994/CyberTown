@@ -217,6 +217,7 @@ export const TOWN_KIOSKS: { x: number; z: number; w: number; d: number; district
   // 出生点南侧休闲广场：摊亭分列两翼，中轴与漫步道保持畅通。
   { x: -16, z: 30, w: 2.4, d: 1.6, district: 'commerce', color: '#ffba70' },
   { x: 16, z: 30, w: 2.4, d: 1.6, district: 'leisure', color: '#6debdc' },
+  { x: 12.8, z: 37, w: 2.4, d: 1.6, district: 'leisure', color: '#ffba70' },
   // 南岸公园
   { x: -20, z: 59, w: 2.2, d: 1.6, district: 'plaza', color: '#ffd166' },
   { x: 20, z: 59, w: 2.2, d: 1.6, district: 'plaza', color: '#b18bff' },
@@ -242,7 +243,9 @@ export const TOWN_TREES: [number, number][] = [
   ...[-80, -58, -45, -15, 15, 45, 58, 80].map(x => [x, 38] as [number, number]),
   ...[-70, -50, -30, -12, 12, 30, 50, 70].map(x => [x, 57] as [number, number]),
   ...[-60, -40, 40, 60].map(x => [x, 63] as [number, number]),
-  [-62, -2], [60, 2], [-40, 32], [40, 32], [-20, 34], [16, 34],
+  [-62, -2], [60, 2], [-40, 32], [40, 32], [-20, 34], [10, 44],
+  // 南侧林荫步道两翼，中央步行轴与车道留空
+  [-14,35],[-14,42],[4,35],[4,44],[14,44],[38,42],
   // 口袋花园
   [-62.5, 23], [-63.5, 27], [-47.5, 22], [-46, 27], [47, 24], [48.5, 29], [66, 25], [64, 29.5],
 ];
