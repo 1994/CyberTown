@@ -19,6 +19,8 @@ type TeaChapter struct {
 	ActiveSessionID *string `json:"activeSessionId"`
 }
 type TeaLiveCustomer struct {
+	Patience float64 `json:"patience"`
+	Seat     int     `json:"seat"`
 	ID       int     `json:"id"`
 	State    string  `json:"state"`
 	At       float64 `json:"at"`
@@ -152,7 +154,15 @@ func teaResolveLive(tx storage.Tx, player, day, lesson string, plan TeaPlan) ([]
 	if err != nil {
 		return nil, err
 	}
-	ws = append(ws, teaSelf(player, name, color))
+	selfWorker := teaSelf(player, name, color)
+	if lesson == "rescue" {
+		progress, e := teaCounterRead(tx, player)
+		if e != nil {
+			return nil, e
+		}
+		selfWorker = counterSelf(selfWorker, progress)
+	}
+	ws = append(ws, selfWorker)
 	byID := map[string]TeaWorker{}
 	for _, w := range ws {
 		byID[w.ID] = w
@@ -270,7 +280,12 @@ func (g *Game) TeaOpen(player string, input TeaOpenSession) (TeaSession, error) 
 			if err := tx.QueryRow("SELECT level FROM tea_shops WHERE player_id=?", player).Scan(&level); err != nil {
 				return err
 			}
-			ch = teaBusinessChallenge(day, level)
+			progress, e := teaCounterRead(tx, player)
+			if e != nil {
+				return e
+			}
+			ch = counterChallenge(day, level, progress.Day)
+			day = fmt.Sprintf("town-day-%d", progress.Day)
 		}
 		s := teaLiveRecord{ID: randomID(), Lesson: input.Lesson, Status: "active", Day: day, Key: input.Key, OpeningCoins: coins, Commands: []TeaCommand{}, Receipts: map[string]string{}, ReceiptOrder: []string{}}
 		s.Run = TeaRun{ID: s.ID, Mode: input.Mode, Challenge: ch, Plan: input.Plan, Workers: workers, CoinsAfter: coins}
@@ -280,7 +295,7 @@ func (g *Game) TeaOpen(player string, input TeaOpenSession) (TeaSession, error) 
 			if err = tx.QueryRow("SELECT (SELECT COUNT(*) FROM tea_runs WHERE player_id=? AND day=? AND mode='official')+(SELECT COUNT(*) FROM tea_sessions WHERE player_id=? AND day=? AND mode='official' AND status='active')", player, day, player, day).Scan(&used); err != nil {
 				return err
 			}
-			if used >= 3 {
+			if used >= 3 && ch.Flow != "counter.1" {
 				return fail(409, "TEA_DAILY_LIMIT", "今天正式营业机会已用完，可继续免费试营")
 			}
 			for _, w := range workers {
@@ -340,7 +355,7 @@ func (g *Game) TeaStepSession(player, id string, input TeaStep) (TeaSession, err
 		return out, fail(400, "TEA_STEP", "营业操作无效")
 	}
 	if input.Assign != "" && input.Assign != "cashier" && input.Assign != "maker" {
-		return out, fail(400, "TEA_ROLE", "只能指派自己接待或制作")
+		return out, fail(400, "TEA_ROLE", "请选择制作或端送岗位")
 	}
 	raw, _ := json.Marshal(input)
 	request := string(raw)
@@ -460,6 +475,11 @@ func (g *Game) teaFinishLive(tx storage.Tx, player string, s *teaLiveRecord) err
 		}
 		if _, err := tx.Exec("UPDATE tea_shops SET runs=runs+1,best=MAX(best,?) WHERE player_id=?", r.Result.Completed, player); err != nil {
 			return err
+		}
+		if r.Challenge.Flow == "counter.1" {
+			if _, err := tx.Exec("UPDATE tea_counter_progress SET day=day+1,maker_xp=maker_xp+?,service_xp=service_xp+? WHERE player_id=?", r.Result.SelfMade, r.Result.SelfServed, player); err != nil {
+				return err
+			}
 		}
 		if err := teaBusinessRecord(tx, player, *r); err != nil {
 			return err

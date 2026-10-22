@@ -34,6 +34,16 @@ func (a *App) handleTea(w http.ResponseWriter, r *http.Request, player string) e
 		}
 	}
 	switch {
+	case path == "/api/tea/guide" && r.Method == "POST":
+		var body struct{}
+		if err := teaDecode(w, r, &body); err != nil {
+			return err
+		}
+		h, err := a.Game.TeaDismissGuide(player)
+		if err != nil {
+			return err
+		}
+		respond(w, 200, h)
 	case path == "/api/tea/explore" && r.Method == "POST":
 		var body struct {
 			SiteID string `json:"siteId"`

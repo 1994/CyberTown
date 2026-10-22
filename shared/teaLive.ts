@@ -14,6 +14,7 @@ export interface TeaChapter {
 }
 
 export interface TeaLiveHome extends TeaHome {
+ counter?: { day: number; makerXp: number; serviceXp: number; guideSeen: boolean };
   exploration?: TownExploration;
   chapter: TeaChapter;
   mission: TeaMission;
@@ -21,8 +22,10 @@ export interface TeaLiveHome extends TeaHome {
 }
 
 export interface TeaLiveCustomer {
+ patience?: number;
+ seat?: number;
   id: number;
-  state: 'cashier' | 'ordering' | 'maker' | 'making' | 'served' | 'lost';
+  state: 'waiting' | 'cashier' | 'ordering' | 'maker' | 'making' | 'ready' | 'delivering' | 'served' | 'lost';
   at: number;
   workerId?: string;
 }

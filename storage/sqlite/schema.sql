@@ -231,3 +231,11 @@ CREATE TABLE IF NOT EXISTS town_employee_market (
  UNIQUE(seller_id,request_key)
 );
 CREATE UNIQUE INDEX IF NOT EXISTS idx_town_employee_listing ON town_employee_market(seller_id,source_id) WHERE status='active';
+
+CREATE TABLE IF NOT EXISTS tea_counter_progress (
+ player_id TEXT PRIMARY KEY REFERENCES players(id) ON DELETE CASCADE,
+ day INTEGER NOT NULL DEFAULT 1,
+ maker_xp INTEGER NOT NULL DEFAULT 0,
+ service_xp INTEGER NOT NULL DEFAULT 0,
+ guide_seen INTEGER NOT NULL DEFAULT 0
+);

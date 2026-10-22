@@ -84,8 +84,8 @@ func TestTeaBusinessProgressionAndActualRewards(t *testing.T) {
 			}
 		}
 	}
-	if h.Coins <= 0 || h.Shop.Runs != 3 || h.AttemptsRemaining != 0 {
-		t.Fatal("three-service loop or daily limits changed", h)
+	if h.Coins <= 0 || h.Shop.Runs != 3 || h.Counter.Day != 4 {
+		t.Fatal("three-service loop or player-driven day progression changed", h)
 	}
 	checkAudit(t, g)
 }

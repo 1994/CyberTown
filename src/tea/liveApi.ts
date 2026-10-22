@@ -44,6 +44,7 @@ export async function teaCall<T>(method: string, path: string, body?: unknown): 
 const call = teaCall;
 
 export const teaLiveApi = {
+ dismissGuide: () => call<TeaLiveHome>('POST', '/api/tea/guide', {}),
   explore: (siteId: string) => call<TeaLiveHome>('POST', '/api/tea/explore', { siteId }),
   home: () => call<TeaLiveHome>('GET', '/api/tea/home'),
   open: (input: TeaOpenSession) =>

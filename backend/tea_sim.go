@@ -31,6 +31,8 @@ type TeaPlan struct {
 	Strategy    string          `json:"strategy"`
 }
 type TeaChallenge struct {
+	Flow          string `json:"flow,omitempty"`
+	BusinessDay   int    `json:"businessDay,omitempty"`
 	ID            string `json:"id"`
 	Seed          uint32 `json:"seed"`
 	RuleVersion   string `json:"ruleVersion"`
@@ -63,6 +65,8 @@ type TeaEvent struct {
 	Reason     string  `json:"reason,omitempty"`
 }
 type TeaResult struct {
+	SelfMade         int            `json:"selfMade,omitempty"`
+	SelfServed       int            `json:"selfServed,omitempty"`
 	Arrivals         int            `json:"arrivals"`
 	Accepted         int            `json:"accepted"`
 	Completed        int            `json:"completed"`
@@ -102,6 +106,7 @@ type TeaRun struct {
 }
 
 type teaCustomer struct {
+	seat                              int
 	id                                int
 	arrival, patience, waited, queued float64
 	state                             string
@@ -128,6 +133,9 @@ func simulateTea(ch TeaChallenge, plan TeaPlan, workers []TeaWorker) TeaResult {
 // Both legacy replays and live play use this core. Live requests reveal only
 // the prefix reached by the server-owned clock and accepted command timeline.
 func simulateTeaUntil(ch TeaChallenge, plan TeaPlan, workers []TeaWorker, until int, commands []TeaCommand, manual bool, lesson string) (TeaResult, TeaLiveFrame) {
+	if ch.Flow == "counter.1" {
+		return simulateCounter(ch, plan, workers, until, commands)
+	}
 	r := TeaResult{Arrivals: ch.Arrivals, MaterialCost: plan.Stock * ch.MaterialCost, OperatingCost: ch.OperatingCost, SkillCounts: map[string]int{}, Frames: []TeaFrame{}, Events: []TeaEvent{}}
 	for _, w := range workers {
 		r.Wages += w.Salary

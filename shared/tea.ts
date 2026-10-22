@@ -37,6 +37,8 @@ export interface TeaPlan {
 }
 
 export interface TeaChallenge {
+ flow?: string;
+ businessDay?: number;
   id: string;
   seed: number;
   ruleVersion: string;
@@ -121,6 +123,8 @@ export interface TeaEvent {
 }
 
 export interface TeaResult {
+ selfMade?: number;
+ selfServed?: number;
   arrivals: number;
   accepted: number;
   completed: number;

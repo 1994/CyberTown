@@ -1,0 +1,2050 @@
+{
+  "elapsed": 127933,
+  "run": {
+    "id": "e96c5104a6d5c4ed421d7c6245b9d05cd11fec3865be6cdc",
+    "mode": "official",
+    "challenge": {
+      "flow": "counter.1",
+      "businessDay": 1,
+      "id": "counter-1-lv1",
+      "seed": 663506081,
+      "ruleVersion": "tea.4",
+      "shopLevel": 1,
+      "name": "救救街角奶茶",
+      "duration": 120,
+      "arrivals": 20,
+      "target": 12,
+      "budget": 1100,
+      "price": 20,
+      "materialCost": 6,
+      "operatingCost": 120
+    },
+    "plan": {
+      "assignments": [
+        {
+          "workerId": "self",
+          "role": "support"
+        }
+      ],
+      "stock": 20,
+      "strategy": "balanced"
+    },
+    "workers": [
+      {
+        "id": "self",
+        "playerId": "wang",
+        "name": "老王",
+        "color": "#ff8a3d",
+        "service": 60,
+        "production": 60,
+        "adaptability": 95,
+        "skill": "rescue_captain",
+        "salary": 0,
+        "enabled": true,
+        "remaining": 999,
+        "demo": false
+      }
+    ],
+    "result": {
+      "selfMade": 19,
+      "selfServed": 16,
+      "arrivals": 20,
+      "accepted": 20,
+      "completed": 16,
+      "lost": 4,
+      "receptionRate": 0.8,
+      "revenue": 320,
+      "materialCost": 120,
+      "wages": 0,
+      "operatingCost": 120,
+      "totalCost": 240,
+      "profit": 80,
+      "bonus": 200,
+      "peakCashierQueue": 3,
+      "peakMakerQueue": 6,
+      "avgCashierWait": 0,
+      "avgMakerWait": 0,
+      "stockLeft": 1,
+      "lostCashier": 3,
+      "lostMaker": 1,
+      "lostStock": 0,
+      "passed": true,
+      "bottleneck": "饮品做好却没送达",
+      "suggestion": "取餐台有杯子时优先端送，或给端送岗安排员工。",
+      "skillCounts": {},
+      "frames": [
+        {
+          "t": 0,
+          "customers": 0,
+          "served": 0,
+          "lost": 0,
+          "cashierQueue": 0,
+          "makerQueue": 0,
+          "stock": 20
+        },
+        {
+          "t": 1,
+          "customers": 0,
+          "served": 0,
+          "lost": 0,
+          "cashierQueue": 0,
+          "makerQueue": 0,
+          "stock": 20
+        },
+        {
+          "t": 2,
+          "customers": 1,
+          "served": 0,
+          "lost": 0,
+          "cashierQueue": 0,
+          "makerQueue": 0,
+          "stock": 19
+        },
+        {
+          "t": 3,
+          "customers": 1,
+          "served": 0,
+          "lost": 0,
+          "cashierQueue": 0,
+          "makerQueue": 0,
+          "stock": 19
+        },
+        {
+          "t": 4,
+          "customers": 1,
+          "served": 0,
+          "lost": 0,
+          "cashierQueue": 0,
+          "makerQueue": 0,
+          "stock": 19
+        },
+        {
+          "t": 5,
+          "customers": 1,
+          "served": 0,
+          "lost": 0,
+          "cashierQueue": 0,
+          "makerQueue": 0,
+          "stock": 19
+        },
+        {
+          "t": 6,
+          "customers": 1,
+          "served": 0,
+          "lost": 0,
+          "cashierQueue": 0,
+          "makerQueue": 0,
+          "stock": 19
+        },
+        {
+          "t": 7,
+          "customers": 2,
+          "served": 0,
+          "lost": 0,
+          "cashierQueue": 0,
+          "makerQueue": 1,
+          "stock": 19
+        },
+        {
+          "t": 8,
+          "customers": 2,
+          "served": 0,
+          "lost": 0,
+          "cashierQueue": 0,
+          "makerQueue": 1,
+          "stock": 19
+        },
+        {
+          "t": 9,
+          "customers": 2,
+          "served": 1,
+          "lost": 0,
+          "cashierQueue": 0,
+          "makerQueue": 0,
+          "stock": 18
+        },
+        {
+          "t": 10,
+          "customers": 2,
+          "served": 1,
+          "lost": 0,
+          "cashierQueue": 0,
+          "makerQueue": 0,
+          "stock": 18
+        },
+        {
+          "t": 11,
+          "customers": 3,
+          "served": 1,
+          "lost": 0,
+          "cashierQueue": 0,
+          "makerQueue": 1,
+          "stock": 18
+        },
+        {
+          "t": 12,
+          "customers": 3,
+          "served": 1,
+          "lost": 0,
+          "cashierQueue": 0,
+          "makerQueue": 1,
+          "stock": 18
+        },
+        {
+          "t": 13,
+          "customers": 3,
+          "served": 1,
+          "lost": 0,
+          "cashierQueue": 1,
+          "makerQueue": 0,
+          "stock": 17
+        },
+        {
+          "t": 14,
+          "customers": 3,
+          "served": 1,
+          "lost": 0,
+          "cashierQueue": 1,
+          "makerQueue": 0,
+          "stock": 17
+        },
+        {
+          "t": 15,
+          "customers": 4,
+          "served": 1,
+          "lost": 0,
+          "cashierQueue": 1,
+          "makerQueue": 1,
+          "stock": 17
+        },
+        {
+          "t": 16,
+          "customers": 4,
+          "served": 1,
+          "lost": 0,
+          "cashierQueue": 2,
+          "makerQueue": 0,
+          "stock": 16
+        },
+        {
+          "t": 17,
+          "customers": 4,
+          "served": 1,
+          "lost": 0,
+          "cashierQueue": 2,
+          "makerQueue": 0,
+          "stock": 16
+        },
+        {
+          "t": 18,
+          "customers": 4,
+          "served": 1,
+          "lost": 0,
+          "cashierQueue": 2,
+          "makerQueue": 0,
+          "stock": 16
+        },
+        {
+          "t": 19,
+          "customers": 5,
+          "served": 1,
+          "lost": 0,
+          "cashierQueue": 2,
+          "makerQueue": 1,
+          "stock": 16
+        },
+        {
+          "t": 20,
+          "customers": 5,
+          "served": 1,
+          "lost": 0,
+          "cashierQueue": 2,
+          "makerQueue": 1,
+          "stock": 16
+        },
+        {
+          "t": 21,
+          "customers": 5,
+          "served": 1,
+          "lost": 0,
+          "cashierQueue": 2,
+          "makerQueue": 1,
+          "stock": 16
+        },
+        {
+          "t": 22,
+          "customers": 5,
+          "served": 1,
+          "lost": 0,
+          "cashierQueue": 2,
+          "makerQueue": 1,
+          "stock": 16
+        },
+        {
+          "t": 23,
+          "customers": 5,
+          "served": 2,
+          "lost": 0,
+          "cashierQueue": 1,
+          "makerQueue": 1,
+          "stock": 16
+        },
+        {
+          "t": 24,
+          "customers": 6,
+          "served": 2,
+          "lost": 0,
+          "cashierQueue": 1,
+          "makerQueue": 2,
+          "stock": 16
+        },
+        {
+          "t": 25,
+          "customers": 6,
+          "served": 2,
+          "lost": 0,
+          "cashierQueue": 1,
+          "makerQueue": 2,
+          "stock": 16
+        },
+        {
+          "t": 26,
+          "customers": 6,
+          "served": 3,
+          "lost": 0,
+          "cashierQueue": 0,
+          "makerQueue": 2,
+          "stock": 16
+        },
+        {
+          "t": 27,
+          "customers": 6,
+          "served": 3,
+          "lost": 0,
+          "cashierQueue": 0,
+          "makerQueue": 2,
+          "stock": 16
+        },
+        {
+          "t": 28,
+          "customers": 7,
+          "served": 3,
+          "lost": 0,
+          "cashierQueue": 0,
+          "makerQueue": 3,
+          "stock": 16
+        },
+        {
+          "t": 29,
+          "customers": 7,
+          "served": 4,
+          "lost": 0,
+          "cashierQueue": 0,
+          "makerQueue": 2,
+          "stock": 15
+        },
+        {
+          "t": 30,
+          "customers": 7,
+          "served": 4,
+          "lost": 0,
+          "cashierQueue": 0,
+          "makerQueue": 2,
+          "stock": 15
+        },
+        {
+          "t": 31,
+          "customers": 7,
+          "served": 4,
+          "lost": 0,
+          "cashierQueue": 0,
+          "makerQueue": 2,
+          "stock": 15
+        },
+        {
+          "t": 32,
+          "customers": 8,
+          "served": 4,
+          "lost": 0,
+          "cashierQueue": 0,
+          "makerQueue": 3,
+          "stock": 15
+        },
+        {
+          "t": 33,
+          "customers": 8,
+          "served": 4,
+          "lost": 0,
+          "cashierQueue": 1,
+          "makerQueue": 2,
+          "stock": 14
+        },
+        {
+          "t": 34,
+          "customers": 8,
+          "served": 4,
+          "lost": 0,
+          "cashierQueue": 1,
+          "makerQueue": 2,
+          "stock": 14
+        },
+        {
+          "t": 35,
+          "customers": 8,
+          "served": 4,
+          "lost": 0,
+          "cashierQueue": 1,
+          "makerQueue": 2,
+          "stock": 14
+        },
+        {
+          "t": 36,
+          "customers": 9,
+          "served": 4,
+          "lost": 0,
+          "cashierQueue": 2,
+          "makerQueue": 2,
+          "stock": 13
+        },
+        {
+          "t": 37,
+          "customers": 9,
+          "served": 4,
+          "lost": 0,
+          "cashierQueue": 2,
+          "makerQueue": 2,
+          "stock": 13
+        },
+        {
+          "t": 38,
+          "customers": 9,
+          "served": 4,
+          "lost": 0,
+          "cashierQueue": 2,
+          "makerQueue": 2,
+          "stock": 13
+        },
+        {
+          "t": 39,
+          "customers": 9,
+          "served": 4,
+          "lost": 0,
+          "cashierQueue": 2,
+          "makerQueue": 2,
+          "stock": 13
+        },
+        {
+          "t": 40,
+          "customers": 10,
+          "served": 4,
+          "lost": 0,
+          "cashierQueue": 2,
+          "makerQueue": 3,
+          "stock": 13
+        },
+        {
+          "t": 41,
+          "customers": 10,
+          "served": 4,
+          "lost": 0,
+          "cashierQueue": 2,
+          "makerQueue": 3,
+          "stock": 13
+        },
+        {
+          "t": 42,
+          "customers": 10,
+          "served": 4,
+          "lost": 0,
+          "cashierQueue": 2,
+          "makerQueue": 3,
+          "stock": 13
+        },
+        {
+          "t": 43,
+          "customers": 10,
+          "served": 5,
+          "lost": 0,
+          "cashierQueue": 1,
+          "makerQueue": 3,
+          "stock": 13
+        },
+        {
+          "t": 44,
+          "customers": 10,
+          "served": 5,
+          "lost": 0,
+          "cashierQueue": 1,
+          "makerQueue": 3,
+          "stock": 13
+        },
+        {
+          "t": 45,
+          "customers": 11,
+          "served": 5,
+          "lost": 0,
+          "cashierQueue": 1,
+          "makerQueue": 4,
+          "stock": 13
+        },
+        {
+          "t": 46,
+          "customers": 11,
+          "served": 6,
+          "lost": 0,
+          "cashierQueue": 0,
+          "makerQueue": 4,
+          "stock": 13
+        },
+        {
+          "t": 47,
+          "customers": 11,
+          "served": 6,
+          "lost": 0,
+          "cashierQueue": 0,
+          "makerQueue": 4,
+          "stock": 13
+        },
+        {
+          "t": 48,
+          "customers": 11,
+          "served": 6,
+          "lost": 0,
+          "cashierQueue": 0,
+          "makerQueue": 4,
+          "stock": 13
+        },
+        {
+          "t": 49,
+          "customers": 12,
+          "served": 7,
+          "lost": 0,
+          "cashierQueue": 0,
+          "makerQueue": 4,
+          "stock": 12
+        },
+        {
+          "t": 50,
+          "customers": 12,
+          "served": 7,
+          "lost": 0,
+          "cashierQueue": 0,
+          "makerQueue": 4,
+          "stock": 12
+        },
+        {
+          "t": 51,
+          "customers": 12,
+          "served": 7,
+          "lost": 0,
+          "cashierQueue": 0,
+          "makerQueue": 4,
+          "stock": 12
+        },
+        {
+          "t": 52,
+          "customers": 12,
+          "served": 7,
+          "lost": 0,
+          "cashierQueue": 0,
+          "makerQueue": 4,
+          "stock": 12
+        },
+        {
+          "t": 53,
+          "customers": 13,
+          "served": 7,
+          "lost": 0,
+          "cashierQueue": 1,
+          "makerQueue": 4,
+          "stock": 11
+        },
+        {
+          "t": 54,
+          "customers": 13,
+          "served": 7,
+          "lost": 0,
+          "cashierQueue": 1,
+          "makerQueue": 4,
+          "stock": 11
+        },
+        {
+          "t": 55,
+          "customers": 13,
+          "served": 7,
+          "lost": 0,
+          "cashierQueue": 1,
+          "makerQueue": 4,
+          "stock": 11
+        },
+        {
+          "t": 56,
+          "customers": 13,
+          "served": 7,
+          "lost": 0,
+          "cashierQueue": 2,
+          "makerQueue": 3,
+          "stock": 10
+        },
+        {
+          "t": 57,
+          "customers": 14,
+          "served": 7,
+          "lost": 0,
+          "cashierQueue": 2,
+          "makerQueue": 4,
+          "stock": 10
+        },
+        {
+          "t": 58,
+          "customers": 14,
+          "served": 7,
+          "lost": 0,
+          "cashierQueue": 2,
+          "makerQueue": 4,
+          "stock": 10
+        },
+        {
+          "t": 59,
+          "customers": 14,
+          "served": 7,
+          "lost": 0,
+          "cashierQueue": 2,
+          "makerQueue": 4,
+          "stock": 10
+        },
+        {
+          "t": 60,
+          "customers": 14,
+          "served": 7,
+          "lost": 0,
+          "cashierQueue": 2,
+          "makerQueue": 4,
+          "stock": 10
+        },
+        {
+          "t": 61,
+          "customers": 15,
+          "served": 7,
+          "lost": 0,
+          "cashierQueue": 2,
+          "makerQueue": 5,
+          "stock": 10
+        },
+        {
+          "t": 62,
+          "customers": 15,
+          "served": 7,
+          "lost": 0,
+          "cashierQueue": 2,
+          "makerQueue": 5,
+          "stock": 10
+        },
+        {
+          "t": 63,
+          "customers": 15,
+          "served": 8,
+          "lost": 0,
+          "cashierQueue": 1,
+          "makerQueue": 5,
+          "stock": 10
+        },
+        {
+          "t": 64,
+          "customers": 15,
+          "served": 8,
+          "lost": 0,
+          "cashierQueue": 1,
+          "makerQueue": 5,
+          "stock": 10
+        },
+        {
+          "t": 65,
+          "customers": 15,
+          "served": 8,
+          "lost": 0,
+          "cashierQueue": 1,
+          "makerQueue": 5,
+          "stock": 10
+        },
+        {
+          "t": 66,
+          "customers": 16,
+          "served": 9,
+          "lost": 0,
+          "cashierQueue": 0,
+          "makerQueue": 5,
+          "stock": 10
+        },
+        {
+          "t": 67,
+          "customers": 16,
+          "served": 9,
+          "lost": 0,
+          "cashierQueue": 0,
+          "makerQueue": 5,
+          "stock": 10
+        },
+        {
+          "t": 68,
+          "customers": 16,
+          "served": 9,
+          "lost": 0,
+          "cashierQueue": 0,
+          "makerQueue": 6,
+          "stock": 10
+        },
+        {
+          "t": 69,
+          "customers": 16,
+          "served": 10,
+          "lost": 0,
+          "cashierQueue": 0,
+          "makerQueue": 5,
+          "stock": 9
+        },
+        {
+          "t": 70,
+          "customers": 17,
+          "served": 10,
+          "lost": 0,
+          "cashierQueue": 0,
+          "makerQueue": 5,
+          "stock": 9
+        },
+        {
+          "t": 71,
+          "customers": 17,
+          "served": 10,
+          "lost": 0,
+          "cashierQueue": 0,
+          "makerQueue": 6,
+          "stock": 9
+        },
+        {
+          "t": 72,
+          "customers": 17,
+          "served": 10,
+          "lost": 0,
+          "cashierQueue": 0,
+          "makerQueue": 6,
+          "stock": 9
+        },
+        {
+          "t": 73,
+          "customers": 17,
+          "served": 10,
+          "lost": 0,
+          "cashierQueue": 1,
+          "makerQueue": 5,
+          "stock": 8
+        },
+        {
+          "t": 74,
+          "customers": 18,
+          "served": 10,
+          "lost": 0,
+          "cashierQueue": 1,
+          "makerQueue": 6,
+          "stock": 8
+        },
+        {
+          "t": 75,
+          "customers": 18,
+          "served": 10,
+          "lost": 0,
+          "cashierQueue": 1,
+          "makerQueue": 6,
+          "stock": 8
+        },
+        {
+          "t": 76,
+          "customers": 18,
+          "served": 10,
+          "lost": 0,
+          "cashierQueue": 2,
+          "makerQueue": 5,
+          "stock": 7
+        },
+        {
+          "t": 77,
+          "customers": 18,
+          "served": 10,
+          "lost": 0,
+          "cashierQueue": 2,
+          "makerQueue": 5,
+          "stock": 7
+        },
+        {
+          "t": 78,
+          "customers": 19,
+          "served": 10,
+          "lost": 0,
+          "cashierQueue": 2,
+          "makerQueue": 5,
+          "stock": 7
+        },
+        {
+          "t": 79,
+          "customers": 19,
+          "served": 10,
+          "lost": 0,
+          "cashierQueue": 2,
+          "makerQueue": 5,
+          "stock": 7
+        },
+        {
+          "t": 80,
+          "customers": 19,
+          "served": 10,
+          "lost": 0,
+          "cashierQueue": 2,
+          "makerQueue": 5,
+          "stock": 7
+        },
+        {
+          "t": 81,
+          "customers": 19,
+          "served": 10,
+          "lost": 0,
+          "cashierQueue": 2,
+          "makerQueue": 5,
+          "stock": 7
+        },
+        {
+          "t": 82,
+          "customers": 20,
+          "served": 10,
+          "lost": 0,
+          "cashierQueue": 2,
+          "makerQueue": 5,
+          "stock": 7
+        },
+        {
+          "t": 83,
+          "customers": 20,
+          "served": 11,
+          "lost": 0,
+          "cashierQueue": 1,
+          "makerQueue": 5,
+          "stock": 7
+        },
+        {
+          "t": 84,
+          "customers": 20,
+          "served": 11,
+          "lost": 0,
+          "cashierQueue": 1,
+          "makerQueue": 5,
+          "stock": 7
+        },
+        {
+          "t": 85,
+          "customers": 20,
+          "served": 11,
+          "lost": 0,
+          "cashierQueue": 1,
+          "makerQueue": 5,
+          "stock": 7
+        },
+        {
+          "t": 86,
+          "customers": 20,
+          "served": 12,
+          "lost": 0,
+          "cashierQueue": 0,
+          "makerQueue": 5,
+          "stock": 7
+        },
+        {
+          "t": 87,
+          "customers": 20,
+          "served": 12,
+          "lost": 0,
+          "cashierQueue": 0,
+          "makerQueue": 5,
+          "stock": 7
+        },
+        {
+          "t": 88,
+          "customers": 20,
+          "served": 12,
+          "lost": 0,
+          "cashierQueue": 0,
+          "makerQueue": 6,
+          "stock": 7
+        },
+        {
+          "t": 89,
+          "customers": 20,
+          "served": 13,
+          "lost": 0,
+          "cashierQueue": 0,
+          "makerQueue": 5,
+          "stock": 6
+        },
+        {
+          "t": 90,
+          "customers": 20,
+          "served": 13,
+          "lost": 0,
+          "cashierQueue": 0,
+          "makerQueue": 5,
+          "stock": 6
+        },
+        {
+          "t": 91,
+          "customers": 20,
+          "served": 13,
+          "lost": 0,
+          "cashierQueue": 0,
+          "makerQueue": 6,
+          "stock": 6
+        },
+        {
+          "t": 92,
+          "customers": 20,
+          "served": 13,
+          "lost": 0,
+          "cashierQueue": 0,
+          "makerQueue": 6,
+          "stock": 6
+        },
+        {
+          "t": 93,
+          "customers": 20,
+          "served": 13,
+          "lost": 0,
+          "cashierQueue": 1,
+          "makerQueue": 5,
+          "stock": 5
+        },
+        {
+          "t": 94,
+          "customers": 20,
+          "served": 13,
+          "lost": 0,
+          "cashierQueue": 1,
+          "makerQueue": 5,
+          "stock": 5
+        },
+        {
+          "t": 95,
+          "customers": 20,
+          "served": 13,
+          "lost": 0,
+          "cashierQueue": 1,
+          "makerQueue": 5,
+          "stock": 5
+        },
+        {
+          "t": 96,
+          "customers": 20,
+          "served": 13,
+          "lost": 0,
+          "cashierQueue": 2,
+          "makerQueue": 4,
+          "stock": 4
+        },
+        {
+          "t": 97,
+          "customers": 20,
+          "served": 13,
+          "lost": 0,
+          "cashierQueue": 2,
+          "makerQueue": 4,
+          "stock": 4
+        },
+        {
+          "t": 98,
+          "customers": 20,
+          "served": 13,
+          "lost": 0,
+          "cashierQueue": 2,
+          "makerQueue": 4,
+          "stock": 4
+        },
+        {
+          "t": 99,
+          "customers": 20,
+          "served": 13,
+          "lost": 0,
+          "cashierQueue": 2,
+          "makerQueue": 4,
+          "stock": 4
+        },
+        {
+          "t": 100,
+          "customers": 20,
+          "served": 13,
+          "lost": 0,
+          "cashierQueue": 2,
+          "makerQueue": 4,
+          "stock": 4
+        },
+        {
+          "t": 101,
+          "customers": 20,
+          "served": 13,
+          "lost": 0,
+          "cashierQueue": 2,
+          "makerQueue": 4,
+          "stock": 4
+        },
+        {
+          "t": 102,
+          "customers": 20,
+          "served": 13,
+          "lost": 0,
+          "cashierQueue": 2,
+          "makerQueue": 4,
+          "stock": 4
+        },
+        {
+          "t": 103,
+          "customers": 20,
+          "served": 14,
+          "lost": 0,
+          "cashierQueue": 1,
+          "makerQueue": 4,
+          "stock": 4
+        },
+        {
+          "t": 104,
+          "customers": 20,
+          "served": 14,
+          "lost": 0,
+          "cashierQueue": 1,
+          "makerQueue": 4,
+          "stock": 4
+        },
+        {
+          "t": 105,
+          "customers": 20,
+          "served": 14,
+          "lost": 0,
+          "cashierQueue": 1,
+          "makerQueue": 4,
+          "stock": 4
+        },
+        {
+          "t": 106,
+          "customers": 20,
+          "served": 15,
+          "lost": 0,
+          "cashierQueue": 0,
+          "makerQueue": 4,
+          "stock": 4
+        },
+        {
+          "t": 107,
+          "customers": 20,
+          "served": 15,
+          "lost": 0,
+          "cashierQueue": 0,
+          "makerQueue": 4,
+          "stock": 4
+        },
+        {
+          "t": 108,
+          "customers": 20,
+          "served": 15,
+          "lost": 0,
+          "cashierQueue": 0,
+          "makerQueue": 4,
+          "stock": 4
+        },
+        {
+          "t": 109,
+          "customers": 20,
+          "served": 16,
+          "lost": 0,
+          "cashierQueue": 0,
+          "makerQueue": 3,
+          "stock": 3
+        },
+        {
+          "t": 110,
+          "customers": 20,
+          "served": 16,
+          "lost": 0,
+          "cashierQueue": 0,
+          "makerQueue": 3,
+          "stock": 3
+        },
+        {
+          "t": 111,
+          "customers": 20,
+          "served": 16,
+          "lost": 0,
+          "cashierQueue": 0,
+          "makerQueue": 3,
+          "stock": 3
+        },
+        {
+          "t": 112,
+          "customers": 20,
+          "served": 16,
+          "lost": 0,
+          "cashierQueue": 0,
+          "makerQueue": 3,
+          "stock": 3
+        },
+        {
+          "t": 113,
+          "customers": 20,
+          "served": 16,
+          "lost": 0,
+          "cashierQueue": 1,
+          "makerQueue": 2,
+          "stock": 2
+        },
+        {
+          "t": 114,
+          "customers": 20,
+          "served": 16,
+          "lost": 0,
+          "cashierQueue": 1,
+          "makerQueue": 2,
+          "stock": 2
+        },
+        {
+          "t": 115,
+          "customers": 20,
+          "served": 16,
+          "lost": 0,
+          "cashierQueue": 1,
+          "makerQueue": 2,
+          "stock": 2
+        },
+        {
+          "t": 116,
+          "customers": 20,
+          "served": 16,
+          "lost": 0,
+          "cashierQueue": 2,
+          "makerQueue": 1,
+          "stock": 1
+        },
+        {
+          "t": 117,
+          "customers": 20,
+          "served": 16,
+          "lost": 0,
+          "cashierQueue": 2,
+          "makerQueue": 1,
+          "stock": 1
+        },
+        {
+          "t": 118,
+          "customers": 20,
+          "served": 16,
+          "lost": 0,
+          "cashierQueue": 2,
+          "makerQueue": 1,
+          "stock": 1
+        },
+        {
+          "t": 119,
+          "customers": 20,
+          "served": 16,
+          "lost": 0,
+          "cashierQueue": 2,
+          "makerQueue": 1,
+          "stock": 1
+        },
+        {
+          "t": 120,
+          "customers": 20,
+          "served": 16,
+          "lost": 4,
+          "cashierQueue": 0,
+          "makerQueue": 0,
+          "stock": 1
+        }
+      ],
+      "events": [
+        {
+          "t": 2,
+          "type": "customer_arrived",
+          "customerId": 1
+        },
+        {
+          "t": 2,
+          "type": "order_queued",
+          "customerId": 1,
+          "role": "maker"
+        },
+        {
+          "t": 2,
+          "type": "self_assigned",
+          "workerId": "self",
+          "role": "maker"
+        },
+        {
+          "t": 2,
+          "type": "making_started",
+          "customerId": 1,
+          "workerId": "self",
+          "role": "maker"
+        },
+        {
+          "t": 5.5,
+          "type": "drink_ready",
+          "customerId": 1,
+          "workerId": "self",
+          "role": "maker"
+        },
+        {
+          "t": 5.5,
+          "type": "self_idle",
+          "workerId": "self"
+        },
+        {
+          "t": 6,
+          "type": "self_assigned",
+          "workerId": "self",
+          "role": "cashier"
+        },
+        {
+          "t": 6,
+          "type": "delivery_started",
+          "customerId": 1,
+          "workerId": "self",
+          "role": "cashier"
+        },
+        {
+          "t": 6.25,
+          "type": "customer_arrived",
+          "customerId": 2
+        },
+        {
+          "t": 6.25,
+          "type": "order_queued",
+          "customerId": 2,
+          "role": "maker"
+        },
+        {
+          "t": 8.75,
+          "type": "order_fulfilled",
+          "customerId": 1,
+          "workerId": "self",
+          "role": "cashier"
+        },
+        {
+          "t": 8.75,
+          "type": "self_idle",
+          "workerId": "self"
+        },
+        {
+          "t": 9,
+          "type": "self_assigned",
+          "workerId": "self",
+          "role": "maker"
+        },
+        {
+          "t": 9,
+          "type": "making_started",
+          "customerId": 2,
+          "workerId": "self",
+          "role": "maker"
+        },
+        {
+          "t": 10.5,
+          "type": "customer_arrived",
+          "customerId": 3
+        },
+        {
+          "t": 10.5,
+          "type": "order_queued",
+          "customerId": 3,
+          "role": "maker"
+        },
+        {
+          "t": 12.5,
+          "type": "drink_ready",
+          "customerId": 2,
+          "workerId": "self",
+          "role": "maker"
+        },
+        {
+          "t": 12.5,
+          "type": "making_started",
+          "customerId": 3,
+          "workerId": "self",
+          "role": "maker"
+        },
+        {
+          "t": 14.75,
+          "type": "customer_arrived",
+          "customerId": 4
+        },
+        {
+          "t": 14.75,
+          "type": "order_queued",
+          "customerId": 4,
+          "role": "maker"
+        },
+        {
+          "t": 16,
+          "type": "drink_ready",
+          "customerId": 3,
+          "workerId": "self",
+          "role": "maker"
+        },
+        {
+          "t": 16,
+          "type": "making_started",
+          "customerId": 4,
+          "workerId": "self",
+          "role": "maker"
+        },
+        {
+          "t": 19,
+          "type": "customer_arrived",
+          "customerId": 5
+        },
+        {
+          "t": 19,
+          "type": "order_queued",
+          "customerId": 5,
+          "role": "maker"
+        },
+        {
+          "t": 19.5,
+          "type": "drink_ready",
+          "customerId": 4,
+          "workerId": "self",
+          "role": "maker"
+        },
+        {
+          "t": 19.5,
+          "type": "self_idle",
+          "workerId": "self"
+        },
+        {
+          "t": 20,
+          "type": "self_assigned",
+          "workerId": "self",
+          "role": "cashier"
+        },
+        {
+          "t": 20,
+          "type": "delivery_started",
+          "customerId": 2,
+          "workerId": "self",
+          "role": "cashier"
+        },
+        {
+          "t": 22.75,
+          "type": "order_fulfilled",
+          "customerId": 2,
+          "workerId": "self",
+          "role": "cashier"
+        },
+        {
+          "t": 22.75,
+          "type": "delivery_started",
+          "customerId": 3,
+          "workerId": "self",
+          "role": "cashier"
+        },
+        {
+          "t": 23.25,
+          "type": "customer_arrived",
+          "customerId": 6
+        },
+        {
+          "t": 23.25,
+          "type": "order_queued",
+          "customerId": 6,
+          "role": "maker"
+        },
+        {
+          "t": 25.5,
+          "type": "order_fulfilled",
+          "customerId": 3,
+          "workerId": "self",
+          "role": "cashier"
+        },
+        {
+          "t": 25.5,
+          "type": "delivery_started",
+          "customerId": 4,
+          "workerId": "self",
+          "role": "cashier"
+        },
+        {
+          "t": 27.5,
+          "type": "customer_arrived",
+          "customerId": 7
+        },
+        {
+          "t": 27.5,
+          "type": "order_queued",
+          "customerId": 7,
+          "role": "maker"
+        },
+        {
+          "t": 28.25,
+          "type": "order_fulfilled",
+          "customerId": 4,
+          "workerId": "self",
+          "role": "cashier"
+        },
+        {
+          "t": 28.25,
+          "type": "self_idle",
+          "workerId": "self"
+        },
+        {
+          "t": 29,
+          "type": "self_assigned",
+          "workerId": "self",
+          "role": "maker"
+        },
+        {
+          "t": 29,
+          "type": "making_started",
+          "customerId": 5,
+          "workerId": "self",
+          "role": "maker"
+        },
+        {
+          "t": 31.5,
+          "type": "customer_arrived",
+          "customerId": 8
+        },
+        {
+          "t": 31.5,
+          "type": "order_queued",
+          "customerId": 8,
+          "role": "maker"
+        },
+        {
+          "t": 32.5,
+          "type": "drink_ready",
+          "customerId": 5,
+          "workerId": "self",
+          "role": "maker"
+        },
+        {
+          "t": 32.5,
+          "type": "making_started",
+          "customerId": 6,
+          "workerId": "self",
+          "role": "maker"
+        },
+        {
+          "t": 35.75,
+          "type": "customer_arrived",
+          "customerId": 9
+        },
+        {
+          "t": 35.75,
+          "type": "order_queued",
+          "customerId": 9,
+          "role": "maker"
+        },
+        {
+          "t": 36,
+          "type": "drink_ready",
+          "customerId": 6,
+          "workerId": "self",
+          "role": "maker"
+        },
+        {
+          "t": 36,
+          "type": "making_started",
+          "customerId": 7,
+          "workerId": "self",
+          "role": "maker"
+        },
+        {
+          "t": 39.5,
+          "type": "drink_ready",
+          "customerId": 7,
+          "workerId": "self",
+          "role": "maker"
+        },
+        {
+          "t": 39.5,
+          "type": "self_idle",
+          "workerId": "self"
+        },
+        {
+          "t": 40,
+          "type": "customer_arrived",
+          "customerId": 10
+        },
+        {
+          "t": 40,
+          "type": "order_queued",
+          "customerId": 10,
+          "role": "maker"
+        },
+        {
+          "t": 40,
+          "type": "self_assigned",
+          "workerId": "self",
+          "role": "cashier"
+        },
+        {
+          "t": 40,
+          "type": "delivery_started",
+          "customerId": 5,
+          "workerId": "self",
+          "role": "cashier"
+        },
+        {
+          "t": 42.75,
+          "type": "order_fulfilled",
+          "customerId": 5,
+          "workerId": "self",
+          "role": "cashier"
+        },
+        {
+          "t": 42.75,
+          "type": "delivery_started",
+          "customerId": 6,
+          "workerId": "self",
+          "role": "cashier"
+        },
+        {
+          "t": 44.25,
+          "type": "customer_arrived",
+          "customerId": 11
+        },
+        {
+          "t": 44.25,
+          "type": "order_queued",
+          "customerId": 11,
+          "role": "maker"
+        },
+        {
+          "t": 45.5,
+          "type": "order_fulfilled",
+          "customerId": 6,
+          "workerId": "self",
+          "role": "cashier"
+        },
+        {
+          "t": 45.5,
+          "type": "delivery_started",
+          "customerId": 7,
+          "workerId": "self",
+          "role": "cashier"
+        },
+        {
+          "t": 48.25,
+          "type": "order_fulfilled",
+          "customerId": 7,
+          "workerId": "self",
+          "role": "cashier"
+        },
+        {
+          "t": 48.25,
+          "type": "self_idle",
+          "workerId": "self"
+        },
+        {
+          "t": 48.5,
+          "type": "customer_arrived",
+          "customerId": 12
+        },
+        {
+          "t": 48.5,
+          "type": "order_queued",
+          "customerId": 12,
+          "role": "maker"
+        },
+        {
+          "t": 49,
+          "type": "self_assigned",
+          "workerId": "self",
+          "role": "maker"
+        },
+        {
+          "t": 49,
+          "type": "making_started",
+          "customerId": 8,
+          "workerId": "self",
+          "role": "maker"
+        },
+        {
+          "t": 52.5,
+          "type": "drink_ready",
+          "customerId": 8,
+          "workerId": "self",
+          "role": "maker"
+        },
+        {
+          "t": 52.5,
+          "type": "making_started",
+          "customerId": 9,
+          "workerId": "self",
+          "role": "maker"
+        },
+        {
+          "t": 52.75,
+          "type": "customer_arrived",
+          "customerId": 13
+        },
+        {
+          "t": 52.75,
+          "type": "order_queued",
+          "customerId": 13,
+          "role": "maker"
+        },
+        {
+          "t": 56,
+          "type": "drink_ready",
+          "customerId": 9,
+          "workerId": "self",
+          "role": "maker"
+        },
+        {
+          "t": 56,
+          "type": "making_started",
+          "customerId": 10,
+          "workerId": "self",
+          "role": "maker"
+        },
+        {
+          "t": 56.75,
+          "type": "customer_arrived",
+          "customerId": 14
+        },
+        {
+          "t": 56.75,
+          "type": "order_queued",
+          "customerId": 14,
+          "role": "maker"
+        },
+        {
+          "t": 59.5,
+          "type": "drink_ready",
+          "customerId": 10,
+          "workerId": "self",
+          "role": "maker"
+        },
+        {
+          "t": 59.5,
+          "type": "self_idle",
+          "workerId": "self"
+        },
+        {
+          "t": 60,
+          "type": "self_assigned",
+          "workerId": "self",
+          "role": "cashier"
+        },
+        {
+          "t": 60,
+          "type": "delivery_started",
+          "customerId": 8,
+          "workerId": "self",
+          "role": "cashier"
+        },
+        {
+          "t": 61,
+          "type": "customer_arrived",
+          "customerId": 15
+        },
+        {
+          "t": 61,
+          "type": "order_queued",
+          "customerId": 15,
+          "role": "maker"
+        },
+        {
+          "t": 62.75,
+          "type": "order_fulfilled",
+          "customerId": 8,
+          "workerId": "self",
+          "role": "cashier"
+        },
+        {
+          "t": 62.75,
+          "type": "delivery_started",
+          "customerId": 9,
+          "workerId": "self",
+          "role": "cashier"
+        },
+        {
+          "t": 65.25,
+          "type": "customer_arrived",
+          "customerId": 16
+        },
+        {
+          "t": 65.5,
+          "type": "order_fulfilled",
+          "customerId": 9,
+          "workerId": "self",
+          "role": "cashier"
+        },
+        {
+          "t": 65.5,
+          "type": "delivery_started",
+          "customerId": 10,
+          "workerId": "self",
+          "role": "cashier"
+        },
+        {
+          "t": 67.75,
+          "type": "order_queued",
+          "customerId": 16,
+          "role": "maker"
+        },
+        {
+          "t": 68.25,
+          "type": "order_fulfilled",
+          "customerId": 10,
+          "workerId": "self",
+          "role": "cashier"
+        },
+        {
+          "t": 68.25,
+          "type": "self_idle",
+          "workerId": "self"
+        },
+        {
+          "t": 69,
+          "type": "self_assigned",
+          "workerId": "self",
+          "role": "maker"
+        },
+        {
+          "t": 69,
+          "type": "making_started",
+          "customerId": 11,
+          "workerId": "self",
+          "role": "maker"
+        },
+        {
+          "t": 69.5,
+          "type": "customer_arrived",
+          "customerId": 17
+        },
+        {
+          "t": 70.5,
+          "type": "order_queued",
+          "customerId": 17,
+          "role": "maker"
+        },
+        {
+          "t": 72.5,
+          "type": "drink_ready",
+          "customerId": 11,
+          "workerId": "self",
+          "role": "maker"
+        },
+        {
+          "t": 72.5,
+          "type": "making_started",
+          "customerId": 12,
+          "workerId": "self",
+          "role": "maker"
+        },
+        {
+          "t": 73.75,
+          "type": "customer_arrived",
+          "customerId": 18
+        },
+        {
+          "t": 73.75,
+          "type": "order_queued",
+          "customerId": 18,
+          "role": "maker"
+        },
+        {
+          "t": 76,
+          "type": "drink_ready",
+          "customerId": 12,
+          "workerId": "self",
+          "role": "maker"
+        },
+        {
+          "t": 76,
+          "type": "making_started",
+          "customerId": 13,
+          "workerId": "self",
+          "role": "maker"
+        },
+        {
+          "t": 78,
+          "type": "customer_arrived",
+          "customerId": 19
+        },
+        {
+          "t": 79.5,
+          "type": "drink_ready",
+          "customerId": 13,
+          "workerId": "self",
+          "role": "maker"
+        },
+        {
+          "t": 79.5,
+          "type": "self_idle",
+          "workerId": "self"
+        },
+        {
+          "t": 80,
+          "type": "self_assigned",
+          "workerId": "self",
+          "role": "cashier"
+        },
+        {
+          "t": 80,
+          "type": "delivery_started",
+          "customerId": 11,
+          "workerId": "self",
+          "role": "cashier"
+        },
+        {
+          "t": 82,
+          "type": "customer_arrived",
+          "customerId": 20
+        },
+        {
+          "t": 82.75,
+          "type": "order_fulfilled",
+          "customerId": 11,
+          "workerId": "self",
+          "role": "cashier"
+        },
+        {
+          "t": 82.75,
+          "type": "delivery_started",
+          "customerId": 12,
+          "workerId": "self",
+          "role": "cashier"
+        },
+        {
+          "t": 85.5,
+          "type": "order_fulfilled",
+          "customerId": 12,
+          "workerId": "self",
+          "role": "cashier"
+        },
+        {
+          "t": 85.5,
+          "type": "delivery_started",
+          "customerId": 13,
+          "workerId": "self",
+          "role": "cashier"
+        },
+        {
+          "t": 87.75,
+          "type": "order_queued",
+          "customerId": 19,
+          "role": "maker"
+        },
+        {
+          "t": 88.25,
+          "type": "order_fulfilled",
+          "customerId": 13,
+          "workerId": "self",
+          "role": "cashier"
+        },
+        {
+          "t": 88.25,
+          "type": "self_idle",
+          "workerId": "self"
+        },
+        {
+          "t": 89,
+          "type": "self_assigned",
+          "workerId": "self",
+          "role": "maker"
+        },
+        {
+          "t": 89,
+          "type": "making_started",
+          "customerId": 14,
+          "workerId": "self",
+          "role": "maker"
+        },
+        {
+          "t": 90.5,
+          "type": "order_queued",
+          "customerId": 20,
+          "role": "maker"
+        },
+        {
+          "t": 92.5,
+          "type": "drink_ready",
+          "customerId": 14,
+          "workerId": "self",
+          "role": "maker"
+        },
+        {
+          "t": 92.5,
+          "type": "making_started",
+          "customerId": 15,
+          "workerId": "self",
+          "role": "maker"
+        },
+        {
+          "t": 96,
+          "type": "drink_ready",
+          "customerId": 15,
+          "workerId": "self",
+          "role": "maker"
+        },
+        {
+          "t": 96,
+          "type": "making_started",
+          "customerId": 16,
+          "workerId": "self",
+          "role": "maker"
+        },
+        {
+          "t": 99.5,
+          "type": "drink_ready",
+          "customerId": 16,
+          "workerId": "self",
+          "role": "maker"
+        },
+        {
+          "t": 99.5,
+          "type": "self_idle",
+          "workerId": "self"
+        },
+        {
+          "t": 100,
+          "type": "self_assigned",
+          "workerId": "self",
+          "role": "cashier"
+        },
+        {
+          "t": 100,
+          "type": "delivery_started",
+          "customerId": 14,
+          "workerId": "self",
+          "role": "cashier"
+        },
+        {
+          "t": 102.75,
+          "type": "order_fulfilled",
+          "customerId": 14,
+          "workerId": "self",
+          "role": "cashier"
+        },
+        {
+          "t": 102.75,
+          "type": "delivery_started",
+          "customerId": 15,
+          "workerId": "self",
+          "role": "cashier"
+        },
+        {
+          "t": 105.5,
+          "type": "order_fulfilled",
+          "customerId": 15,
+          "workerId": "self",
+          "role": "cashier"
+        },
+        {
+          "t": 105.5,
+          "type": "delivery_started",
+          "customerId": 16,
+          "workerId": "self",
+          "role": "cashier"
+        },
+        {
+          "t": 108.25,
+          "type": "order_fulfilled",
+          "customerId": 16,
+          "workerId": "self",
+          "role": "cashier"
+        },
+        {
+          "t": 108.25,
+          "type": "self_idle",
+          "workerId": "self"
+        },
+        {
+          "t": 109,
+          "type": "self_assigned",
+          "workerId": "self",
+          "role": "maker"
+        },
+        {
+          "t": 109,
+          "type": "making_started",
+          "customerId": 17,
+          "workerId": "self",
+          "role": "maker"
+        },
+        {
+          "t": 112.5,
+          "type": "drink_ready",
+          "customerId": 17,
+          "workerId": "self",
+          "role": "maker"
+        },
+        {
+          "t": 112.5,
+          "type": "making_started",
+          "customerId": 18,
+          "workerId": "self",
+          "role": "maker"
+        },
+        {
+          "t": 116,
+          "type": "drink_ready",
+          "customerId": 18,
+          "workerId": "self",
+          "role": "maker"
+        },
+        {
+          "t": 116,
+          "type": "making_started",
+          "customerId": 19,
+          "workerId": "self",
+          "role": "maker"
+        },
+        {
+          "t": 119.5,
+          "type": "drink_ready",
+          "customerId": 19,
+          "workerId": "self",
+          "role": "maker"
+        },
+        {
+          "t": 119.5,
+          "type": "self_idle",
+          "workerId": "self"
+        },
+        {
+          "t": 120,
+          "type": "customer_lost",
+          "customerId": 17,
+          "reason": "closing"
+        },
+        {
+          "t": 120,
+          "type": "customer_lost",
+          "customerId": 18,
+          "reason": "closing"
+        },
+        {
+          "t": 120,
+          "type": "customer_lost",
+          "customerId": 19,
+          "reason": "closing"
+        },
+        {
+          "t": 120,
+          "type": "customer_lost",
+          "customerId": 20,
+          "reason": "closing"
+        }
+      ]
+    },
+    "coinsAfter": 2280,
+    "settledAt": 1792662598146
+  },
+  "errors": []
+}

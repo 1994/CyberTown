@@ -27,22 +27,23 @@ type TeaNotice struct {
 	At          int64  `json:"at"`
 }
 type TeaHome struct {
-	PlayerID          string          `json:"playerId"`
-	Name              string          `json:"name"`
-	Coins             int             `json:"coins"`
-	Self              TeaWorker       `json:"self"`
-	Workers           []TeaWorker     `json:"workers"`
-	Shop              TeaShop         `json:"shop"`
-	Challenge         TeaChallenge    `json:"challenge"`
-	AttemptsRemaining int             `json:"attemptsRemaining"`
-	HireEnabled       bool            `json:"hireEnabled"`
-	Notices           []TeaNotice     `json:"notices"`
-	RecentRuns        []TeaRun        `json:"recentRuns"`
-	Chapter           TeaChapter      `json:"chapter"`
-	Mission           TeaMission      `json:"mission"`
-	Wallet            TeaWallet       `json:"wallet"`
-	Business          TeaBusiness     `json:"business"`
-	Exploration       TownExploration `json:"exploration"`
+	Counter           TeaCounterProgress `json:"counter"`
+	PlayerID          string             `json:"playerId"`
+	Name              string             `json:"name"`
+	Coins             int                `json:"coins"`
+	Self              TeaWorker          `json:"self"`
+	Workers           []TeaWorker        `json:"workers"`
+	Shop              TeaShop            `json:"shop"`
+	Challenge         TeaChallenge       `json:"challenge"`
+	AttemptsRemaining int                `json:"attemptsRemaining"`
+	HireEnabled       bool               `json:"hireEnabled"`
+	Notices           []TeaNotice        `json:"notices"`
+	RecentRuns        []TeaRun           `json:"recentRuns"`
+	Chapter           TeaChapter         `json:"chapter"`
+	Mission           TeaMission         `json:"mission"`
+	Wallet            TeaWallet          `json:"wallet"`
+	Business          TeaBusiness        `json:"business"`
+	Exploration       TownExploration    `json:"exploration"`
 }
 
 // One date zone defines the daily challenge for everyone, regardless of server TZ.
@@ -143,7 +144,11 @@ func (g *Game) TeaHome(player string) (TeaHome, error) {
 		if err := tx.QueryRow("SELECT name,color,coins FROM players WHERE id=?", player).Scan(&h.Name, &color, &h.Coins); err != nil {
 			return err
 		}
-		h.Self = teaSelf(player, h.Name, color)
+		h.Counter, err = teaCounterRead(tx, player)
+		if err != nil {
+			return err
+		}
+		h.Self = counterSelf(teaSelf(player, h.Name, color), h.Counter)
 		if err := tx.QueryRow("SELECT level,best,runs FROM tea_shops WHERE player_id=?", player).Scan(&h.Shop.Level, &h.Shop.Best, &h.Shop.Runs); err != nil {
 			return err
 		}
@@ -157,6 +162,7 @@ func (g *Game) TeaHome(player string) (TeaHome, error) {
 		if err != nil {
 			return err
 		}
+		h.Business.Challenge = counterChallenge(day, h.Shop.Level, h.Counter.Day)
 		h.Exploration, err = townExploration(tx, player, h.Business)
 		if err != nil {
 			return err

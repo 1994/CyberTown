@@ -10,6 +10,7 @@ import { Face } from './HiringHall.tsx';
 import { useTownState } from './townState.ts';
 import '../sound.css';
 import './tea.css';
+import { TeaCounterGame } from './TeaCounterGame.tsx';
 
 // 店内视图：状态、计时、请求、音频都在 TownGame 持有的 controller 里；这里只负责美术与交互呈现。
 // 营业中的出杯/收入全部来自服务端逐步计算的 session，本组件不伪造任何结果。
@@ -56,7 +57,7 @@ export function WorkerCard({ w, on, onClick, disabled }: { w: TeaWorker; on: boo
   </div>;
 }
 
-export function TeaGame({ controller: c, onExit, onPhone, onHall }: { controller: TeaChapterController; onExit: () => void; onPhone: () => void; onHall: () => void }) {
+function LegacyTeaGame({ controller: c, onExit, onPhone, onHall }: { controller: TeaChapterController; onExit: () => void; onPhone: () => void; onHall: () => void }) {
   // 自有分身的职级/经理能力：只作展示，可排员工以 controller pool（服务端：Lv2+、已召回）为准
   const clones = useTownState(s => s.home?.clones);
   const me = useGame(s => s.snapshot?.me);
@@ -305,4 +306,10 @@ export function TeaGame({ controller: c, onExit, onPhone, onHall }: { controller
     {c.error && <div className="tea-banner">{c.error}<button onClick={() => void c.load()}>刷新</button></div>}
     {c.toast && <div className="tea-toast" role="alert">{c.toast}</div>}
   </div>;
+}
+
+export function TeaGame(props: Parameters<typeof LegacyTeaGame>[0]) {
+ const c=props.controller;
+ const oldSession=c.session && c.session.status==='active' && c.session.run.challenge.flow!=='counter.1';
+ return c.lesson==='rescue'&&!oldSession ? <TeaCounterGame {...props}/> : <LegacyTeaGame {...props}/>;
 }

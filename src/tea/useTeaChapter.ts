@@ -34,6 +34,7 @@ export function useTeaChapter() {
   const [legacyRun, setLegacyRun] = useState<TeaRun | null>(null);
   const [paused, setPaused] = useState(false);
   const [speed, setSpeed] = useState<1 | 2>(1);
+  const [intent, setIntent] = useState<TeaWorkRole | null>(null);
   const [outside, setOutside] = useState(true);
   const current = useRef<TeaSession | null>(null);
   const locked = useRef(false);
@@ -166,14 +167,23 @@ export function useTeaChapter() {
   }, [refresh, setSession]);
 
   useEffect(() => {
-    if (view !== 'play' || !active || paused || busy || outside || phoneOpen) return;
-    // Teaching: 2 simulated seconds / real second; peak: 4. Network latency is
-    // added to this delay, so the clock cannot race ahead during a slow request.
-    const delay = (lesson === 'solo' || lesson === 'duo' ? 500 : 250) / speed;
-    const t = setTimeout(() => { void step(1); }, delay);
-    return () => clearTimeout(t);
-  }, [view, active, paused, busy, outside, phoneOpen, lesson, speed, session?.revision, step]);
-  const assign = async (role: TeaWorkRole) => { await step(0, role); };
+    if (view !== 'play' || !active || paused || outside || phoneOpen) return;
+    // Counter days run at real time. Older frozen lessons retain their original rate.
+    // The request lock skips overlapping ticks during slow connections.
+    const delay = (session?.run.challenge.flow === 'counter.1' ? 1000 : lesson === 'solo' || lesson === 'duo' ? 500 : 250) / speed;
+    const t = setInterval(() => { void step(1); }, delay);
+    return () => clearInterval(t);
+  }, [view, active, paused, outside, phoneOpen, lesson, speed, session?.run.challenge.flow, step]);
+  useEffect(() => {
+    if(!intent || busy) return;
+    setIntent(null);
+    if(!paused && !outside && active) void step(0,intent);
+  },[intent,busy,paused,outside,active,step]);
+  const assign = async (role: TeaWorkRole) => { setIntent(role); };
+  const dismissGuide = async () => {
+    try { const h = await teaLiveApi.dismissGuide(); if(mounted.current) setHome(h); }
+    catch(e) { setToast(message(e)); }
+  };
   const togglePause = () => setPaused(p => !p);
   const pause = () => setPaused(true);
   const acceptMission = async () => {
@@ -261,7 +271,7 @@ export function useTeaChapter() {
   useTeaAudio({ view: outside ? 'street' : view === 'ending' ? 'report' : view, run, frame, shopLevel: home?.shop.level ?? 0, teamKey: selected.join('|') });
 
   return { home, business: home?.business, error, toast, busy, view, lesson, goal, hiresNeeded, team, pool, roles, stock, strategy, totalCost, problems,
-    session, run, frame, events, supportAt, paused, speed, canAssign, load, pick, setRole, setStock, setStrategy,
+    session, run, frame, events, supportAt, paused, speed, canAssign, dismissGuide, load, pick, setRole, setStock, setStrategy,
     goShop, goStreet, start, assign, togglePause, pause, setOutside, acceptMission, refresh, setSpeed, skip, next, upgrade, openRun, toggleHire, logout };
 }
 export type TeaChapterController = ReturnType<typeof useTeaChapter>;

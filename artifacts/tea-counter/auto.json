@@ -1,0 +1,397 @@
+{
+  "session": {
+    "id": "73e7d53a5a1f1d4d972c94b0c4c7e2177d2748498dcaaabe",
+    "lesson": "rescue",
+    "status": "active",
+    "revision": 12,
+    "t": 12,
+    "run": {
+      "id": "73e7d53a5a1f1d4d972c94b0c4c7e2177d2748498dcaaabe",
+      "mode": "official",
+      "challenge": {
+        "flow": "counter.1",
+        "businessDay": 1,
+        "id": "counter-1-lv1",
+        "seed": 663506081,
+        "ruleVersion": "tea.4",
+        "shopLevel": 1,
+        "name": "救救街角奶茶",
+        "duration": 120,
+        "arrivals": 20,
+        "target": 12,
+        "budget": 1100,
+        "price": 20,
+        "materialCost": 6,
+        "operatingCost": 120
+      },
+      "plan": {
+        "assignments": [
+          {
+            "workerId": "self",
+            "role": "support"
+          },
+          {
+            "workerId": "demo-wang",
+            "role": "maker"
+          },
+          {
+            "workerId": "demo-li",
+            "role": "cashier"
+          }
+        ],
+        "stock": 20,
+        "strategy": "balanced"
+      },
+      "workers": [
+        {
+          "id": "self",
+          "playerId": "wang",
+          "name": "老王",
+          "color": "#ff8a3d",
+          "service": 60,
+          "production": 60,
+          "adaptability": 95,
+          "skill": "rescue_captain",
+          "salary": 0,
+          "enabled": true,
+          "remaining": 999,
+          "demo": false
+        },
+        {
+          "id": "demo-wang",
+          "playerId": "",
+          "name": "老王",
+          "color": "#ff9147",
+          "service": 50,
+          "production": 99,
+          "adaptability": 65,
+          "skill": "batch_master",
+          "salary": 65,
+          "enabled": true,
+          "remaining": 999,
+          "demo": true
+        },
+        {
+          "id": "demo-li",
+          "playerId": "",
+          "name": "小李",
+          "color": "#45d9dd",
+          "service": 99,
+          "production": 50,
+          "adaptability": 70,
+          "skill": "golden_service",
+          "salary": 55,
+          "enabled": true,
+          "remaining": 999,
+          "demo": true
+        }
+      ],
+      "result": {
+        "arrivals": 20,
+        "accepted": 3,
+        "completed": 2,
+        "lost": 0,
+        "receptionRate": 0.1,
+        "revenue": 40,
+        "materialCost": 120,
+        "wages": 120,
+        "operatingCost": 120,
+        "totalCost": 360,
+        "profit": -320,
+        "bonus": 0,
+        "peakCashierQueue": 1,
+        "peakMakerQueue": 1,
+        "avgCashierWait": 0,
+        "avgMakerWait": 0,
+        "stockLeft": 17,
+        "lostCashier": 0,
+        "lostMaker": 0,
+        "lostStock": 0,
+        "passed": false,
+        "bottleneck": "配合顺畅",
+        "suggestion": "下一天可以安排员工接手岗位，自己只在忙时帮一把。",
+        "skillCounts": {},
+        "frames": [
+          {
+            "t": 0,
+            "customers": 0,
+            "served": 0,
+            "lost": 0,
+            "cashierQueue": 0,
+            "makerQueue": 0,
+            "stock": 20
+          },
+          {
+            "t": 1,
+            "customers": 0,
+            "served": 0,
+            "lost": 0,
+            "cashierQueue": 0,
+            "makerQueue": 0,
+            "stock": 20
+          },
+          {
+            "t": 2,
+            "customers": 1,
+            "served": 0,
+            "lost": 0,
+            "cashierQueue": 0,
+            "makerQueue": 0,
+            "stock": 19
+          },
+          {
+            "t": 3,
+            "customers": 1,
+            "served": 0,
+            "lost": 0,
+            "cashierQueue": 0,
+            "makerQueue": 0,
+            "stock": 19
+          },
+          {
+            "t": 4,
+            "customers": 1,
+            "served": 0,
+            "lost": 0,
+            "cashierQueue": 0,
+            "makerQueue": 0,
+            "stock": 19
+          },
+          {
+            "t": 5,
+            "customers": 1,
+            "served": 0,
+            "lost": 0,
+            "cashierQueue": 0,
+            "makerQueue": 0,
+            "stock": 19
+          },
+          {
+            "t": 6,
+            "customers": 1,
+            "served": 1,
+            "lost": 0,
+            "cashierQueue": 0,
+            "makerQueue": 0,
+            "stock": 19
+          },
+          {
+            "t": 7,
+            "customers": 2,
+            "served": 1,
+            "lost": 0,
+            "cashierQueue": 0,
+            "makerQueue": 0,
+            "stock": 18
+          },
+          {
+            "t": 8,
+            "customers": 2,
+            "served": 1,
+            "lost": 0,
+            "cashierQueue": 0,
+            "makerQueue": 0,
+            "stock": 18
+          },
+          {
+            "t": 9,
+            "customers": 2,
+            "served": 1,
+            "lost": 0,
+            "cashierQueue": 0,
+            "makerQueue": 0,
+            "stock": 18
+          },
+          {
+            "t": 10,
+            "customers": 2,
+            "served": 1,
+            "lost": 0,
+            "cashierQueue": 0,
+            "makerQueue": 0,
+            "stock": 18
+          },
+          {
+            "t": 11,
+            "customers": 3,
+            "served": 2,
+            "lost": 0,
+            "cashierQueue": 0,
+            "makerQueue": 0,
+            "stock": 17
+          },
+          {
+            "t": 12,
+            "customers": 3,
+            "served": 2,
+            "lost": 0,
+            "cashierQueue": 0,
+            "makerQueue": 0,
+            "stock": 17
+          }
+        ],
+        "events": [
+          {
+            "t": 2,
+            "type": "customer_arrived",
+            "customerId": 1
+          },
+          {
+            "t": 2,
+            "type": "order_queued",
+            "customerId": 1,
+            "role": "maker"
+          },
+          {
+            "t": 2,
+            "type": "making_started",
+            "customerId": 1,
+            "workerId": "demo-wang",
+            "role": "maker"
+          },
+          {
+            "t": 4.25,
+            "type": "drink_ready",
+            "customerId": 1,
+            "workerId": "demo-wang",
+            "role": "maker"
+          },
+          {
+            "t": 4.25,
+            "type": "delivery_started",
+            "customerId": 1,
+            "workerId": "demo-li",
+            "role": "cashier"
+          },
+          {
+            "t": 6,
+            "type": "order_fulfilled",
+            "customerId": 1,
+            "workerId": "demo-li",
+            "role": "cashier"
+          },
+          {
+            "t": 6.25,
+            "type": "customer_arrived",
+            "customerId": 2
+          },
+          {
+            "t": 6.25,
+            "type": "order_queued",
+            "customerId": 2,
+            "role": "maker"
+          },
+          {
+            "t": 6.25,
+            "type": "making_started",
+            "customerId": 2,
+            "workerId": "demo-wang",
+            "role": "maker"
+          },
+          {
+            "t": 8.5,
+            "type": "drink_ready",
+            "customerId": 2,
+            "workerId": "demo-wang",
+            "role": "maker"
+          },
+          {
+            "t": 8.5,
+            "type": "delivery_started",
+            "customerId": 2,
+            "workerId": "demo-li",
+            "role": "cashier"
+          },
+          {
+            "t": 10.25,
+            "type": "order_fulfilled",
+            "customerId": 2,
+            "workerId": "demo-li",
+            "role": "cashier"
+          },
+          {
+            "t": 10.5,
+            "type": "customer_arrived",
+            "customerId": 3
+          },
+          {
+            "t": 10.5,
+            "type": "order_queued",
+            "customerId": 3,
+            "role": "maker"
+          },
+          {
+            "t": 10.5,
+            "type": "making_started",
+            "customerId": 3,
+            "workerId": "demo-wang",
+            "role": "maker"
+          }
+        ]
+      },
+      "coinsAfter": 1616,
+      "settledAt": 0
+    },
+    "frame": {
+      "t": 12,
+      "customers": 3,
+      "served": 2,
+      "lost": 0,
+      "cashierQueue": 0,
+      "makerQueue": 0,
+      "stock": 17,
+      "customersState": [
+        {
+          "patience": 1,
+          "seat": 0,
+          "id": 1,
+          "state": "served",
+          "at": 6,
+          "workerId": "demo-li"
+        },
+        {
+          "patience": 1,
+          "seat": 1,
+          "id": 2,
+          "state": "served",
+          "at": 10.25,
+          "workerId": "demo-li"
+        },
+        {
+          "patience": 1,
+          "seat": 2,
+          "id": 3,
+          "state": "making",
+          "at": 10.5,
+          "workerId": "demo-wang"
+        }
+      ],
+      "workersState": [
+        {
+          "id": "self",
+          "role": "idle",
+          "progress": 0
+        },
+        {
+          "id": "demo-wang",
+          "role": "maker",
+          "customerId": 3,
+          "progress": 0.6666666666666666
+        },
+        {
+          "id": "demo-li",
+          "role": "cashier",
+          "progress": 0
+        }
+      ],
+      "selfTask": {
+        "role": "idle",
+        "done": 0,
+        "remaining": 0,
+        "queuedRole": null
+      }
+    },
+    "commands": [],
+    "hold": 360
+  }
+}
