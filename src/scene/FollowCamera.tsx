@@ -17,6 +17,7 @@ const SPAN = Math.max(WORLD_BOUNDS.maxX - WORLD_BOUNDS.minX, (WORLD_BOUNDS.maxZ 
 const OVERVIEW_DIST = Math.round(SPAN * 1.5);
 const IDLE_SCALE = 0.85;
 const HOME_DIRECTION = new THREE.Vector3(0.46, 0.62, 0.64).normalize();
+const PORTRAIT_DIRECTION = new THREE.Vector3(0.30, 0.84, 0.45).normalize();
 const INTRO_DOOR = 'cinematic-intro';
 const smooth = (t: number) => t * t * (3 - 2 * t);
 
@@ -47,7 +48,9 @@ export function FollowCamera({ active }: { active: boolean }) {
   const overviewDist = OVERVIEW_DIST;
   // Widen the lens on portrait screens instead of moving beyond the city fog.
   const overviewFov = THREE.MathUtils.radToDeg(2 * Math.atan(Math.tan(THREE.MathUtils.degToRad(38 / 2)) * Math.max(1, 1.2 / (size.width / size.height))));
-  const followDist = portrait ? FOLLOW_DIST * 1.3 : FOLLOW_DIST;
+  const followDist = portrait ? 19 : FOLLOW_DIST;
+  const homeDirection = portrait ? PORTRAIT_DIRECTION : HOME_DIRECTION;
+  const entryPlaced = useRef<string | null>(null);
   const tmp = useRef(new THREE.Vector3());
   const desiredPos = useRef(new THREE.Vector3());
 
@@ -62,7 +65,7 @@ export function FollowCamera({ active }: { active: boolean }) {
     focus.current = null;
     zoomGoal.current = null;
     const target = new THREE.Vector3(rt.me.x, 0.8, rt.me.z);
-    const home = target.clone().addScaledVector(HOME_DIRECTION, followDist);
+    const home = target.clone().addScaledVector(homeDirection, followDist);
     const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
     intro.current = {
       start: performance.now(),
@@ -92,7 +95,7 @@ export function FollowCamera({ active }: { active: boolean }) {
       const film = intro.current;
       if (!film) return;
       film.homeTarget.set(rt.me.x, 0.8, rt.me.z);
-      film.home.copy(film.homeTarget).addScaledVector(HOME_DIRECTION, followDist);
+      film.home.copy(film.homeTarget).addScaledVector(homeDirection, followDist);
       camera.position.copy(film.home);
       controls.current?.target.copy(film.homeTarget);
       controls.current?.update();
@@ -115,7 +118,21 @@ export function FollowCamera({ active }: { active: boolean }) {
       window.removeEventListener('world-skip-intro', finish);
       window.removeEventListener('keydown', onKey);
     };
-  }, [introNonce, active, worldReady, camera, followDist, setIntroPlaying]);
+  }, [introNonce, active, worldReady, camera, followDist, homeDirection, setIntroPlaying]);
+
+  // Fresh entry and refresh share the same street-facing composition; never inherit
+  // the rotating login camera. Do this only on entry, not while the player orbits.
+  useEffect(() => {
+    if (!active) { entryPlaced.current = null; return; }
+    if (!worldReady || !myId || introPlaying || entryPlaced.current === myId) return;
+    const c = controls.current;
+    if (!c) return;
+    c.target.set(rt.me.x, 0.8, rt.me.z);
+    camera.position.copy(c.target).addScaledVector(homeDirection, followDist);
+    c.update();
+    rt.camYaw = Math.atan2(camera.position.x - c.target.x, camera.position.z - c.target.z);
+    entryPlaced.current = myId;
+  }, [active, worldReady, myId, introPlaying, camera, homeDirection, followDist]);
 
   useEffect(() => {
     if (active) zoomGoal.current = overview ? overviewDist : followDist;
@@ -185,7 +202,7 @@ export function FollowCamera({ active }: { active: boolean }) {
     if (film && useGame.getState().introPlaying) {
       // World reconnection can restore a non-spawn position during the first shot.
       film.homeTarget.set(rt.me.x, 0.8, rt.me.z);
-      film.home.copy(film.homeTarget).addScaledVector(HOME_DIRECTION, followDist);
+      film.home.copy(film.homeTarget).addScaledVector(homeDirection, followDist);
       film.position.points[4].set(rt.me.x + 12, 16, rt.me.z + 18);
       film.target.points[4].copy(film.homeTarget);
       film.target.points[5].copy(film.homeTarget);
