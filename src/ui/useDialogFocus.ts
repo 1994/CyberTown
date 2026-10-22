@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import type { RefObject } from 'react';
 
 /** Focus ownership for the legacy drawers; nested confirmation dialogs take priority. */
-export function useDialogFocus(ref: RefObject<HTMLElement | null>, open: boolean, returnSelector?: string) {
+export function useDialogFocus(ref: RefObject<HTMLElement | null>, open: boolean, returnSelector?: string, focusDialog = false) {
   useEffect(() => {
     const root = ref.current;
     if (!open || !root) return;
@@ -11,7 +11,7 @@ export function useDialogFocus(ref: RefObject<HTMLElement | null>, open: boolean
     const controls = () => Array.from(root.querySelectorAll<HTMLElement>(
       'button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled), a[href], summary, [tabindex="0"]',
     )).filter(el => el.getClientRects().length > 0);
-    (controls()[0] ?? root).focus();
+    (focusDialog ? root : controls()[0] ?? root).focus({ preventScroll: true });
     const onKey = (event: KeyboardEvent) => {
       if (event.key !== 'Tab') return;
       const dialogs = document.querySelectorAll('[role="dialog"][aria-modal="true"]');
@@ -28,5 +28,5 @@ export function useDialogFocus(ref: RefObject<HTMLElement | null>, open: boolean
       if (before?.isConnected) before.focus();
       else if (returnSelector) document.querySelector<HTMLElement>(returnSelector)?.focus();
     };
-  }, [ref, open, returnSelector]);
+  }, [ref, open, returnSelector, focusDialog]);
 }

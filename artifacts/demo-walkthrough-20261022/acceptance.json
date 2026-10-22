@@ -1,0 +1,143 @@
+{
+  "sessions": [
+    {
+      "day": "town-day-1",
+      "status": "finished",
+      "elapsed": 120,
+      "openingCoins": 2000,
+      "coinsAfter": 2200,
+      "commands": 9,
+      "result": {
+        "selfMade": 15,
+        "selfServed": 12,
+        "arrivals": 20,
+        "accepted": 20,
+        "completed": 12,
+        "lost": 8,
+        "receptionRate": 0.6,
+        "revenue": 240,
+        "materialCost": 120,
+        "wages": 0,
+        "operatingCost": 120,
+        "totalCost": 240,
+        "profit": 0,
+        "bonus": 200,
+        "peakCashierQueue": 3,
+        "peakMakerQueue": 6,
+        "avgCashierWait": 0,
+        "avgMakerWait": 0,
+        "stockLeft": 5,
+        "lostCashier": 3,
+        "lostMaker": 5,
+        "lostStock": 0,
+        "passed": true,
+        "bottleneck": "饮品做好却没送达",
+        "suggestion": "取餐台有杯子时优先端送，或给端送岗安排员工。",
+        "skillCounts": {}
+      }
+    },
+    {
+      "day": "town-day-2",
+      "status": "finished",
+      "elapsed": 120,
+      "openingCoins": 2044,
+      "coinsAfter": 2324,
+      "commands": 0,
+      "result": {
+        "arrivals": 20,
+        "accepted": 20,
+        "completed": 20,
+        "lost": 0,
+        "receptionRate": 1,
+        "revenue": 400,
+        "materialCost": 120,
+        "wages": 80,
+        "operatingCost": 120,
+        "totalCost": 320,
+        "profit": 80,
+        "bonus": 200,
+        "peakCashierQueue": 1,
+        "peakMakerQueue": 1,
+        "avgCashierWait": 0,
+        "avgMakerWait": 0,
+        "stockLeft": 0,
+        "lostCashier": 0,
+        "lostMaker": 0,
+        "lostStock": 0,
+        "passed": true,
+        "bottleneck": "配合顺畅",
+        "suggestion": "下一天可以安排员工接手岗位，自己只在忙时帮一把。",
+        "skillCounts": {}
+      }
+    }
+  ],
+  "progress": [
+    [
+      3,
+      15,
+      12
+    ]
+  ],
+  "ledger": [
+    [
+      600,
+      "new_player"
+    ],
+    [
+      1400,
+      "tea_opening_grant"
+    ],
+    [
+      -240,
+      "tea_hold"
+    ],
+    [
+      440,
+      "tea_sales"
+    ],
+    [
+      -120,
+      "town_hire"
+    ],
+    [
+      -120,
+      "town_hire"
+    ],
+    [
+      12,
+      "town_job"
+    ],
+    [
+      12,
+      "town_job"
+    ],
+    [
+      12,
+      "town_job"
+    ],
+    [
+      12,
+      "town_job"
+    ],
+    [
+      12,
+      "town_job"
+    ],
+    [
+      12,
+      "town_job"
+    ],
+    [
+      12,
+      "town_job"
+    ],
+    [
+      -320,
+      "tea_hold"
+    ],
+    [
+      600,
+      "tea_sales"
+    ]
+  ]
+}

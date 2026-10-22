@@ -245,7 +245,17 @@ function Actor({ look, target, sit = false, act = false, carry = false, label, t
     const o = g.current;
     if (!o) return;
     v.set(target.pos[0], 0, target.pos[2]);
-    if (first.current) { if (spawn) o.position.set(spawn[0], 0, spawn[2]); else o.position.copy(v); first.current = false; }
+    if (first.current) {
+      if (spawn) o.position.set(spawn[0], 0, spawn[2]); else o.position.copy(v);
+      o.rotation.y = target.rot;
+      // Restoring a paused session must initialize seated poses before freezing.
+      if (rig.current && sit && o.position.distanceTo(v) < 0.06) {
+        rig.current.legL.rotation.x = -1.45;
+        rig.current.legR.rotation.x = -1.45;
+        rig.current.body.position.y = -0.32;
+      }
+      first.current = false;
+    }
     if (frozen) return;
     // Staff cross the central opening instead of walking through either counter.
     if (staff && o.position.z < 0.1 && target.pos[2] > 0.1) {
@@ -305,6 +315,7 @@ const SERVED_STAY = 2; // 收到杯后坐约 2 秒再走向门口
 
 function Customers({ frame, frozen }: { frame: TeaLiveFrame; frozen: boolean }) {
   // 一个 id 一个演员，跨所有状态不重挂载：门口进场 → 等位/点单 → 座位 → 收杯付款 → 走向门口消失；流失从当前位置走出
+  const restoredAt = useRef(frame.t).current;
   const list = frame.customersState.filter(c => !(c.state === 'served' && frame.t - c.at > 8) && !(c.state === 'lost' && frame.t - c.at > 6));
   const queued = list.filter(c => !seatOf(c) && c.state !== 'served' && c.state !== 'lost');
   const qIndex = new Map(queued.slice(0, QUEUE.length).map((c, i) => [c.id, i]));
@@ -323,7 +334,7 @@ function Customers({ frame, frozen }: { frame: TeaLiveFrame; frozen: boolean }) 
       const tone = c.state === 'lost' ? 'bad' : c.state === 'served' ? 'ok' : c.state === 'ready' || c.state === 'delivering' ? 'hot' : c.patience != null && c.patience < 0.33 ? 'bad' : 'tag';
       const label = c.state === 'lost' ? `#${c.id} 等太久离开` : leaving ? `#${c.id} 谢谢！` : `#${c.id} ${BUBBLE[c.state] ?? ''}`;
       return <group key={c.id}>
-        <Actor look={guestLook(c.id)} target={target} spawn={DOOR} sit={sitting} fade={leaving} frozen={frozen}
+        <Actor look={guestLook(c.id)} target={target} spawn={restoredAt > 0 && c.at <= restoredAt ? target.pos : DOOR} sit={sitting} fade={leaving} frozen={frozen}
           label={label} tone={tone} patience={leaving || c.state === 'served' ? null : c.patience ?? null}
           pop={c.state === 'served' && !leaving ? '付款 ✓' : undefined} />
         {c.state === 'served' && seat && !leaving && <Cup position={[seat.pos[0] + (seat.rot > 0 ? 0.42 : -0.42), 0.77, seat.pos[2]]} />}

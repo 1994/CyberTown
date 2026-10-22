@@ -132,7 +132,7 @@ function LoginForm() {
           </p>
         )}
         <p className="sso-line">
-          {identityMode === 'demo' ? '演示账号，并非员工名单 · 可在不同标签页与自己联机' : identityNotice}
+          {identityMode === 'demo' ? '演示账号，并非员工名单 · 每个身份都有自己的小镇' : identityNotice}
         </p>
       </div>
       </div>

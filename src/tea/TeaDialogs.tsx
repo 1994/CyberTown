@@ -80,7 +80,7 @@ export function ReportDialog({ run, home, busy, bonusFor, canUpgrade, nextGoal, 
   onUpgrade: () => void; onPrep: () => void; onExit: () => void;
 }) {
   const ref = useRef<HTMLElement>(null);
-  useDialogFocus(ref, true);
+  useDialogFocus(ref, true, undefined, true);
   const r = run.result;
   const official = run.mode === 'official';
   const net = r.profit + r.bonus;

@@ -57,7 +57,7 @@ export function TeaCounterGame({controller:c,onExit,onPhone,onHall}:{controller:
    <div className="counter-tools"><button onClick={onPhone} aria-label="查看钱包"><Coins size={17}/>{home.wallet.balance}</button><button onClick={()=>setHelp(!help)} aria-label="怎么玩"><HelpCircle size={19}/></button><SoundMenu/></div>
   </header>
   {playing&&<div className="counter-status" inert={modal}>
-   <span><i className="counter-dot"/>{c.paused?'已暂停':time(Math.max(0,ch.duration-(frame?.t??0)))}<small>剩余</small></span>
+   <span><i className="counter-dot"/>{time(Math.max(0,ch.duration-(frame?.t??0)))}<small>{c.paused?'已暂停':'剩余'}</small></span>
    <span><b data-testid="counter-served">{frame?.served??0}</b><small>已送达 / 目标 {ch.target}</small></span>
    <span><b>{currentRun?.result.revenue??0}</b><small>营业收入</small></span>
    <span className={(frame?.lost??0)>0?'counter-warning':''}><b>{frame?.lost??0}</b><small>流失</small></span>

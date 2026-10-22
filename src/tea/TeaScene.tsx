@@ -34,8 +34,8 @@ export function lookOf(id: string, name: string, color: string, avatarUrl?: stri
   if (!l) {
     const h = hash(id);
     l = {
-      avatarUrl, avatarName: name, skin: SKINS[h % SKINS.length], hair: ['#1b1b22', '#3b2a20', '#6a3d2a', '#2c3550'][(h >> 3) % 4],
-      hairStyle: HAIRS[(h >> 5) % HAIRS.length], shirt: color, pants: PANTS[(h >> 8) % PANTS.length], accessory: ACCS[(h >> 11) % ACCS.length],
+      avatarUrl, avatarName: name, skin: SKINS[h % SKINS.length], hair: ['#1b1b22', '#3b2a20', '#6a3d2a', '#2c3550'][(h >>> 3) % 4],
+      hairStyle: HAIRS[(h >>> 5) % HAIRS.length], shirt: color, pants: PANTS[(h >>> 8) % PANTS.length], accessory: ACCS[(h >>> 11) % ACCS.length],
     };
     lookCache.set(key, l);
   }
