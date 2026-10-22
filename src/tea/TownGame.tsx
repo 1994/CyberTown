@@ -16,7 +16,7 @@ import { MAP_VIEW_LABEL, TownMap, type MapView } from './TownMap.tsx';
 import { OfficeCanvas } from '../scene/Office.tsx';
 import { useGame } from '../store.ts';
 import { Joystick } from '../ui/Joystick.tsx';
-import { SoundMenu } from '../ui/SoundControl.tsx';
+import { GameSettings } from '../ui/GameSettings.tsx';
 import { useTouchUi } from '../ui/useTouchUi.ts';
 import { walkNear } from '../world/navigation.ts';
 import { rt, useWorld } from '../world/runtime.ts';
@@ -273,7 +273,7 @@ export function TownGame() {
           </button>
         </div>
         <div className="town-tools">
-          <SoundMenu className="tea-sound" />
+          <GameSettings className="tea-sound" />
           <button className={`town-chip ${map ? 'on' : ''}`} onClick={() => setMap(v => !v)} aria-expanded={map} aria-label="小地图">地图</button>
           <button className="town-chip town-help" onClick={() => { closePhone(); setMap(false); setArrival(true); }} aria-label="操作指引" data-testid="town-guide-help">?</button>
           <button className="town-chip town-phone-btn" onClick={() => openPhone('home')} aria-label="手机" aria-expanded={phoneOpen} disabled={!home}

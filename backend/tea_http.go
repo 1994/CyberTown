@@ -35,6 +35,24 @@ func (a *App) handleTea(w http.ResponseWriter, r *http.Request, player string) e
 		}
 	}
 	switch {
+	case path == "/api/tea/restart" && r.Method == "POST":
+		var body struct {
+			Confirm string `json:"confirm"`
+		}
+		if err := teaDecode(w, r, &body); err != nil {
+			return err
+		}
+		if body.Confirm != "restart-my-town" {
+			return fail(400, "RESTART_CONFIRM", "请确认重新开始")
+		}
+		if err := a.Game.RestartTown(player); err != nil {
+			return err
+		}
+		a.mu.Lock()
+		delete(a.world, player)
+		a.townOwner[player] = player
+		a.mu.Unlock()
+		respond(w, 200, map[string]bool{"ok": true})
 	case path == "/api/tea/arcade" && r.Method == "GET":
 		respond(w, 200, gameplay.Arcade())
 	case path == "/api/tea/arcade/register" && r.Method == "POST":

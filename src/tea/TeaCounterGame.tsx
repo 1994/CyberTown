@@ -9,7 +9,7 @@ import { Face } from './HiringHall.tsx';
 import { useGame } from '../store.ts';
 import { useTownState } from './townState.ts';
 import type { TeaWorker } from '../../shared/tea.ts';
-import { SoundMenu } from '../ui/SoundControl.tsx';
+import { GameSettings } from '../ui/GameSettings.tsx';
 import './counter.css';
 import { workSteps } from './counterFeedback.ts';
 import { useTouchUi } from '../ui/useTouchUi.ts';
@@ -71,7 +71,7 @@ export function TeaCounterGame({controller:c,onExit,onPhone,onHall}:{controller:
   <header className="counter-header" inert={modal}>
    <button className="counter-back" onClick={onExit}><ArrowLeft size={17}/>回小镇</button>
    <div className="counter-title"><small>第 {ch.businessDay??home.counter?.day??1} 天 · {phase}</small><h1>{home.shop.level===1?'街角奶茶':home.shop.level===2?'霓虹奶茶':'夜城茶饮'}</h1></div>
-   <div className="counter-tools"><button onClick={onPhone} aria-label="查看钱包"><Coins size={17}/>{home.wallet.balance}</button><button className="counter-phone" onClick={onPhone} aria-label="手机：任务与钱包" data-testid="counter-phone-trigger"><Smartphone size={18}/><span>手机</span></button><button onClick={()=>setHelp(!help)} aria-label="怎么玩"><HelpCircle size={19}/></button><SoundMenu/></div>
+   <div className="counter-tools"><button onClick={onPhone} aria-label="查看钱包"><Coins size={17}/>{home.wallet.balance}</button><button className="counter-phone" onClick={onPhone} aria-label="手机：任务与钱包" data-testid="counter-phone-trigger"><Smartphone size={18}/><span>手机</span></button><button onClick={()=>setHelp(!help)} aria-label="怎么玩"><HelpCircle size={19}/></button><GameSettings/></div>
   </header>
   {playing&&<div className="counter-status" inert={modal}>
    <span className={`counter-clock ${c.paused?'is-paused':''}`}><i className="counter-dot"/><b>{time(Math.max(0,ch.duration-(frame?.t??0)))}</b><small>{c.paused?'已暂停':'剩余'}</small></span>
