@@ -15,13 +15,13 @@ export interface TownDistrict {
   rect: { minX: number; maxX: number; minZ: number; maxZ: number };
 }
 
-// 180×132 版图：旧内环（±45×±33）为老镇中心，东西外区各扩一片，北侧 z<-36 留作规划区。
+// 180×132 版图：旧内环（±45×±33）为老镇中心，东西外区各扩一片，北侧 z<-36 为北环街区，保留两处后续建设地块。
 export const EXPANSION_Z = -36;
 export const TOWN_DISTRICTS: TownDistrict[] = [
   { id: 'commerce', name: '商业街', short: '商业', color: '#ffb347', rect: { minX: -90, maxX: -9, minZ: EXPANSION_Z, maxZ: 66 } },
   { id: 'plaza', name: '小镇广场', short: '广场', color: '#ffd166', rect: { minX: -9, maxX: 9, minZ: EXPANSION_Z, maxZ: 66 } },
   { id: 'leisure', name: '娱乐街', short: '娱乐', color: '#b18bff', rect: { minX: 9, maxX: 90, minZ: EXPANSION_Z, maxZ: 66 } },
-  { id: 'expansion', name: '北区 · 规划中', short: '北区', color: '#6f7d99', rect: { minX: -90, maxX: 90, minZ: -66, maxZ: EXPANSION_Z } },
+  { id: 'expansion', name: '北环街区', short: '北区', color: '#6f7d99', rect: { minX: -90, maxX: 90, minZ: -66, maxZ: EXPANSION_Z } },
 ];
 
 export function districtAt(x: number, z: number): TownDistrict {
@@ -30,11 +30,12 @@ export function districtAt(x: number, z: number): TownDistrict {
 }
 
 export type SiteId = 'west-market' | 'river-dock' | 'star-park' | 'river-walk';
-export type DestinationId = 'shop' | 'recruit' | 'arcade' | 'shopping' | 'bicycle' | 'basketball' | 'leisure' | 'plaza' | SiteId;
+export type DestinationId = 'shop' | 'recruit' | 'arcade' | 'shopping' | 'bicycle' | 'basketball' | 'north-ring' | 'leisure' | 'plaza' | SiteId;
 export const SITE_IDS = TOWN_OPPORTUNITIES.map(o => o.id) as SiteId[];
 export const isSite = (d: string): d is SiteId => (SITE_IDS as string[]).includes(d);
 /** 可站立的导航终点（不进入建筑、不触发任何玩法） */
 export const TOWN_DESTINATIONS: Record<DestinationId, { name: string; x: number; z: number; district: DistrictId }> = {
+  'north-ring': {name:'北环街区',x:0,z:-50,district:'expansion'},
   shopping: { name: '霓虹购物街', ...SHOPPING, district: 'commerce' },
   bicycle: { name: '路边单车', ...BIKE_STAND, district: 'plaza' },
   basketball: { name: '夜光篮球场', x: BASKETBALL.x-8.5, z: BASKETBALL.z-3, district: 'leisure' },
@@ -61,7 +62,7 @@ export const TOWN_STREETS: { name: string; x: number; z: number; vertical?: bool
   { name: '星光大道', x: 58, z: -16.3, district: 'leisure' },
   { name: '乐园街', x: 82, z: 14, vertical: true, district: 'leisure' },
   { name: '滨河步道', x: 0, z: 43, district: 'plaza' },
-  { name: '北环 · 规划中', x: 0, z: -50, district: 'expansion' },
+  { name: '北环街', x: 0, z: -50, district: 'expansion' },
 ];
 
 /** 地标（小地图文字；open=false 表示仅外观，尚未开放玩法） */
@@ -103,7 +104,16 @@ export const TOWN_SHOPHOUSES: Shophouse[] = [
   { x: 11.3, z: 15.6, w: 3.0, d: 3.6, h: 2.7, district: 'leisure', face: -1, sign: '抓娃娃' },
   { x: 15.6, z: 15.6, w: 3.0, d: 3.6, h: 2.4, district: 'leisure', face: -1, sign: '甜品' },
   ...outerHouses(),
+  ...northHouses(),
 ];
+
+/** 北环两侧成组街屋，留出中轴广场、纵向通路和装卸巷。 */
+function northHouses(): Shophouse[] {
+  const xs=[-82,-74,-66,-50,-42,-24,-16,16,24,42,50,66,74,82];
+  const west=['机修','零件','快递','工具','夜班食堂','仓储','旧物'];
+  const east=['唱片','模型','光影','甜品','花店','书屋','画室'];
+  return [-60,-41].flatMap((z,row)=>xs.map((x,i)=>({x,z,w:5.6+(i%2)*.6,d:5.2,h:row===0?5+(i%3)*1.4:3+(i%3)*.45,face:(row===0?1:-1) as 1|-1,district:(x<0?'commerce':'leisure') as DistrictId,sign:(x<0?west:east)[i%7]})));
+}
 
 /** 外区街屋：西街大道/西二街（商业）与星光大道/乐园街（娱乐）两侧围合，留出据点口袋广场。 */
 function outerHouses(): Shophouse[] {
@@ -176,7 +186,10 @@ export const TOWN_ROADS: (Rect & { district: DistrictId })[] = [
   { ...R(-2, 2, 26, 40), district: 'plaza' }, // 中轴南延
   { ...R(-35, -31, -50, -26), district: 'expansion' },
   { ...R(31, 35, -50, -26), district: 'expansion' },
-  { ...R(-35, 35, -52, -48), district: 'expansion' }, // 北环（规划）
+  { ...R(-87, 87, -52, -48), district: 'expansion' }, // 北环主路
+  ...[-58,0,58].map(x=>({ ...R(x-2,x+2,-64,-28), district:'expansion' as const })),
+  { ...R(-87,87,-55,-53), district:'expansion' },
+  { ...R(-87,87,-47,-45), district:'expansion' },
   { ...R(-71, -57, -20, -5), district: 'commerce' }, // 西街集市口袋广场
   { ...R(57, 71, -20, -5), district: 'leisure' }, // 星光乐园广场
   { ...R(-68, -56, 36, 40), district: 'commerce' }, // 河港码头前场
@@ -189,7 +202,7 @@ export const TOWN_ROADS: (Rect & { district: DistrictId })[] = [
 ];
 
 /** 坊区口袋花园（草地，仅绘制；树在 TOWN_TREES） */
-export const POCKET_GARDENS: Rect[] = [R(-66, -60, 19, 28), R(-50, -44, 19, 28), R(44, 52, 19, 30), R(62, 70, 19, 30)];
+export const POCKET_GARDENS: Rect[] = [R(-12,-4,-44,-37),R(4,12,-44,-37),R(-12,-4,-63,-56),R(4,12,-63,-56),R(-66, -60, 19, 28), R(-50, -44, 19, 28), R(44, 52, 19, 30), R(62, 70, 19, 30)];
 
 /** 河道：z 48..54 横贯南部，三座桥（西/中/东）对齐南延道路 */
 export const RIVER = { minZ: 48, maxZ: 54 };
@@ -227,6 +240,8 @@ export const TOWN_LANDMARK_CIRCLES: { x: number; z: number; r: number; kind: str
 
 /** 外区树（碰撞） */
 export const TOWN_TREES: [number, number][] = [
+  ...[-86,-70,-46,-20,20,46,70,86].map(x=>[x,-35] as [number,number]),
+  [-8,-40],[8,-40],[-8,-60],[8,-60],[-38,-56],[38,-56],
   ...[-80, -58, -45, -15, 15, 45, 58, 80].map(x => [x, 38] as [number, number]),
   ...[-70, -50, -30, -12, 12, 30, 50, 70].map(x => [x, 57] as [number, number]),
   ...[-60, -40, 40, 60].map(x => [x, 63] as [number, number]),
@@ -235,8 +250,8 @@ export const TOWN_TREES: [number, number][] = [
   [-62.5, 23], [-63.5, 27], [-47.5, 22], [-46, 27], [47, 24], [48.5, 29], [66, 25], [64, 29.5],
 ];
 
-/** 北区规划地块（仅地面划线） */
-export const EXPANSION_PLOTS: Rect[] = [R(-30, -10, -64, -55), R(-6, 6, -64, -55), R(10, 30, -64, -55), R(-28, -6, -45, -38), R(6, 28, -45, -38)];
+/** 北环南缘保留的两处建设地块（仅地面划线） */
+export const EXPANSION_PLOTS: Rect[] = [R(-55,-40,-34,-29),R(40,55,-34,-29)];
 
 /** 细立柱（灯串杆、桥栏柱）：渲染与碰撞同源 */
 export const TOWN_POSTS: { x: number; z: number; r: number }[] = [

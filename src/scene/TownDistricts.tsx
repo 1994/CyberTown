@@ -19,7 +19,7 @@ export const PALETTE: Record<DistrictId, { walls: string[]; awning: [string, str
   commerce: { walls: ['#3a2f36', '#33333f', '#3b3130', '#2f3442'], awning: ['#ffb347', '#ff5f8f'], window: '#ffcf8a', sign: '#ffd08a', trim: '#ff9f43' },
   leisure: { walls: ['#2b2a46', '#24324a', '#302848', '#22303f'], awning: ['#b18bff', '#3ef0ff'], window: '#c9b6ff', sign: '#9ef8ff', trim: '#b18bff' },
   plaza: { walls: ['#2d3a44'], awning: ['#ffd166', '#fff3e6'], window: '#ffe2b0', sign: '#ffd166', trim: '#ffd166' },
-  expansion: { walls: ['#2a2f3a'], awning: ['#6f7d99', '#2a2f3a'], window: '#8d9bb8', sign: '#8d9bb8', trim: '#6f7d99' },
+  expansion: { walls: ['#2a2f3a'], awning: ['#6f7d99', '#2a2f3a'], window: '#8d9bb8', sign: '#8d9bb8', trim: '#65b8c6' },
 };
 
 const stripeCache = new Map<string, THREE.CanvasTexture>();
@@ -62,6 +62,15 @@ export function House({ h: raw, i }: { h: Shophouse; i: number }) {
     <mesh position={[0, h.h + 0.06, 0]} material={std('#151b24', 0.5, 0.5)}><boxGeometry args={[h.w + 0.16, 0.12, h.d + 0.16]} /></mesh>
     <mesh position={[(i % 3 - 1) * h.w * 0.2, h.h + step / 2 + 0.1, -f * h.d * 0.18]} material={std('#222a36', 0.7, 0.2)}><boxGeometry args={[h.w * 0.45, step, h.d * 0.45]} /></mesh>
     {i % 2 === 0 && <mesh position={[h.w * 0.32, h.h + 0.45, -f * h.d * 0.25]} material={std('#3c4654', 0.5, 0.6)}><cylinderGeometry args={[0.28, 0.28, 0.7, 10]} /></mesh>}
+    {h.z < -36 && <>
+      {/* Upper homes and roof machinery make the north street a lived-in skyline. */}
+      {Array.from({length:Math.max(0,Math.floor((h.h-2.4)/1.5))},(_,floor)=>[-.3,0,.3].map((u,k)=><mesh key={`${floor}:${k}`} position={[h.w*u,3+floor*1.45,front+f*.025]} material={glow((i+k+floor)%3?'#ffce8c':'#6ee5ed',.65)}><boxGeometry args={[.65,.7,.035]}/></mesh>))}
+      <mesh position={[-h.w*.3,h.h+.38,0]} material={std('#526878',.5,.6)}><boxGeometry args={[1,.55,.75]}/></mesh>
+      {[0,1,2,3].map(k=><mesh key={k} position={[-h.w*.3,h.h+.2+k*.11,-.39]} material={std('#152331')}><boxGeometry args={[.8,.035,.02]}/></mesh>)}
+      <mesh position={[h.w*.3,h.h+.72,-front*.6]} material={std('#647a87',.4,.7)}><cylinderGeometry args={[.045,.045,1.4,6]}/></mesh>
+      <mesh position={[h.w*.3,h.h+1.4,-front*.6]} material={glow(i%2?'#f478b8':'#69e5db',1.1)}><sphereGeometry args={[.09,6,6]}/></mesh>
+      <mesh position={[0,h.h+.13,front]} material={glow(P.trim,1.1)}><boxGeometry args={[h.w,.035,.045]}/></mesh>
+    </>}
     {/* 门脸：暖窗 + 门 */}
     <mesh position={[-h.w * 0.18, 1.15, front + f * 0.011]} rotation-y={f > 0 ? 0 : Math.PI}>
       <planeGeometry args={[h.w * 0.5, 1.1]} />
@@ -167,7 +176,7 @@ function ExpansionFence() {
     <mesh position={[(f.minX + f.maxX) / 2, 0.55, (f.minZ + f.maxZ) / 2]}><boxGeometry args={[w, 1.1, 0.12]} /><meshStandardMaterial map={board} roughness={0.8} /></mesh>
     {[f.minX, f.maxX].map(x => <mesh key={x} position={[x, 0.3, f.maxZ + 0.25]} material={std('#ff7a3d', 0.6)}><coneGeometry args={[0.18, 0.6, 8]} /></mesh>)}
     <mesh position={[0, 1.7, f.minZ]} material={std('#0b1016', 0.5, 0.4)}><boxGeometry args={[3.2, 0.6, 0.08]} /></mesh>
-    <Neon text="北区 · 规划中" color="#c7d2e6" w={3} h={0.5} size={130} position={[0, 1.7, f.maxZ - 0.22]} rotation={[0, 0, 0]} />
+    <Neon text="北环街区 · 两侧通行" color="#83e6dc" w={4.6} h={0.5} size={130} position={[0, 1.7, f.maxZ - 0.22]} rotation={[0, 0, 0]} />
   </group>;
 }
 

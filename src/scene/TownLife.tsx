@@ -33,7 +33,7 @@ function Resident({index}:{index:number}) {
     if(!root.current)return;
     const phase=(clock.elapsedTime*.65+index*4.7)%(2*(route.b-route.a));
     const forward=phase<route.b-route.a;
-    const x=reduced?route.a+index:forward?route.a+phase:route.b-(phase-(route.b-route.a));
+    const x=reduced?route.a+(route.b-route.a)*.5:forward?route.a+phase:route.b-(phase-(route.b-route.a));
     root.current.position.set(x,0,route.z);
     if(tag.current)tag.current.visible=Math.hypot(rt.me.x-x,rt.me.z-route.z)<12;
     root.current.rotation.y=forward?Math.PI/2:-Math.PI/2;

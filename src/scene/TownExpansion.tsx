@@ -21,7 +21,7 @@ function Sign2({ text, color, w, h, position, rotY = 0, size = 150 }: { text: st
   </group>;
 }
 
-const ROAD_TINT: Record<DistrictId, string> = { commerce: '#ffb347', leisure: '#b18bff', plaza: '#ffd166', expansion: '#6f7d99' };
+const ROAD_TINT: Record<DistrictId, string> = { commerce: '#ffb347', leisure: '#b18bff', plaza: '#ffd166', expansion: '#65b8c6' };
 const lm = (kind: string) => TOWN_LANDMARK_BOXES.find(b => b.kind === kind)!;
 const lc = (kind: string) => TOWN_LANDMARK_CIRCLES.find(c => c.kind === kind)!;
 

@@ -7,5 +7,6 @@ export const TOWN_LOCKED_AREAS = [
  {id:'night-market',name:'夜市街区',x:-37,z:-3,minX:-43,maxX:-35,minZ:-24,maxZ:20,hint:'夜市经营后续开放 · 街道可通行'},
  {id:'west-blocks',name:'西街商坊',x:-61,z:2,minX:-89,maxX:-43,minZ:-25,maxZ:34,hint:'商铺后续开放 · 集市与河港可探索'},
  {id:'star-blocks',name:'星光街区',x:62,z:2,minX:42,maxX:89,minZ:-33,maxZ:38,hint:'娱乐设施后续开放 · 乐园与步道可探索'},
- {id:'north',name:'北区扩建',x:0,z:-36,minX:-90,maxX:90,minZ:-66,maxZ:-36,hint:'扩建玩法后续开放'},
+ {id:'north',name:'工坊建设用地',x:-47,z:-30,minX:-55,maxX:-40,minZ:-34,maxZ:-29,hint:'建设玩法后续开放 · 北环街道可探索'},
+ {id:'north-east',name:'街区建设用地',x:47,z:-30,minX:40,maxX:55,minZ:-34,maxZ:-29,hint:'建设玩法后续开放 · 北环街道可探索'},
 ] as const;

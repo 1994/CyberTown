@@ -41,9 +41,9 @@ const distDest = (d: DestinationId) => {const p=d==='bicycle'?useRide.getState()
 const reach = (d: DestinationId) => d === 'shop' || d === 'recruit' || d === 'arcade' ? SITES[d].range : 2.2;
 /** 考察按钮出现距离（服务端校验 4.2m，前端更保守） */
 const SURVEY_RANGE = 2.8;
-const DEST_ORDER: DestinationId[] = ['shop', 'shopping', 'basketball', 'bicycle', 'arcade', 'plaza', 'recruit'];
+const DEST_ORDER: DestinationId[] = ['shop', 'shopping', 'basketball', 'bicycle', 'arcade', 'plaza', 'recruit', 'north-ring'];
 const DEST_LABEL: Record<DestinationId, string> = {
-  shopping: '霓虹购物街', bicycle: '路边单车', basketball: '运动区 · 篮球场', arcade: '小游戏大厅', shop: '商业街 · 奶茶店', leisure: '娱乐街', plaza: '回广场', recruit: '雇佣大厅',
+  'north-ring': '北环街区', shopping: '霓虹购物街', bicycle: '路边单车', basketball: '运动区 · 篮球场', arcade: '小游戏大厅', shop: '商业街 · 奶茶店', leisure: '娱乐街', plaza: '回广场', recruit: '雇佣大厅',
   ...Object.fromEntries(TOWN_OPPORTUNITIES.map(o => [o.id, o.name])) as Record<SiteId, string>,
 };
 

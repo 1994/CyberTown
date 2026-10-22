@@ -1,5 +1,6 @@
 /** Ambient traffic stays on dedicated road lanes; it never changes navigation. */
 export const TRAFFIC_ROUTES = [
+  {id:'north-ring',left:-82,right:82,z:-50,radius:.8,cars:5,speed:3.4,scale:.65},
   { id: 'commerce-street', left: -27, right: -12, z: 11.2, radius: .55, cars: 2, speed: 2.2, scale: .55 },
   { id: 'leisure-street', left: 12, right: 26, z: 11.2, radius: .55, cars: 2, speed: 2.2, scale: .55 },
   { id: 'promenade', left: -22, right: 22, z: 24.15, radius: .85, cars: 4, speed: 3.2, scale: .65 },

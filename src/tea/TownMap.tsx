@@ -20,7 +20,7 @@ const VIEWS: Record<MapView, { minX: number; minZ: number; w: number; h: number 
 };
 export const MAP_VIEW_LABEL: Record<MapView, string> = { all: '总览', commerce: '商业区', plaza: '老镇中心', leisure: '娱乐区' };
 const DEST_ICON: Record<DestinationId, string> = {
-  shopping: '🛍', bicycle: '🚲', basketball: '🏀', arcade: '🎮', shop: '🧋', recruit: '🙋', leisure: '🎮', plaza: '⛲', 'west-market': '🏪', 'river-dock': '⚓', 'star-park': '🎡', 'river-walk': '🌉',
+  'north-ring': '🌃', shopping: '🛍', bicycle: '🚲', basketball: '🏀', arcade: '🎮', shop: '🧋', recruit: '🙋', leisure: '🎮', plaza: '⛲', 'west-market': '🏪', 'river-dock': '⚓', 'star-park': '🎡', 'river-walk': '🌉',
 };
 
 export function TownMap({ target, view, visited, onWalk }: { target: DestinationId | null; view: MapView; visited: string[]; onWalk: () => void }) {
