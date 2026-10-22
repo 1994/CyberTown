@@ -207,6 +207,17 @@ export function TownLandmarks() {
     <RecruitStand hot={target === 'recruit'} />
     <TownGate />
     <group position={[18,0,11.2]}>
+      {/* A raised street marquee keeps the walk-in point clear; the existing entry icon stays single. */}
+      <group position={[0,5.1,-1.5]}>
+        <mesh material={std('#101a2c',.4,.4)}><boxGeometry args={[6.9,2.05,.22]}/></mesh>
+        {[-1,1].map(side=><mesh key={side} position={[side*3.47,0,0]} material={glow('#e88aff',1.5)}><boxGeometry args={[.06,2.08,.25]}/></mesh>)}
+        {[-1,1].map(side=><mesh key={side} position={[0,side*1.04,0]} material={glow('#ffd875',1.3)}><boxGeometry args={[7,.06,.25]}/></mesh>)}
+        {[0,Math.PI].map(angle=><group key={angle} rotation-y={angle}>
+          <Neon text="霓虹赌摊 · 小游戏" color="#8affed" w={4.8} h={.4} position={[0,.68,.13]}/>
+          <Neon text="富贵险中求" color="#ffe184" w={6.3} h={.88} position={[0,0,.13]}/>
+          <Neon text="猜中双倍到账 · 仅试玩金币" color="#e6d5ff" w={5.8} h={.38} position={[0,-.67,.13]}/>
+        </group>)}
+      </group>
       <mesh rotation-x={-Math.PI/2} position-y={.026} material={glow('#aa79ff',1.3)}><ringGeometry args={[2.3,2.48,6]}/></mesh>
       <mesh rotation-x={-Math.PI/2} position-y={.028} material={glow('#65ffe7',1.5)}><ringGeometry args={[2.65,2.72,6]}/></mesh>
       <LocalPointLight position={[0,3.5,0]} color="#d8bdff" intensity={24} distance={13} decay={2}/>
