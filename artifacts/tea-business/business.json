@@ -1,0 +1,28 @@
+{
+  "demo": "li",
+  "prepNoPost": true,
+  "confirmCancelNoCharge": true,
+  "official": {
+    "id": "e8b22de7d0c9537ceb3793b094a5fe2a744d9ad679ad1754",
+    "hold": 360,
+    "completed": 20,
+    "net": 240
+  },
+  "reportAuto": true,
+  "nextNoPost": true,
+  "practice": {
+    "id": "7eefd93e014099ee1b155cecae98d6941cdca0b05f20cceb",
+    "hold": 0,
+    "coinsUnchanged": true,
+    "progressUnchanged": true
+  },
+  "lv2": {
+    "level": 2,
+    "arrivals": 32,
+    "target": 24,
+    "price": 22,
+    "stock": 40
+  },
+  "historyReadOnly": true,
+  "errors": []
+}

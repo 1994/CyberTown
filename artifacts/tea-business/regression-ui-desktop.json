@@ -1,0 +1,20 @@
+{
+  "solo": 19,
+  "batches": 20,
+  "net": 340,
+  "coinsBefore": 2000,
+  "coinsAfter": 2340,
+  "mission": {
+    "status": "completed",
+    "acceptedAt": 1792644079240,
+    "completedAt": 1792644153660,
+    "income": 340,
+    "runId": "4e5ec3f62ab1d1c94f5ac76a9dec67864238f2b4b49fae5f"
+  },
+  "mapWalk": true,
+  "optionalRecruitment": true,
+  "leavePauses": true,
+  "reloadResumes": true,
+  "upgradePersists": true,
+  "errors": []
+}

@@ -1,0 +1,14 @@
+{
+  "preview": "http://127.0.0.1:8897",
+  "htmlMatchesBuild": true,
+  "assets": [
+    {
+      "path": "/assets/index-D0geBEpx.js",
+      "sha256": "8f2e2cee001181e1f605196dae57f58277c75cc2983e0c2ac2cb288c8c214402"
+    },
+    {
+      "path": "/assets/index-VjQ1R6I7.css",
+      "sha256": "663f801fdfb670c1d68f30a9a0d7e254641756a9702bcb12d3c269bb24dd1de6"
+    }
+  ]
+}

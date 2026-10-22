@@ -60,7 +60,8 @@ export function useTeaChapter() {
     const ids = s ? s.run.workers.filter(w => w.id !== 'self').map(w => w.id) : (stored?.selected ?? []).filter(id => valid.has(id)).slice(0, 2);
     setSelected(ids);
     updateRoles(s ? Object.fromEntries(s.run.plan.assignments.map(a => [a.workerId, a.role])) : stored?.roles ?? { self: 'support' });
-    updateStock(s?.run.plan.stock ?? ([20,40,60].includes(stored?.stock ?? 0) ? stored!.stock : 20));
+    const options = h.business?.stockOptions ?? [20, 40, 60];
+    updateStock(s?.run.plan.stock ?? (options.some(option => option === stored?.stock) ? stored!.stock : h.business?.recommendedStock ?? 20));
     updateStrategy(s?.run.plan.strategy ?? stored?.strategy ?? 'balanced');
   }, []);
   const load = useCallback(async () => {
@@ -88,7 +89,7 @@ export function useTeaChapter() {
   const problems = [
     lesson === 'rescue' && home?.mission.status === 'offered' ? '先在手机接下救店任务' : '',
     lesson !== 'free' && lesson !== 'rescue' && team.length !== hiresNeeded + 1 ? `还需招募 ${Math.max(0, hiresNeeded + 1 - team.length)} 位同事` : '',
-    totalCost > (home?.challenge.budget ?? 1100) ? '筹备费用超出预算' : '',
+    totalCost > (home?.business?.challenge.budget ?? home?.challenge.budget ?? 1100) ? '筹备费用超出预算' : '',
   ].filter(Boolean);
   useEffect(() => {
     if (home && !active) save(planKey, { selected, roles, stock, strategy } satisfies SavedPlan);
@@ -191,13 +192,18 @@ export function useTeaChapter() {
   const next = () => {
     if (active || !home) return;
     setLesson('rescue'); setSession(null); setView('prep');
-    if (![20,40,60].includes(stock)) updateStock(20);
+    const options = home.business?.stockOptions ?? [20, 40, 60];
+    if (!options.includes(stock)) updateStock(home.business?.recommendedStock ?? 20);
   };
 
   const upgrade = async () => {
     if (!home || locked.current || active || home.shop.level >= 3) return;
     locked.current = true; setBusy(true);
-    try { const h = await teaApi.upgrade(home.shop.level) as TeaLiveHome; setHome(h); setView('ending'); setToast('门店焕新完成'); }
+    try {
+      const h = await teaApi.upgrade(home.shop.level) as TeaLiveHome;
+      setHome(h); updateStock(h.business?.recommendedStock ?? (h.shop.level >= 3 ? 60 : 40));
+      setView('ending'); setToast('门店焕新完成');
+    }
     catch (e) { setToast(message(e)); }
     finally { locked.current = false; setBusy(false); }
   };
@@ -232,7 +238,7 @@ export function useTeaChapter() {
     : team.length >= 3 ? '同事自动营业，按需支援'
     : (frame.makerQueue > frame.cashierQueue && frame.makerQueue > 0) ? '点制作台，做一批饮品'
       : frame.cashierQueue > 0 ? '点前台，接待一批客人' : lesson === 'solo' ? '等第一位客人进店' : '同事会自动接活'
-    : lesson === 'rescue' ? home?.mission.status === 'completed' ? '小店重新开张，继续自由经营' : '撑过这一班，让小店重新有收入'
+    : lesson === 'rescue' ? home?.business?.goal ?? (home?.mission.status === 'completed' ? '小店重新开张，继续自由经营' : '撑过这一班，让小店重新有收入')
       : home?.chapter.stage === 'upgrade' ? '用收益为小店换上新招牌'
       : view === 'ending' ? home?.shop.level === 3 ? '主线完成，旗舰店开张' : '第一章完成，同事接管日常'
         : lesson === 'solo' ? '独自做出第一杯奶茶'
@@ -241,7 +247,7 @@ export function useTeaChapter() {
               : home?.shop.level === 3 ? '主线完成，自由经营' : '升级到夜城茶饮旗舰';
   useTeaAudio({ view: outside ? 'street' : view === 'ending' ? 'report' : view, run, frame, shopLevel: home?.shop.level ?? 0, teamKey: selected.join('|') });
 
-  return { home, error, toast, busy, view, lesson, goal, hiresNeeded, team, pool, roles, stock, strategy, totalCost, problems,
+  return { home, business: home?.business, error, toast, busy, view, lesson, goal, hiresNeeded, team, pool, roles, stock, strategy, totalCost, problems,
     session, run, frame, events, supportAt, paused, speed, canAssign, load, pick, setRole, setStock, setStrategy,
     goShop, goStreet, start, assign, togglePause, pause, setOutside, acceptMission, refresh, setSpeed, skip, next, upgrade, openRun, toggleHire, logout };
 }

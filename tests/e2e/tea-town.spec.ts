@@ -18,9 +18,10 @@ async function walkShop(page:Page){
  await expect(page.getByTestId('town-enter-shop')).toBeVisible({timeout:35_000});
  await page.getByTestId('town-enter-shop').click();await expect(page.locator('.tea-prep')).toBeVisible();
 }
+async function confirmStart(page:Page){const d=page.getByTestId('tea-open-confirm');await expect(d).toBeVisible();await d.getByTestId('tea-confirm-start').click();}
 async function open(page:Page){
  const res=page.waitForResponse(r=>r.url().endsWith('/api/tea/sessions')&&r.request().method()==='POST');
- await page.getByRole('button',{name:/^正式开店/}).click();await page.getByRole('button',{name:/^预付.*开店/}).click();
+ await page.getByRole('button',{name:/^正式开店/}).click();await confirmStart(page);
  const r=await res;expect(r.status()).toBe(200);return await r.json() as TeaSession;
 }
 async function finish(page:Page,s:TeaSession,normal=false){
@@ -89,7 +90,7 @@ test('正常画质：大地图→手机→步行入店，配乐随动线切换�
  await accept(page);await walkShop(page);await expect(diag).toHaveAttribute('data-music-scene','prep');await snap(page,'13-normal-shop');
  await page.getByRole('button',{name:'声音设置',exact:true}).click();const music=page.getByTestId('music-volume');await music.focus();await page.keyboard.press('Home');await expect(diag).toHaveAttribute('data-music-volume','0.00');await expect(diag).toHaveAttribute('data-music-voices','0');
  await music.focus();await page.keyboard.press('End');await expect(diag).toHaveAttribute('data-music-volume','1.00');await page.getByRole('button',{name:'声音设置',exact:true}).click();
- const r=page.waitForResponse(r=>r.url().endsWith('/api/tea/sessions')&&r.request().method()==='POST');await page.getByRole('button',{name:'免费试营业',exact:true}).click();const s=await(await r).json() as TeaSession;
+ const r=page.waitForResponse(r=>r.url().endsWith('/api/tea/sessions')&&r.request().method()==='POST');await page.getByRole('button',{name:'免费试营业',exact:true}).click();await confirmStart(page);const s=await(await r).json() as TeaSession;
  await expect(diag).toHaveAttribute('data-music-scene','business');await page.getByRole('button',{name:'x2',exact:true}).click();await expect(diag).toHaveAttribute('data-music-scene','rush',{timeout:20_000});
  const beforeSkip=Number(await diag.getAttribute('data-played'));await page.getByRole('button',{name:/^跳过/}).click();await expect(page.locator('.tea-report')).toBeVisible();await expect(diag).toHaveAttribute('data-music-scene','report');expect(Number(await diag.getAttribute('data-played'))-beforeSkip).toBeLessThan(8);
  expect((await current(page,s.id)).run.mode).toBe('practice');expect((await home(page)).mission.status).toBe('accepted');await page.getByRole('button',{name:'回小镇',exact:true}).click();await expect(diag).toHaveAttribute('data-music-scene','street');

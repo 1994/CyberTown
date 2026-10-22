@@ -1,0 +1,64 @@
+{
+  "game": "赛博小镇",
+  "status": "accepted",
+  "preview": "http://127.0.0.1:8897",
+  "checks": {
+    "goAllPackages": true,
+    "webChecks": true,
+    "businessE2E": true,
+    "townRegressionE2E": 3,
+    "visualViewports": [
+      "1440x900",
+      "390x844",
+      "844x390"
+    ],
+    "browserErrors": []
+  },
+  "behavior": [
+    "筹备和确认取消不建营业局、不扣款",
+    "正式和免费均由最终确认按钮开门",
+    "自然结束自动弹出真实经营报表",
+    "亏损为红色负值，预付和实际到账分列",
+    "回筹备不自动开始下一班",
+    "试营业不扣金币、不推进经营主线",
+    "历史只读回看不重复入账",
+    "升级实际提高客流和售价",
+    "旧玩家、账本、任务和营业局数据不变"
+  ],
+  "progression": {
+    "customers": [
+      20,
+      32,
+      48
+    ],
+    "targets": [
+      12,
+      24,
+      36
+    ],
+    "prices": [
+      20,
+      22,
+      24
+    ],
+    "upgradeCosts": [
+      600,
+      1200
+    ],
+    "fullAutomaticStaffPlanNet": [
+      240,
+      224,
+      552
+    ]
+  },
+  "delegation": {
+    "ui": "Claude same provider session",
+    "simpleCodeAndE2E": "dsh same cached session",
+    "acceptance": "Codex"
+  },
+  "limits": [
+    "每天正式营业3班",
+    "店内仍为个人经营局",
+    "短横屏报表需要滚动查看完整明细"
+  ]
+}

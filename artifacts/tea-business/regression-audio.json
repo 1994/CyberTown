@@ -1,0 +1,14 @@
+{
+  "scenes": [
+    "street",
+    "prep",
+    "business",
+    "rush",
+    "report",
+    "street"
+  ],
+  "musicMute": true,
+  "skipNoBurst": true,
+  "practiceCannotCompleteMission": true,
+  "errors": []
+}

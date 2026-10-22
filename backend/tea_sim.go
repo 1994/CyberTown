@@ -34,6 +34,7 @@ type TeaChallenge struct {
 	ID            string `json:"id"`
 	Seed          uint32 `json:"seed"`
 	RuleVersion   string `json:"ruleVersion"`
+	ShopLevel     int    `json:"shopLevel,omitempty"`
 	Name          string `json:"name"`
 	Duration      int    `json:"duration"`
 	Arrivals      int    `json:"arrivals"`

@@ -1,0 +1,8 @@
+
+Running 1 test using 1 worker
+
+(node:8204) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 tests/e2e/tea-business.spec.ts:95:1 › 经营强化：确认开班/真实报表/免费试营/升级业务挑战 (49.8s)
+
+  1 passed (50.8s)

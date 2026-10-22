@@ -1,10 +1,11 @@
 import { useLayoutEffect, useRef, useState } from 'react';
-import type { TeaRole, TeaRun, TeaSkill, TeaStrategy, TeaWorker } from '../../shared/tea.ts';
+import type { TeaRole, TeaSkill, TeaStrategy, TeaWorker } from '../../shared/tea.ts';
 import type { TeaWorkRole } from '../../shared/teaLive.ts';
 import { useGame } from '../store.ts';
 import { SoundMenu } from '../ui/SoundControl.tsx';
 import type { TeaChapterController } from './useTeaChapter.ts';
 import { TeaScene } from './TeaScene.tsx';
+import { OpenConfirm, ReportDialog } from './TeaDialogs.tsx';
 import '../sound.css';
 import './tea.css';
 
@@ -32,24 +33,6 @@ const specialty = (w: TeaWorker) => {
   return m === w.production ? '擅长制作' : m === w.service ? '擅长接待' : '擅长机动';
 };
 
-function ServedCurve({ run }: { run: TeaRun }) {
-  const f = run.result.frames;
-  if (f.length < 2) return null;
-  const W = 300, H = 90;
-  const maxY = Math.max(run.challenge.target, ...f.map(x => x.served), 1) * 1.08;
-  const dur = Math.max(run.challenge.duration, f[f.length - 1].t, 1);
-  const pts = f.map(x => `${((x.t / dur) * W).toFixed(1)},${(H - (x.served / maxY) * H).toFixed(1)}`).join(' ');
-  const ty = H - (run.challenge.target / maxY) * H;
-  return <figure className="tea-curve">
-    <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" role="img" aria-label="累计出杯曲线">
-      <line x1="0" x2={W} y1={ty} y2={ty} className="target" />
-      <polyline points={`0,${H} ${pts} ${W},${H}`} className="area" />
-      <polyline points={pts} className="line" />
-    </svg>
-    <figcaption><span>累计出杯</span><span>目标 {run.challenge.target}</span><span>{fmtTime(dur)}</span></figcaption>
-  </figure>;
-}
-
 function Stat({ label, v }: { label: string; v: number }) {
   return <div className="tea-stat"><span>{label}</span><b><i style={{ width: `${Math.min(100, v)}%` }} /></b><em>{v}</em></div>;
 }
@@ -60,7 +43,7 @@ export function WorkerCard({ w, on, onClick, disabled }: { w: TeaWorker; on: boo
   const [sk, desc] = SKILL[w.skill] ?? SKILL.none;
   return <div className={`tea-card ${on ? 'on' : ''} ${disabled ? 'off' : ''}`} style={{ '--c': w.color } as React.CSSProperties}>
     <button className="tea-card-main" onClick={onClick} disabled={disabled} aria-pressed={on}>
-      <header><b>{w.name}</b>{w.demo && <i>演示</i>}<span>¥{w.salary}</span></header>
+      <header><b>{w.name}</b>{w.demo && <i>演示</i>}<span><i className="coin sm" />{w.salary}</span></header>
       <p className="tea-spec">{specialty(w)}{w.skill !== 'none' && <em> · {sk}</em>}</p>
     </button>
     <button className="tea-card-more" onClick={() => setOpen(!open)} aria-expanded={open}>{open ? '收起' : '详情'}</button>
@@ -77,7 +60,8 @@ export function TeaGame({ controller: c, onExit, onPhone }: { controller: TeaCha
   // 招募在广场完成；店里只有筹备/营业/报告，controller 若仍停在 street 也按筹备呈现
   const view = c.view === 'street' ? 'prep' : c.view;
   const [drawer, setDrawer] = useState<'none' | 'history' | 'notices'>('none');
-  const [confirmPay, setConfirmPay] = useState(false);
+  // 开班确认：选好模式后先 review，最终按钮才调用 c.start
+  const [confirm, setConfirm] = useState<'practice' | 'official' | null>(null);
 
   // 3D 只画在面板/底部操作条以外的可用区域
   const rootRef = useRef<HTMLDivElement>(null);
@@ -112,13 +96,19 @@ export function TeaGame({ controller: c, onExit, onPhone }: { controller: TeaCha
   </div>;
 
   const self = home.self;
-  const ch = home.challenge;
   const lv = home.shop.level;
+  const rescue = c.lesson === 'rescue';
+  // tea.4：rescue 用服务端冻结的当前阶段挑战；旧存档照旧
+  const biz = rescue ? home.business ?? null : null;
+  const ch = biz?.challenge ?? home.challenge;
   const live = view === 'play';
   const hires = team.filter(w => w.id !== self.id);
-  const rescue = c.lesson === 'rescue';
   const official = rescue || c.lesson === 'rush' || c.lesson === 'free';
-  const passed = home.shop.best >= ch.target || home.mission.status === 'completed';
+  const passed = biz ? biz.upgradeReady : home.shop.best >= ch.target || home.mission.status === 'completed';
+  // 确认框/报表打开时底层不可操作（含店铺返回与计划修改）
+  const modal = (!!confirm && view === 'prep') || (view === 'report' && !!run);
+  const wages = team.reduce((n, w) => n + w.salary, 0);
+  const cost = { material: c.stock * ch.materialCost, wages, operating: ch.operatingCost, total: c.totalCost };
   const st = frame?.selfTask;
   const queueOf = (s: 'cashier' | 'maker') => frame?.customersState.filter(x => x.state === s).length ?? 0;
   // 指派按钮始终在位：只在已排下一批或该端无积压时禁用（不随请求 busy 闪烁/卸载）
@@ -133,20 +123,16 @@ export function TeaGame({ controller: c, onExit, onPhone }: { controller: TeaCha
   const showRoles = run && view !== 'prep' ? Object.fromEntries(run.plan.assignments.map(a => [a.workerId, a.role])) as Record<string, TeaRole> : c.roles;
   const res = run?.result;
   const duration = run?.challenge.duration ?? ch.duration;
-  // 与 controller.next() 的分支一一对应
   const chStage = home.chapter.stage;
-  const nextLabel = rescue ? '再开一班' : c.lesson === 'solo' ? (chStage === 'solo' ? '再试一次' : '去招第一位同事')
-    : c.lesson === 'duo' ? (chStage === 'duo' ? '再试一次' : '去招第二位同事')
-      : chStage === 'upgrade' ? '去升级门店' : c.lesson === 'rush' ? '调整再战' : '继续经营';
 
   return <div ref={rootRef} className={`tea-root view-${view}`}>
-    <div className="tea-stage" style={{ top: stage.top, right: stage.right, bottom: stage.bottom }}>
+    <div className="tea-stage" inert={modal} style={{ top: stage.top, right: stage.right, bottom: stage.bottom }}>
       <TeaScene view="shop" shop={{ level: lv, team: showTeam, roles: showRoles, frame, stockMax: run?.plan.stock ?? c.stock, events: c.events,
         supportAt: c.supportAt, selfAvatar: me?.avatarUrl, live, liveFrame: live ? frame : null, onAssign: assign,
         canAssign: live && !queued, selfId: self.id }} />
     </div>
 
-    <header className="tea-top">
+    <header className="tea-top" inert={modal}>
       <button className="tea-btn ghost tea-exit" onClick={onExit} aria-label="回到小镇地图" data-testid="town-exit-shop">← 小镇</button>
       <div className="tea-brand tea-shopname">{LEVEL_NAME[lv - 1] ?? '奶茶店'}</div>
       <div className="tea-wallet" title="真实金币余额"><span>金币</span><b>{home.wallet.balance}</b></div>
@@ -159,13 +145,21 @@ export function TeaGame({ controller: c, onExit, onPhone }: { controller: TeaCha
       </div>
     </header>
 
-    {view === 'prep' && <div className="tea-guide">
+    {view === 'prep' && <div className="tea-guide" inert={modal}>
       <p><b>{c.goal}</b></p>
       <ol className="tea-crew" aria-label={`同事 ${hires.length}/2`}>{[0, 1].map(i =>
         <li key={i} className={i < hires.length ? 'done' : ''} />)}</ol>
     </div>}
 
-    {view === 'prep' && <section className="tea-panel tea-prep">
+    {view === 'prep' && <section className="tea-panel tea-prep" inert={modal}>
+      {biz && <div className="tea-stagecard" data-testid="tea-stage" data-stage={biz.stage}>
+        <header><small>Lv.{lv} · {LEVEL_NAME[lv - 1] ?? '奶茶店'}</small><b>{biz.title}</b></header>
+        <p>{biz.goal}</p>
+        <div className="tea-progress"><i style={{ width: `${Math.min(100, biz.target ? (biz.progress / biz.target) * 100 : 0)}%` }} />
+          <span>{biz.progress} / {biz.target} {biz.unit}</span></div>
+        {biz.reward && <p className="tea-reward">回报 · {biz.reward}</p>}
+        <div className="tea-chiprow"><span>{ch.arrivals} 客</span><span>目标 {ch.target} 杯</span><span>售价 {ch.price}</span><span>{fmtTime(ch.duration)}</span></div>
+      </div>}
       <div className="tea-block">
         {team.map(w => <div key={w.id} className="tea-assign" style={{ '--c': w.color } as React.CSSProperties}>
           <b>{w.id === self.id ? '你' : w.name}</b><span className="tea-mini">{w.id === self.id ? '半自动 · 指派批次' : '全自动'}</span>
@@ -174,13 +168,15 @@ export function TeaGame({ controller: c, onExit, onPhone }: { controller: TeaCha
         </div>)}
       </div>
       {official && <div className="tea-block tea-grid2">
-        <div><h3>备货</h3><div className="tea-seg">{(rescue ? RESCUE_STOCKS : STOCKS).map(s => <button key={s} className={c.stock === s ? 'on' : ''}
-          onClick={() => c.setStock(s as Parameters<typeof c.setStock>[0])}>{s}</button>)}</div></div>
+        <div><h3>备货</h3><div className="tea-seg">{(biz?.stockOptions ?? (rescue ? RESCUE_STOCKS : STOCKS)).map(s => <button key={s} className={`${c.stock === s ? 'on' : ''} ${biz?.recommendedStock === s ? 'rec' : ''}`}
+          onClick={() => c.setStock(s as Parameters<typeof c.setStock>[0])} title={biz?.recommendedStock === s ? '推荐' : undefined}>{s}</button>)}</div></div>
         <div><h3>策略</h3><div className="tea-seg">{(Object.keys(STRATEGY) as TeaStrategy[]).map(s =>
           <button key={s} className={c.strategy === s ? 'on' : ''} onClick={() => c.setStrategy(s)}>{STRATEGY[s]}</button>)}</div></div>
       </div>}
-      {official && <div className={`tea-meter ${c.totalCost > ch.budget ? 'over' : ''}`}><i style={{ width: `${Math.min(100, (c.totalCost / ch.budget) * 100)}%` }} />
-        <span>成本 ¥{c.totalCost} / 预算 ¥{ch.budget}</span></div>}
+      {official && <div className="tea-costline" data-testid="tea-cost">
+        <span>原料 <b>{cost.material}</b></span><span>工资 <b>{cost.wages}</b></span><span>运营 <b>{cost.operating}</b></span>
+        <span className={`sum ${c.totalCost > ch.budget || home.wallet.balance < c.totalCost ? 'bad' : ''}`}>预付 <b>{c.totalCost}</b></span>
+      </div>}
       {hires.length === 0 && <p className="tea-hint">没帮手也能开，招人去广场</p>}
       {rescue && home.mission.status === 'offered' && <div className="tea-row tea-mission-gate">
         <button className="tea-btn" disabled={c.busy} onClick={() => void c.acceptMission()} data-testid="town-accept-mission">接任务</button>
@@ -189,15 +185,13 @@ export function TeaGame({ controller: c, onExit, onPhone }: { controller: TeaCha
       {(home.chapter.stage === 'upgrade' || home.chapter.stage === 'complete' || c.lesson === 'free' || rescue) && lv < 3 && <div className="tea-upgrade">
         <span>门店 Lv.{lv}</span>
         {passed
-          ? <button className="tea-btn ghost" disabled={c.busy || home.wallet.balance < home.shop.nextUpgradeCost} onClick={() => void c.upgrade()}>升级 ¥{home.shop.nextUpgradeCost}</button>
-          : <span className="tea-lock"><button className="tea-btn ghost" disabled>升级 ¥{home.shop.nextUpgradeCost}</button><small>{rescue ? '救店成功后解锁' : '正式达标后解锁'}</small></span>}
+          ? <button className="tea-btn ghost" disabled={c.busy || home.wallet.balance < home.shop.nextUpgradeCost} onClick={() => void c.upgrade()}>升级 {home.shop.nextUpgradeCost} 金币</button>
+          : <span className="tea-lock"><button className="tea-btn ghost" disabled>升级 {home.shop.nextUpgradeCost} 金币</button><small>{biz?.upgradeReason || (rescue ? '救店成功后解锁' : '正式达标后解锁')}</small></span>}
       </div>}
       <div className="tea-row tea-cta">
-        <button className={`tea-btn ${official ? '' : 'primary'}`} disabled={!!c.problems.length || c.busy} onClick={() => void c.start('practice')}>免费试营业</button>
-        {official && (confirmPay
-          ? <button className="tea-btn primary hot" disabled={c.busy} onClick={() => { setConfirmPay(false); void c.start('official'); }}>预付 ¥{c.totalCost} 开店</button>
-          : <button className="tea-btn primary" disabled={!!c.problems.length || c.busy || home.attemptsRemaining <= 0 || home.wallet.balance < c.totalCost}
-            onClick={() => setConfirmPay(true)}>正式开店 <small>剩 {home.attemptsRemaining}</small></button>)}
+        <button className={`tea-btn ${official ? '' : 'primary'}`} disabled={!!c.problems.length || c.busy} onClick={() => setConfirm('practice')}>免费试营业</button>
+        {official && <button className="tea-btn primary" disabled={!!c.problems.length || c.busy || home.attemptsRemaining <= 0 || home.wallet.balance < c.totalCost}
+          onClick={() => setConfirm('official')}>正式开店 <small>剩 {home.attemptsRemaining}</small></button>}
       </div>
     </section>}
 
@@ -230,33 +224,10 @@ export function TeaGame({ controller: c, onExit, onPhone }: { controller: TeaCha
       </div>
     </>}
 
-    {view === 'report' && res && run && <section className="tea-panel tea-report">
-      <div className="tea-big"><b>{res.completed}</b><span>/ {run.challenge.target} 杯</span>
-        {run.mode === 'practice'
-          ? <em className="tea-nosettle">试营业 · 无结算</em>
-          : <em className="ok"><small>本次到账（成本已预付）</small>+¥{res.revenue + res.bonus}</em>}</div>
-      {run.mode === 'official' && <p className={`tea-net ${res.profit + res.bonus >= 0 ? 'ok' : 'bad'}`}>净收益 {res.profit + res.bonus >= 0 ? '+' : ''}¥{res.profit + res.bonus}</p>}
-      {rescue && run.mode === 'official' && home.mission.runId === run.id && <p className="tea-net ok tea-rescued">✓ 救店任务完成</p>}
-      <div className="tea-cause"><b>{res.bottleneck}</b></div>
-      <div className="tea-row">
-        <button className="tea-btn ghost" onClick={onExit}>回小镇</button>
-        <button className="tea-btn primary tea-next-btn" disabled={c.busy} onClick={c.next}>{nextLabel} →</button>
-      </div>
-      <details className="tea-more"><summary>详细报告</summary>
-        <p className="tea-suggest">{res.suggestion}</p>
-        <ServedCurve run={run} />
-        <div className="tea-loss">
-          <span>前台流失 <b>{res.lostCashier}</b></span><span>制作流失 <b>{res.lostMaker}</b></span>{res.lostStock > 0 && <span>缺货流失 <b>{res.lostStock}</b></span>}
-          <span>前台平均等待 <b>{res.avgCashierWait.toFixed(1)}s</b></span><span>制作平均等待 <b>{res.avgMakerWait.toFixed(1)}s</b></span>
-          <span>剩余原料 <b>{res.stockLeft.toFixed(1)}</b></span>
-        </div>
-        {run.mode === 'official' && <dl className="tea-ledger"><dt>营收</dt><dd>¥{res.revenue}</dd><dt>工资</dt><dd>-¥{res.wages}</dd>
-          <dt>原料</dt><dd>-¥{res.materialCost}</dd><dt>运营</dt><dd>-¥{res.operatingCost}</dd><dt>净利润</dt><dd>¥{res.profit}</dd>
-          {res.bonus > 0 && <><dt>达标奖</dt><dd>+¥{res.bonus}</dd></>}<dt>结算后钱包</dt><dd>¥{run.coinsAfter}</dd></dl>}
-        <div className="tea-skills">{Object.entries(res.skillCounts).filter(([, v]) => v > 0).map(([k, v]) =>
-          <i key={k}>{SKILL[k as TeaSkill]?.[0] ?? '技能'} ×{v}</i>)}</div>
-      </details>
-    </section>}
+    {view === 'report' && res && run && <ReportDialog run={run} home={home} busy={c.busy}
+      bonusFor={rescue && home.mission.runId === run.id} canUpgrade={!!biz?.upgradeReady && lv < 3}
+      nextGoal={biz && run.mode === 'official' ? biz.goal : ''}
+      onUpgrade={() => void c.upgrade()} onPrep={c.next} onExit={onExit} />}
 
     {view === 'ending' && rescue && <section className="tea-panel tea-report tea-ending">
       <h2>{lv >= 3 ? '旗舰开张' : '小店焕新'}</h2>
@@ -265,12 +236,14 @@ export function TeaGame({ controller: c, onExit, onPhone }: { controller: TeaCha
         <span><em>门店</em><b>Lv.{lv}</b>{LEVEL_NAME[lv - 1] ?? ''}</span>
         {home.mission.status === 'completed' && <span><em>救店净赚</em><b>+{home.mission.income}</b>金币</span>}
         {run && run.mode === 'official' && <span><em>本班出杯</em><b>{run.result.completed}</b>杯</span>}
+        {biz && <span data-testid="tea-upgrade-return"><em>新客流</em><b>{biz.challenge.arrivals}</b>客 · 售价 {biz.challenge.price}</span>}
       </div>
+      {biz && <p className="tea-nextgoal"><small>下一目标</small>{biz.goal}</p>}
       <div className="tea-row">
-        {lv < 3 && <button className="tea-btn ghost" disabled={c.busy || home.wallet.balance < home.shop.nextUpgradeCost}
-          onClick={() => void c.upgrade()}>{lv === 1 ? '焕新小店' : '升级旗舰'} ¥{home.shop.nextUpgradeCost}</button>}
+        {lv < 3 && (!biz || biz.upgradeReady) && <button className="tea-btn ghost" disabled={c.busy || home.wallet.balance < home.shop.nextUpgradeCost}
+          onClick={() => void c.upgrade()}>{lv === 1 ? '焕新小店' : '升级旗舰'} {home.shop.nextUpgradeCost} 金币</button>}
         <button className="tea-btn ghost" onClick={onExit}>回小镇</button>
-        <button className="tea-btn primary" onClick={c.next}>继续营业 →</button>
+        <button className="tea-btn primary" onClick={c.next}>回筹备 →</button>
       </div>
     </section>}
 
@@ -285,19 +258,24 @@ export function TeaGame({ controller: c, onExit, onPhone }: { controller: TeaCha
       <p className="tea-records-note">本章客流逐段增加</p>
       <div className="tea-row">
         {lv < 3 && <button className={`tea-btn ${chStage === 'upgrade' ? 'primary' : 'ghost'}`} disabled={c.busy || home.wallet.balance < home.shop.nextUpgradeCost}
-          onClick={() => void c.upgrade()}>{lv === 1 ? '焕新小店' : '升级旗舰'} ¥{home.shop.nextUpgradeCost}</button>}
+          onClick={() => void c.upgrade()}>{lv === 1 ? '焕新小店' : '升级旗舰'} {home.shop.nextUpgradeCost} 金币</button>}
         <button className="tea-btn ghost" onClick={onExit}>回小镇</button>
         {chStage !== 'upgrade' && <button className="tea-btn primary" onClick={c.next}>继续经营 →</button>}
       </div>
     </section>}
 
+    {confirm && view === 'prep' && <OpenConfirm mode={confirm} team={team} roles={c.roles} stock={c.stock} strategy={c.strategy} cost={cost}
+      challenge={ch} balance={home.wallet.balance} busy={c.busy}
+      blocked={c.problems[0] ?? (confirm === 'official' ? home.attemptsRemaining <= 0 ? '今日正式次数已用完' : home.wallet.balance < c.totalCost ? '金币不足以预付' : '' : '')}
+      onCancel={() => setConfirm(null)} onStart={() => { void c.start(confirm).then(() => setConfirm(null)); }} />}
+
     {drawer !== 'none' && <aside className="tea-drawer">
       <h3>{drawer === 'history' ? '历史报告' : '受雇通知'}<button onClick={() => setDrawer('none')} aria-label="关闭">×</button></h3>
       {drawer === 'history' && (home.recentRuns.length ? home.recentRuns.map(r => <button key={r.id} className="tea-hist" onClick={() => { setDrawer('none'); void c.openRun(r.id); }}>
         <b className={r.result.passed ? 'ok' : 'bad'}>{r.result.completed}杯</b><span>{new Date(r.settledAt < 1e12 ? r.settledAt * 1000 : r.settledAt).toLocaleString('zh-CN', { hour12: false })}</span>
-        <em>{r.result.profit >= 0 ? '+' : ''}¥{r.result.profit}</em></button>) : <p className="tea-empty">还没有正式营业记录</p>)}
+        <em className={r.result.profit >= 0 ? 'ok' : 'bad'}>{r.result.profit >= 0 ? '+' : '−'}{Math.abs(r.result.profit)}</em></button>) : <p className="tea-empty">还没有正式营业记录</p>)}
       {drawer === 'notices' && (home.notices.length ? home.notices.map(n => <div key={n.id} className="tea-notice">
-        <b>{n.employer}</b> 雇了「{n.worker}」做{ROLE[n.role]}<span>出杯 {n.completed} · 工资 +¥{n.salary}</span>
+        <b>{n.employer}</b> 雇了「{n.worker}」做{ROLE[n.role]}<span>出杯 {n.completed} · 工资 +{n.salary} 金币</span>
       </div>) : <p className="tea-empty">暂无受雇通知</p>)}
     </aside>}
 

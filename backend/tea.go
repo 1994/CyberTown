@@ -40,6 +40,7 @@ type TeaHome struct {
 	Chapter           TeaChapter   `json:"chapter"`
 	Mission           TeaMission   `json:"mission"`
 	Wallet            TeaWallet    `json:"wallet"`
+	Business          TeaBusiness  `json:"business"`
 }
 
 // One date zone defines the daily challenge for everyone, regardless of server TZ.
@@ -64,6 +65,9 @@ func teaEnsure(tx *sql.Tx, player string, now int64) error {
 		}
 	}
 	if _, err = tx.Exec("INSERT OR IGNORE INTO tea_chapters(player_id) VALUES(?)", player); err != nil {
+		return err
+	}
+	if _, err = tx.Exec("INSERT OR IGNORE INTO tea_business_progress(player_id) VALUES(?)", player); err != nil {
 		return err
 	}
 	_, err = tx.Exec("INSERT OR IGNORE INTO tea_avatars(player_id) VALUES(?)", player)
@@ -146,6 +150,10 @@ func (g *Game) TeaHome(player string) (TeaHome, error) {
 		}
 		if h.Shop.Level == 2 {
 			h.Shop.NextUpgradeCost = 1200
+		}
+		h.Business, err = teaBusiness(tx, player, day, h.Shop, h.Mission, h.Coins)
+		if err != nil {
+			return err
 		}
 		if err := tx.QueryRow("SELECT enabled FROM tea_avatars WHERE player_id=?", player).Scan(&enabled); err != nil {
 			return err
@@ -414,6 +422,15 @@ func (g *Game) TeaUpgrade(player string, expected int) (TeaHome, error) {
 		}
 		if best < teaChallenge(teaDay(now)).Target && mission.Status != "completed" {
 			return fail(409, "TEA_UPGRADE_LOCKED", "先完成救店任务或正式高峰，再用营业收入升级门店")
+		}
+		if level == 2 && best < teaChallenge(teaDay(now)).Target {
+			var regularBest int
+			if err := tx.QueryRow("SELECT regular_best FROM tea_business_progress WHERE player_id=?", player).Scan(&regularBest); err != nil {
+				return err
+			}
+			if regularBest < 24 {
+				return fail(409, "TEA_UPGRADE_LOCKED", "先在霓虹奶茶正式营业中盈利并完成24杯，再扩建旗舰店")
+			}
 		}
 		price := 600
 		if level == 2 {

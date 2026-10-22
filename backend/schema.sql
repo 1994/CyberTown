@@ -181,3 +181,10 @@ CREATE TABLE IF NOT EXISTS tea_missions (
  accepted_at INTEGER NOT NULL, completed_at INTEGER NOT NULL DEFAULT 0,
  income INTEGER NOT NULL DEFAULT 0, run_id TEXT REFERENCES tea_runs(id)
 );
+
+-- tea.4: durable business goals, separate from old teaching records.
+CREATE TABLE IF NOT EXISTS tea_business_progress (
+ player_id TEXT PRIMARY KEY REFERENCES players(id) ON DELETE CASCADE,
+ regular_best INTEGER NOT NULL DEFAULT 0,
+ flagship_best INTEGER NOT NULL DEFAULT 0
+);

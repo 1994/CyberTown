@@ -1,0 +1,62 @@
+{
+  "errors": [],
+  "views": [
+    {
+      "name": "desktop",
+      "stage": "prep",
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "name": "mobile",
+      "stage": "prep",
+      "width": 390,
+      "height": 844
+    },
+    {
+      "name": "landscape",
+      "stage": "prep",
+      "width": 844,
+      "height": 390
+    },
+    {
+      "name": "desktop",
+      "stage": "confirm",
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "name": "mobile",
+      "stage": "confirm",
+      "width": 390,
+      "height": 844
+    },
+    {
+      "name": "landscape",
+      "stage": "confirm",
+      "width": 844,
+      "height": 390
+    },
+    {
+      "name": "desktop",
+      "stage": "loss-report",
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "name": "mobile",
+      "stage": "loss-report",
+      "width": 390,
+      "height": 844
+    },
+    {
+      "name": "landscape",
+      "stage": "loss-report",
+      "width": 844,
+      "height": 390
+    }
+  ],
+  "confirmNoPost": true,
+  "negativeReport": true,
+  "practiceNoGold": true
+}

@@ -1,0 +1,11 @@
+=== RUN   TestTeaBusinessProgressionAndActualRewards
+    tea_business_test.go:65: Lv1 served=20/20 net=240 coins=2240 stage=renovate
+    tea_business_test.go:65: Lv2 served=32/32 net=224 coins=1864 stage=expand
+    tea_business_test.go:65: Lv3 served=48/48 net=552 coins=1216 stage=complete
+--- PASS: TestTeaBusinessProgressionAndActualRewards (0.35s)
+=== RUN   TestTeaBusinessChallengeIsFrozen
+--- PASS: TestTeaBusinessChallengeIsFrozen (0.01s)
+=== RUN   TestTeaBusinessMigrationPreservesWalletAndOldSession
+--- PASS: TestTeaBusinessMigrationPreservesWalletAndOldSession (0.01s)
+PASS
+ok  	github.com/1994/boss-works-for-me/backend	0.910s

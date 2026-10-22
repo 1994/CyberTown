@@ -48,6 +48,22 @@ export interface TeaChallenge {
   price: number;
   materialCost: number;
   operatingCost: number;
+  shopLevel?: number;
+}
+
+export interface TeaBusiness {
+  stage: 'rescue' | 'renovate' | 'regulars' | 'expand' | 'flagship' | 'complete';
+  title: string;
+  goal: string;
+  reward: string;
+  progress: number;
+  target: number;
+  unit: '杯' | '金币';
+  challenge: TeaChallenge;
+  stockOptions: TeaPlan['stock'][];
+  recommendedStock: TeaPlan['stock'];
+  upgradeReady: boolean;
+  upgradeReason: string;
 }
 
 export interface TeaShop {
@@ -76,6 +92,7 @@ export interface TeaHome {
   workers: TeaWorker[];
   shop: TeaShop;
   challenge: TeaChallenge;
+  business?: TeaBusiness;
   attemptsRemaining: number;
   hireEnabled: boolean;
   notices: TeaNotice[];

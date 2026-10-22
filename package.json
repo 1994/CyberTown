@@ -18,7 +18,7 @@
     "seed": "go run ./cmd/boss-server --seed",
     "reset": "go run ./cmd/boss-server --reset",
     "test": "npm run test:api && npm run test:web",
-    "test:e2e": "npm run build && playwright test tea-town.spec.ts login-entry.spec.ts town-arrival.spec.ts",
+    "test:e2e": "npm run build && playwright test tea-town.spec.ts login-entry.spec.ts town-arrival.spec.ts tea-business.spec.ts",
     "test:e2e:legacy": "npm run build && playwright test",
     "test:tea": "node scripts/check-tea-agent.ts",
     "demo:record": "node --disable-warning=ExperimentalWarning scripts/record-demo.ts",

@@ -128,7 +128,14 @@ func teaResolveLive(tx *sql.Tx, player, day, lesson string, plan TeaPlan) ([]Tea
 	}
 	validStock := plan.Stock == 60 || plan.Stock == 80 || plan.Stock == 100
 	if lesson == "rescue" {
-		validStock = plan.Stock == 20 || plan.Stock == 40 || plan.Stock == 60
+		var level int
+		if err := tx.QueryRow("SELECT level FROM tea_shops WHERE player_id=?", player).Scan(&level); err != nil {
+			return nil, err
+		}
+		validStock = false
+		for _, stock := range teaBusinessStocks(level) {
+			validStock = validStock || plan.Stock == stock
+		}
 	}
 	if !validStock {
 		return nil, fail(400, "TEA_STOCK", "请选择本班支持的备货数量")
@@ -258,11 +265,11 @@ func (g *Game) TeaOpen(player string, input TeaOpenSession) (TeaSession, error) 
 			ch.Target = 1
 		}
 		if input.Lesson == "rescue" {
-			ch.RuleVersion = "tea.3"
-			ch.Name = "救救街角奶茶"
-			ch.Duration = 240
-			ch.Arrivals = 20
-			ch.Target = 12
+			var level int
+			if err := tx.QueryRow("SELECT level FROM tea_shops WHERE player_id=?", player).Scan(&level); err != nil {
+				return err
+			}
+			ch = teaBusinessChallenge(day, level)
 		}
 		s := teaLiveRecord{ID: randomID(), Lesson: input.Lesson, Status: "active", Day: day, Key: input.Key, OpeningCoins: coins, Commands: []TeaCommand{}, Receipts: map[string]string{}, ReceiptOrder: []string{}}
 		s.Run = TeaRun{ID: s.ID, Mode: input.Mode, Challenge: ch, Plan: input.Plan, Workers: workers, CoinsAfter: coins}
@@ -451,6 +458,9 @@ func (g *Game) teaFinishLive(tx *sql.Tx, player string, s *teaLiveRecord) error 
 			return err
 		}
 		if _, err := tx.Exec("UPDATE tea_shops SET runs=runs+1,best=MAX(best,?) WHERE player_id=?", r.Result.Completed, player); err != nil {
+			return err
+		}
+		if err := teaBusinessRecord(tx, player, *r); err != nil {
 			return err
 		}
 		if s.Lesson == "rescue" && r.Result.Revenue > 0 && r.Result.Profit+r.Result.Bonus > 0 {
