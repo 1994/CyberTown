@@ -7,9 +7,10 @@ import type { TeaLiveCustomer, TeaLiveFrame, TeaWorkRole } from '../../shared/te
 import { Character, type Rig } from '../scene/Character.tsx';
 import { LOW_FX } from '../scene/Office.tsx';
 import { glow, std } from '../scene/materials.ts';
-import { neonText } from '../scene/textures.ts';
+import { shopSignTexture } from './shopSignTexture.ts';
 import { Label3D } from './Label3D.tsx';
 import { STILL, lookOf, type ShopProps } from './TeaScene.tsx';
+import { TeaAtmosphere } from './TeaAtmosphere.tsx';
 import { shopFloorTexture } from './TeaDecor.tsx';
 
 // 剖面奶茶店：左侧暖色制作台、右侧青色取餐/端送台、前场座位区、左前入口。
@@ -37,10 +38,10 @@ const QUEUE: P3[] = [[-4.6, 0, 3.5], [-5.3, 0, 3.9], [-6.0, 0, 4.3], [-5.6, 0, 3
 const ROLE_SHORT: Record<string, string> = { maker: '制作', cashier: '端送', support: '补位', idle: '待命' };
 
 // ───────── 小部件 ─────────
-function Neon({ text, color, w, h, position, rotation, size = 150 }: { text: string; color: string; w: number; h: number; position: P3; rotation?: P3; size?: number }) {
+function Neon({ text, color, w, h, position, rotation }: { text: string; color: string; w: number; h: number; position: P3; rotation?: P3; size?: number }) {
   return <mesh position={position} rotation={rotation}>
     <planeGeometry args={[w, h]} />
-    <meshBasicMaterial map={neonText([{ text, color, size }])} transparent toneMapped={false} color={new THREE.Color(1.8, 1.8, 1.8)} depthWrite={false} />
+    <meshBasicMaterial map={shopSignTexture(text, color, w / h)} transparent toneMapped={false} color={new THREE.Color(1.05, 1.05, 1.05)} depthWrite={false} />
   </mesh>;
 }
 
@@ -90,16 +91,18 @@ function StationSign({ position, text, color, hot, can, count, onClick }: { posi
 
 // ───────── 店面结构 ─────────
 function Shell({ level, makerBusy, ready }: { level: number; makerBusy: number; ready: number }) {
-  const floorTex = useMemo(() => { const t = shopFloorTexture().clone(); t.needsUpdate = true; t.repeat.set(7, 4); return t; }, []);
+  const floorTex = useMemo(() => { const t = shopFloorTexture().clone(); t.needsUpdate = true; t.repeat.set(4.5, 2.5); return t; }, []);
+  useEffect(() => () => floorTex.dispose(), [floorTex]);
   const accent = ['#ff7ab8', '#3ef0ff', '#ffd166'][Math.max(0, Math.min(2, level - 1))];
   const name = ['街角奶茶', '霓虹奶茶', '夜城茶饮旗舰'][Math.max(0, Math.min(2, level - 1))];
   const W = FLOOR.maxX - FLOOR.minX, D = FLOOR.maxZ - FLOOR.minZ;
   const awning = useMemo(() => {
     const c = document.createElement('canvas'); c.width = 128; c.height = 16;
     const g = c.getContext('2d')!;
-    for (let i = 0; i < 8; i++) { g.fillStyle = i % 2 ? '#fff3e6' : accent; g.fillRect(i * 16, 0, 16, 16); }
+    for (let i = 0; i < 8; i++) { g.fillStyle = i % 2 ? '#d9cebb' : (level === 1 ? '#b86c83' : accent); g.fillRect(i * 16, 0, 16, 16); }
     const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.wrapS = THREE.RepeatWrapping; t.repeat.set(4, 1); return t;
-  }, [accent]);
+  }, [accent, level]);
+  useEffect(() => () => awning.dispose(), [awning]);
   return <group>
     {/* 地面：店内地砖 + 门外人行道 */}
     <mesh rotation-x={-Math.PI / 2} position={[0, 0, (FLOOR.minZ + FLOOR.maxZ) / 2]} receiveShadow>
@@ -107,8 +110,13 @@ function Shell({ level, makerBusy, ready }: { level: number; makerBusy: number; 
     </mesh>
     <mesh rotation-x={-Math.PI / 2} position={[0, -0.01, FLOOR.maxZ + 1.4]}><planeGeometry args={[W + 4, 2.8]} /><meshStandardMaterial color="#2a3142" roughness={0.8} /></mesh>
     <mesh position={[0, 0.02, FLOOR.maxZ]} material={glow(accent, 1.1)}><boxGeometry args={[W, 0.02, 0.05]} /></mesh>
+    {/* Oak foundation, warm counter-zone floor and fine brass edging. */}
+    <mesh position={[0,-0.11,0.6]} material={std('#504534',.85)}><boxGeometry args={[W,.2,D]} /></mesh>
+    <mesh rotation-x={-Math.PI/2} position={[0,.008,-1.6]} receiveShadow material={std('#846d52',.9)}><planeGeometry args={[W-.25,3.4]} /></mesh>
+    {Array.from({length:18},(_,i)=><mesh key={'plank'+i} rotation-x={-Math.PI/2} position={[-6.8+i*.8,.012,-1.6]} material={std('#5d503f',1)}><planeGeometry args={[.015,3.4]} /></mesh>)}
+    <mesh position={[0,.016,.13]} material={std('#b8a77e',.45,.5)}><boxGeometry args={[W-.2,.02,.045]} /></mesh>
     {/* 后墙：护墙板 + 墙面 + 窗外夜景 */}
-    <mesh position={[0, 1.9, FLOOR.minZ]} material={std('#2a3346', 0.8)} receiveShadow><boxGeometry args={[W, 3.8, 0.2]} /></mesh>
+    <mesh position={[0, 1.9, FLOOR.minZ]} material={std('#334a50', 0.85)} receiveShadow><boxGeometry args={[W, 3.8, 0.2]} /></mesh>
     <mesh position={[0, 0.5, FLOOR.minZ + 0.11]} material={std('#5a4a3a', 0.7)}><boxGeometry args={[W, 1.0, 0.02]} /></mesh>
     <mesh position={[0, 1.02, FLOOR.minZ + 0.12]} material={glow(accent, 0.9)}><boxGeometry args={[W, 0.03, 0.02]} /></mesh>
     <group position={[4.6, 2.3, FLOOR.minZ + 0.12]}>
@@ -128,12 +136,17 @@ function Shell({ level, makerBusy, ready }: { level: number; makerBusy: number; 
       {['招牌珍珠奶茶', '现点 · 现做', '温暖每一天'].map((t, i) =>
         <Neon key={t} text={t} color={['#ffe2b0', '#d6c6ff', '#9ef8ff'][i]} w={2.4} h={0.26} position={[0, 0.08 - i * 0.3, 0.03]} size={120} />)}
     </group>
+    {[-6.5,1.4,6.5].map(x=><group key={'sconce'+x} position={[x,2.2,FLOOR.minZ+.2]}>
+      <mesh material={std('#b7a17a',.4,.6)}><boxGeometry args={[.12,.65,.12]} /></mesh>
+      <mesh position-z={.07} material={glow('#ffe0a7',1.2)}><boxGeometry args={[.09,.42,.06]} /></mesh>
+    </group>)}
+    <mesh position={[0,3.1,FLOOR.minZ+.13]} material={std('#beaa81',.5,.2)}><boxGeometry args={[W,.05,.03]} /></mesh>
     {/* 门头招牌与雨棚（剖面上沿） */}
     <mesh position={[0, 3.85, FLOOR.minZ + 0.25]} material={std('#0b1016', 0.5, 0.4)}><boxGeometry args={[6.4, 0.7, 0.14]} /></mesh>
     <Neon text={name} color={accent} w={5.8} h={0.66} position={[0, 3.85, FLOOR.minZ + 0.33]} size={130} />
-    <mesh position={[0, 3.35, FLOOR.minZ + 0.7]} rotation-x={0.5}><boxGeometry args={[W - 0.4, 0.04, 1.0]} /><meshStandardMaterial map={awning} roughness={0.7} /></mesh>
+    <mesh position={[0, 3.5, FLOOR.minZ + 0.25]} rotation-x={0.2}><boxGeometry args={[W - 0.4, 0.04, 0.45]} /><meshStandardMaterial map={awning} roughness={0.7} /></mesh>
     {/* 左侧矮墙（剖开，不挡人）与入口门框 */}
-    <mesh position={[FLOOR.minX, 0.6, 0.2]} material={std('#2a3346', 0.8)}><boxGeometry args={[0.2, 1.2, 7.2]} /></mesh>
+    <mesh position={[FLOOR.minX, 0.6, 0.2]} material={std('#334a50', 0.85)}><boxGeometry args={[0.2, 1.2, 7.2]} /></mesh>
     <group position={DOOR}>
       {[-0.65, 0.65].map(z => <mesh key={z} position={[0, 1.2, z]} material={std('#1a232b', 0.4, 0.6)}><boxGeometry args={[0.16, 2.4, 0.12]} /></mesh>)}
       <mesh position={[0, 2.42, 0]} material={glow(accent, 1.6)}><boxGeometry args={[0.18, 0.08, 1.42]} /></mesh>
@@ -286,8 +299,8 @@ function Actor({ look, target, sit = false, act = false, carry = false, label, t
     o.visible = !fade || moving;
   });
   return <group ref={g}>
-    <Character ref={rig} look={look} scale={0.92} />
-    {carry && <group position={[0, 0.95, 0.42]}><mesh material={std('#2a313d', 0.4, 0.4)}><boxGeometry args={[0.46, 0.03, 0.32]} /></mesh><Cup position={[0, 0.02, 0]} /></group>}
+    <Character ref={rig} look={look} scale={1.03} />
+    {carry && <group position={[0, 0.95, 0.42]}><mesh material={std('#2a313d', 0.4, 0.4)}><boxGeometry args={[0.46, 0.03, 0.32]} /></mesh><Cup position={[0, 0.02, 0]} scale={1.35} /></group>}
     {label && <Label3D text={label} tone={tone} position={[0, 2.0, 0]} height={0.22} />}
     {/* 耐心：头顶短条，绿→黄→红 */}
     {patience != null && <group position={[0, 2.26, 0]}>
@@ -377,8 +390,8 @@ function OrthoFit({ portrait }: { portrait: boolean }) {
     // 店面占 ~15×8 米；竖屏时视角更高、更靠近中间
     cam.position.set(portrait ? 4 : 7, portrait ? 13 : 10, portrait ? 12 : 13);
     cam.lookAt(0, 0.9, 0.6);
-    const spanX = portrait ? 18 : 16.5;
-    const spanY = portrait ? 14 : 11.5;
+    const spanX = portrait ? 18 : 16.1;
+    const spanY = portrait ? 14 : 10.5;
     cam.zoom = Math.max(10, Math.min(size.width / spanX, size.height / spanY));
     cam.updateProjectionMatrix();
   }, [camera, size, portrait]);
@@ -400,13 +413,15 @@ export function TeaCounterScene(props: ShopProps) {
   const portrait = typeof window !== 'undefined' && window.innerHeight > window.innerWidth;
   const low = LOW_FX || (typeof window !== 'undefined' && Math.min(window.innerWidth, window.innerHeight) < 560);
   const can = !!live && !!canAssign && !!onAssign;
-  return <Canvas className="tea-canvas" orthographic dpr={low ? 1 : [1, 1.75]} camera={{ position: [7, 10, 13], zoom: 50, near: 0.1, far: 100 }}
+  return <Canvas className="tea-canvas" shadows={!low} orthographic dpr={low ? 1 : [1, 1.75]} camera={{ position: [7, 10, 13], zoom: 50, near: 0.1, far: 100 }}
     gl={{ antialias: !low, powerPreference: low ? 'low-power' : 'high-performance' }}
     onPointerMissed={() => { document.body.style.cursor = ''; }}>
-    <color attach="background" args={['#0a0d1a']} />
-    <ambientLight intensity={1.15} color="#c8d2ff" />
-    <hemisphereLight args={['#bfe8ff', '#3a2a1c', 1.0]} />
-    <directionalLight position={[5, 9, 7]} intensity={2.3} color="#fff2dc" />
+    <color attach="background" args={['#172b38']} />
+    <fog attach="fog" args={['#172b38', 28, 65]} />
+    <TeaAtmosphere />
+    <ambientLight intensity={0.65} color="#c8d2ff" />
+    <hemisphereLight args={['#bfe8ff', '#3a2a1c', 0.65]} />
+    <directionalLight position={[-3, 10, 5]} intensity={2.5} color="#ffe3bc" castShadow={!low} shadow-mapSize={[1024, 1024]} shadow-camera-left={-12} shadow-camera-right={12} shadow-camera-top={10} shadow-camera-bottom={-10} shadow-normalBias={0.035} shadow-bias={-0.0002} />
     <directionalLight position={[-6, 5, 4]} intensity={0.8} color="#ffb070" />
     <Environment resolution={64} frames={1}>
       <Lightformer form="rect" intensity={2.2} color="#ffe2b0" position={[0, 6, 4]} scale={[12, 4, 1]} />

@@ -6,7 +6,7 @@ import { create } from 'zustand';
 import { TEA_TOWN_SITES } from '../../shared/teaTown.ts';
 import type { TeaMission } from '../../shared/teaTown.ts';
 import { glow, std } from '../scene/materials.ts';
-import { neonText } from '../scene/textures.ts';
+import { shopSignTexture } from './shopSignTexture.ts';
 import { LocalPointLight } from '../scene/LocalLights.tsx';
 import { rt } from '../world/runtime.ts';
 import { TOWN_OPPORTUNITIES } from '../../shared/townExplore.ts';
@@ -36,10 +36,10 @@ function stripes(a: string, b: string) {
   return t;
 }
 
-function Neon({ text, color, w, h, size = 150, ...rest }: { text: string; color: string; w: number; h: number; size?: number } & ThreeElements['mesh']) {
+function Neon({ text, color, w, h, size: _size = 150, ...rest }: { text: string; color: string; w: number; h: number; size?: number } & ThreeElements['mesh']) {
   return <mesh {...rest}>
     <planeGeometry args={[w, h]} />
-    <meshBasicMaterial map={neonText([{ text, color, size }])} transparent toneMapped={false} color={new THREE.Color(2, 2, 2)} depthWrite={false} />
+    <meshBasicMaterial map={shopSignTexture(text, color, w / h)} transparent toneMapped={false} color={new THREE.Color(1.05, 1.05, 1.05)} depthWrite={false} />
   </mesh>;
 }
 
@@ -77,10 +77,20 @@ function TeaShopFacade({ level, closing }: { level: number; closing: boolean }) 
     <mesh position={[0, 0.08, 2.15]} material={std('#3a4650', 0.8)}><boxGeometry args={[3.3, 0.16, 0.25]} /></mesh>
     {/* 橱窗、门、点单窗台 */}
     <mesh position={[-0.45, 1.45, 2.11]}><planeGeometry args={[1.9, 1.3]} />
-      <meshBasicMaterial color={new THREE.Color(glass).multiplyScalar(closing ? 0.6 : 1.3)} toneMapped={false} /></mesh>
+      <meshBasicMaterial color={new THREE.Color(glass).multiplyScalar(closing ? 0.6 : 0.85)} toneMapped={false} /></mesh>
     <mesh position={[-0.45, 0.62, 2.22]} material={std('#1c282e', 0.5)} castShadow><boxGeometry args={[2.1, 0.5, 0.3]} /></mesh>
     <mesh position={[1.05, 0.98, 2.12]} material={std('#0e151b', 0.4, 0.5)}><boxGeometry args={[0.85, 1.9, 0.06]} /></mesh>
     <mesh position={[1.05, 1.95, 2.16]} material={glow(L.color, 1.6)}><boxGeometry args={[0.85, 0.05, 0.03]} /></mesh>
+    {/* Window framing, counter products and side-wall timber stay in the shop footprint. */}
+    {[-1.4,.45].map(x=><mesh key={x} position={[x,1.45,2.15]} material={std('#b89c70',.65)}><boxGeometry args={[.05,1.35,.05]} /></mesh>)}
+    {[.8,2.1].map(y=><mesh key={y} position={[-.45,y,2.15]} material={std('#b89c70',.65)}><boxGeometry args={[1.95,.05,.05]} /></mesh>)}
+    {[-1.1,-.65,-.2].map(x=><group key={'cup'+x} position={[x,.94,2.25]}>
+      <mesh position-y={.13} material={std('#dfbc83',.45)}><cylinderGeometry args={[.075,.06,.26,10]} /></mesh>
+      <mesh position-y={.27} material={std(L.color,.5)}><cylinderGeometry args={[.085,.085,.025,10]} /></mesh>
+    </group>)}
+    {Array.from({length:12},(_,i)=><mesh key={'slat'+i} position={[-1.615,.8,-1.8+i*.32]} material={std('#67513e',.8)}><boxGeometry args={[.03,1.3,.12]} /></mesh>)}
+    <mesh position={[-1.62,2.0,-.3]} rotation-y={-Math.PI/2} material={std('#172b32',.5)}><boxGeometry args={[1.8,.7,.04]} /></mesh>
+    <Neon text="TEA & CO." color="#e9c78d" w={1.7} h={.58} size={130} rotation-y={-Math.PI/2} position={[-1.65,2.0,-.3]} />
     {/* 斜雨棚 */}
     <mesh position={[0, 2.42, 2.55]} rotation-x={0.45}><boxGeometry args={[3.4, 0.05, 1.1]} />
       <meshStandardMaterial map={awning} roughness={0.7} /></mesh>

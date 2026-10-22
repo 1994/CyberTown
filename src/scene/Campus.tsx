@@ -534,7 +534,9 @@ function Booth({
   rotation,
   color,
   index,
+  town = false,
 }: {
+  town?: boolean;
   position: P3;
   rotation: number;
   color: string;
@@ -570,10 +572,18 @@ function Booth({
       >
         <boxGeometry args={[2.8, 0.06, 1.5]} />
       </mesh>
+      {town && <>
+        <mesh position={[0,.98,0]} material={std('#a88962',.8)}><boxGeometry args={[2.65,.07,1.25]} /></mesh>
+        {[-.8,0,.8].map((x,k)=><group key={x} position={[x,1.03,.05]}>
+          <mesh position-y={.09} material={std('#796047',.85)}><boxGeometry args={[.6,.18,.55]} /></mesh>
+          {[0,1,2].map(n=><mesh key={n} position={[(n-1)*.15,.23,(n%2)*.12]} material={std(['#e9ae63','#9ba85e','#d58068'][(index+k)%3],.75)} castShadow><sphereGeometry args={[.13,8,6]} /></mesh>)}
+        </group>)}
+        <mesh position={[0,2.36,.05]} material={glow('#ffe2b3',.7)}><boxGeometry args={[2.3,.035,.06]} /></mesh>
+      </>}
       <mesh position={[0, 2.05, -0.44]}>
         <planeGeometry args={[2.3, 0.55]} />
         <meshBasicMaterial
-          map={signTexture(`人才 ${index + 1} 号摊`, color)}
+          map={signTexture(town ? ['鲜果小铺','花间集','手作杂货','街角烘焙','茶叶小站'][index % 5] : `人才 ${index + 1} 号摊`, color)}
           toneMapped={false}
         />
       </mesh>
@@ -596,6 +606,7 @@ function TalentStreet() {
           rotation={0}
           color={BOOTH_COLORS[i]}
           index={i}
+          town={town}
         />
       ))}
       {north.map((x, i) => (
@@ -605,6 +616,7 @@ function TalentStreet() {
           rotation={Math.PI}
           color={BOOTH_COLORS[i + 5]}
           index={i + 5}
+          town={town}
         />
       ))}
       {/* 街口拱门 */}

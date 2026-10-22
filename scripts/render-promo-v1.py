@@ -1,9 +1,11 @@
 """Render an honest 28s screenshot-motion review cut. Requires Pillow and ffmpeg."""
 from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont, ImageOps, ImageFilter
-import subprocess, math, json
+import subprocess, math, json, sys
 ROOT=Path(__file__).resolve().parents[1]
-OUT=ROOT/'artifacts/promo-v1'; TMP=ROOT/'.run/promo-v1'
+POLISHED='--polished' in sys.argv
+VERSION='v2' if POLISHED else 'v1'
+OUT=ROOT/f'artifacts/promo-{VERSION}'; TMP=ROOT/f'.run/promo-{VERSION}'
 OUT.mkdir(parents=True,exist_ok=True); TMP.mkdir(parents=True,exist_ok=True)
 SRC=ROOT/'artifacts/demo-walkthrough-20261022'
 W,H,FPS=1280,720,30
@@ -19,6 +21,11 @@ scenes=[
  (4,'19-auto-report-fixed.png','忙了一班\n金币到账','本次实测：20 杯 · 零流失','05 / 经营有回报',(260,18,705,735)),
  (3,'06-shop-door.png','赛博小镇','从亲手做茶，到员工接手','DEMO · 首版预告',None),
 ]
+if POLISHED:
+  replacements={0:('04-storefront.png',None),2:('06-self-service.png',(240,110,1080,580)),3:('05-prep-final.png',(925,180,1275,650)),4:('02-service.png',(220,110,1080,580)),5:('03-report.png',(415,15,865,690)),6:('04-storefront.png',None)}
+  for i,(name,crop) in replacements.items():
+    d,_,title,sub,kicker,_=scenes[i]
+    scenes[i]=(d,'../visual-polish-20261022/'+name,title,sub,kicker,crop)
 imgs=[]
 for duration,name,title,sub,kicker,crop in scenes:
  im=Image.open(SRC/name).convert('RGB')
@@ -48,7 +55,7 @@ def frame(si,t,dur):
  layer=Image.new('RGBA',(W,H));d=ImageDraw.Draw(layer)
  alpha=min(1,t/.35);shift=round(14*(1-alpha));xx=60
  d.text((xx,47),'赛博小镇  /  CYBER TOWN',font=font(17),fill='#bdcbd1')
- d.text((1060,47),'REVIEW CUT 01',font=font(14),fill='#8dabb3')
+ d.text((1060,47),'REVIEW CUT 02' if POLISHED else 'REVIEW CUT 01',font=font(14),fill='#8dabb3')
  d.rectangle((xx,210,xx+44,214),fill='#ffdb4f')
  d.text((xx,232+shift),kicker,font=font(19),fill=(112,229,217,round(alpha*255)))
  size=76 if si in (0,6) else 49
@@ -77,7 +84,7 @@ try:
   print(f'Scene {i+1}/7 rendered',flush=True)
 finally:p.stdin.close()
 assert p.wait()==0
-final=OUT/'cyber-town-promo-v1.mp4'
+final=OUT/f'cyber-town-promo-{VERSION}.mp4'
 subprocess.run(['ffmpeg','-y','-v','error','-i',str(raw),'-stream_loop','-1','-i',str(ROOT/'artifacts/tea-art-audio/business.mp3'),'-map','0:v','-map','1:a','-c:v','copy','-af','loudnorm=I=-18:TP=-2:LRA=9,afade=t=in:d=0.6,afade=t=out:st=25.5:d=2.5','-c:a','aac','-b:a','192k','-t','28','-movflags','+faststart',str(final)],check=True)
 frame(0,1.5,3).save(OUT/'cover.jpg',quality=95)
 (OUT/'shots.json').write_text(json.dumps([{'seconds':s[0],'source':s[1],'title':s[2],'subtitle':s[3]} for s in scenes],ensure_ascii=False,indent=2)+'\n')

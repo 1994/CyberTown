@@ -1,0 +1,44 @@
+[
+  {
+    "seconds": 3,
+    "source": "../visual-polish-20261022/04-storefront.png",
+    "title": "赛博小镇",
+    "subtitle": "从街角的一杯奶茶开始"
+  },
+  {
+    "seconds": 4,
+    "source": "04-mission.png",
+    "title": "小镇的故事\n由你接下",
+    "subtitle": "打开手机，接下第一份任务"
+  },
+  {
+    "seconds": 5,
+    "source": "../visual-polish-20261022/06-self-service.png",
+    "title": "第一杯\n亲手端上桌",
+    "subtitle": "制作 → 取餐 → 端送"
+  },
+  {
+    "seconds": 4,
+    "source": "../visual-polish-20261022/05-prep-final.png",
+    "title": "招好员工\n安排好岗位",
+    "subtitle": "一人制作，一人端送"
+  },
+  {
+    "seconds": 5,
+    "source": "../visual-polish-20261022/02-service.png",
+    "title": "员工接手\n你来当老板",
+    "subtitle": "两岗全自动，也能随时帮忙"
+  },
+  {
+    "seconds": 4,
+    "source": "../visual-polish-20261022/03-report.png",
+    "title": "忙了一班\n金币到账",
+    "subtitle": "本次实测：20 杯 · 零流失"
+  },
+  {
+    "seconds": 3,
+    "source": "../visual-polish-20261022/04-storefront.png",
+    "title": "赛博小镇",
+    "subtitle": "从亲手做茶，到员工接手"
+  }
+]
