@@ -49,7 +49,7 @@ export function TownPhone({ home, tab, onTab, onClose, onAccept, onGo, onHall, b
         <div className={`phone-screen ${tab === 'home' ? 'home' : ''}`} key={tab}>
           {tab === 'home' && <div className="phone-home town-phone-home" data-testid="town-phone-home">
             <div className="town-phone-greeting"><small>我的小镇</small><b>{me?.name}</b></div>
-            <button className="town-kim-notification" onClick={() => onTab('mission')} data-testid="town-kim-notification"><img src={KIM_ICON} alt="KIM"/><span><b>KIM <small>街角奶茶 · 店长</small></b><span>{m.status === 'offered' ? '小店快倒闭了，来帮个忙？' : m.status === 'accepted' ? '任务已接下，等你来开店。' : '店救回来了，谢谢你！'}</span></span>{m.status === 'offered' && <i/>}</button>
+            <button className="town-kim-notification" onClick={() => onTab('mission')} data-testid="town-kim-notification"><img src={KIM_ICON} alt="KIM"/><span><b>KIM <small>街角奶茶 · 店长</small></b><span>{m.status === 'offered' ? '奶茶店快倒闭了，愿意接手经营吗？' : m.status === 'accepted' ? '任务已接下，等你来开店。' : '店救回来了，谢谢你！'}</span></span>{m.status === 'offered' && <i/>}</button>
             <nav className="phone-app-grid" aria-label="手机应用">
               <button onClick={() => onTab('mission')} data-testid="phone-app-messages" aria-label="KIM 任务与消息"><span className="phone-app-icon kim"><img src={KIM_ICON} alt=""/>{m.status === 'offered' && <b className="phone-app-badge">1</b>}</span><span>KIM</span></button>
               <button onClick={() => onTab('wallet')} aria-label="钱包"><span className="phone-app-icon sun"><Coins size={26}/></span><span>钱包</span></button>
@@ -62,12 +62,12 @@ export function TownPhone({ home, tab, onTab, onClose, onAccept, onGo, onHall, b
       {tab === 'mission' && <div className="town-mission" data-testid="town-mission" data-status={m.status}>
         <div className="town-msg">
           <b>街角奶茶 · 店长</b>
-          <p>{m.status === 'completed' ? '店救回来了，谢谢你！以后常来。' : '小店快倒闭了，来帮个忙？'}</p>
+          <p>{m.status === 'completed' ? '店救回来了！接下来继续交给你经营，赚到的钱可以升级店铺、雇员工。' : '奶茶店快倒闭了，我想把经营交给你。先备料开一班，赚到第一笔收入，再慢慢把店做大。'}</p>
         </div>
         <h3>救救街角奶茶 <em>{m.status === 'offered' ? '新任务' : m.status === 'accepted' ? '进行中' : '已完成'}</em></h3>
         <ol className="town-steps">
           <li className={m.status !== 'offered' ? 'done' : ''}>接下任务</li>
-          <li className={hires > 0 ? 'done' : 'opt'}>雇佣大厅招员工 <small>可选 · 本班 {hires}/2</small></li>
+          <li className={hires > 0 ? 'done' : 'opt'}>雇帮手自动干活 <small>可选 · 本班 {hires}/2</small></li>
           <li className={m.status === 'completed' ? 'done' : ''}>到店正式营业，赚到钱</li>
         </ol>
         {m.status === 'completed' && <p className="town-income">本次净赚 <b>+{m.income}</b> 金币</p>}

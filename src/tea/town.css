@@ -409,3 +409,9 @@
 .town-arrival .town-arrival-controls{font-size:12px;line-height:1.6;color:#acc4d4}
 .compact-arrival .town-arrival-me div{display:grid;gap:0}.compact-arrival .town-arrival-me b{font-size:15px}
 .town-arrival .town-row{flex-wrap:wrap}.town-arrival .town-row .primary{flex:1;white-space:nowrap}
+
+.town-arrival-story{display:grid;gap:9px;padding:9px 0;border-block:1px solid #75dcd325}
+.town-arrival .town-arrival-story p{display:grid;grid-template-columns:30px 1fr;gap:8px;font-size:13px;line-height:1.6;color:#d0e0eb}
+.town-arrival-story b{color:#76e4d4;font-size:12px}.town-arrival .town-arrival-route{font-size:11px;color:#f2d88d;line-height:1.5}
+.town-arrival{max-height:calc(100dvh - var(--st) - 130px);overflow-y:auto}
+@media(max-width:700px){.town-arrival{max-height:calc(100dvh - var(--st) - 180px)}.town-arrival-story{gap:6px}.town-arrival .town-arrival-story p{font-size:12px}.town-arrival .town-arrival-next{font-size:14px}}

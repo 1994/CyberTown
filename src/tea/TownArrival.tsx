@@ -85,15 +85,16 @@ export function TownArrival({ myId, touch, missionStatus, onPhone, onGoShop, onC
     <button className="town-x" onClick={onClose} aria-label="关闭引导，自由逛逛" data-testid="town-arrival-dismiss">×</button>
     <div className="town-arrival-me">
       <Face p={me} size={touch ? 28 : 44} />
-      <div><small>{zone} · {complete ? '继续经营' : '新手第一单'}</small><b>{complete ? '回店，再赚一笔' : '开一班奶茶店，赚第一笔钱'}</b></div>
+      <div><small>{zone} · {complete ? '继续经营' : '新手第一单'}</small><b>{complete ? '从小店，走向商业小镇' : '你的商业小镇，从这家店开始'}</b></div>
     </div>
-    <p className="town-arrival-next" id="town-guide-phone">{first ? '先点下方按钮，在手机里「接下任务」。' : complete ? '回奶茶店备好料，再开一班。' : '任务已接好，下一步去奶茶店备料。'}</p>
-    <ol className="town-start-steps" aria-label="开店步骤">
-      <li className={first ? 'current' : 'done'}><i>{first ? '1' : '✓'}</i><span>手机接任务</span></li>
-      <li className={!first ? 'current' : ''}><i>2</i><span>跟着带路去店里</span></li>
-      <li><i>3</i><span>备料开店，结束领收入</span></li>
-    </ol>
-    <p className="town-arrival-controls">{touch ? '左下摇杆走路，靠近店门点「进店」。' : '点地面走路，靠近店门按 E 进店。'}<br/>可以先自己干，之后再雇员工帮忙。</p>
+    <div className="town-arrival-story">
+      <p><b>目标</b><span>赚钱升级店铺，壮大员工团队，逐步打造你的商业小镇。</span></p>
+      <p><b>起点</b><span>{first ? '店长在 KIM 求助：奶茶店快倒闭了，想交给你经营。接下任务，就从这里起步。' : '你已接手店长托付的奶茶店。把生意做好，它就是你事业的起点。'}</span></p>
+      <p><b>帮手</b><span>可以亲自做奶茶、端给顾客，也能雇同事分身或 NPC。排好制作、端送两岗，员工就会自动干活。</span></p>
+    </div>
+    <p className="town-arrival-next" id="town-guide-phone">{first ? '第一步：打开手机，接下奶茶店任务。' : complete ? '下一步：回店备料，继续赚钱升级。' : '下一步：跟着带路去奶茶店，备料开店。'}</p>
+    <p className="town-arrival-route">接任务 → 到店备料 → 营业 1 分钟 → 看报表、拿收入</p>
+    <p className="town-arrival-controls">{touch ? '左下摇杆走路，靠近店门点「进店」。' : '点地面走路，靠近店门按 E 进店。'}</p>
     <div className="town-row">
       <button className="tea-btn primary" onClick={first ? onPhone : onGoShop}>{first ? '打开手机 · 接任务' : complete ? '带路回奶茶店' : '带路去奶茶店'}</button>
       <button className="tea-btn ghost" onClick={onClose}>跳过，先逛逛</button>
