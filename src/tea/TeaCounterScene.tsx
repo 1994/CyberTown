@@ -390,23 +390,34 @@ function StationProgress({ frame, role, position }: { frame: TeaLiveFrame; role:
   useEffect(() => () => resource.texture.dispose(), [resource]);
   useEffect(() => {
     const g = resource.canvas.getContext('2d')!;
-    g.clearRect(0,0,600,150);
-    g.fillStyle = '#091925ed'; g.fillRect(0,0,600,150);
-    const color = role === 'maker' ? '#ffda70' : '#63ecdf';
-    g.fillStyle = color; g.fillRect(0,0,600,4);
-    g.textAlign = 'left'; g.font = 'bold 28px "PingFang SC", sans-serif';
+    const W = 600, H = 150, cut = 18;
+    const color = role === 'maker' ? '#ffd23f' : '#4fe9e0';
+    g.clearRect(0,0,W,H);
+    // 深蓝金属面板，右上切角
+    const panel = () => { g.beginPath(); g.moveTo(0,0); g.lineTo(W-cut,0); g.lineTo(W,cut); g.lineTo(W,H); g.lineTo(0,H); g.closePath(); };
+    const bg = g.createLinearGradient(0,0,0,H); bg.addColorStop(0,'#1b2c48f2'); bg.addColorStop(1,'#0d1729f2');
+    panel(); g.fillStyle = bg; g.fill();
+    g.lineWidth = 2; g.strokeStyle = '#2c4466'; g.stroke();
+    g.fillStyle = color; g.fillRect(0,0,8,H);
+    g.fillStyle = '#ffffff12'; g.fillRect(8,2,W-cut-10,2);
     const title = worker ? `${worker.id === 'self' ? '你' : '员工'} · ${role === 'maker' ? '制作中' : '端送中'}` : role === 'maker' ? (frame.makerQueue ? `${frame.makerQueue} 单待制作` : '等待订单') : (frame.cashierQueue ? `${frame.cashierQueue} 杯待送` : '等待出杯');
-    g.fillText(title,20,39);
-    g.textAlign = 'right'; g.font = '24px "PingFang SC", sans-serif';
-    g.fillText(worker ? `#${worker.customerId} · ${Math.round(worker.progress*100)}%` : role === 'maker' ? `${ready} 杯待送` : `${ready} 杯已送达`,580,39);
+    g.textBaseline = 'alphabetic';
+    g.textAlign = 'left'; g.font = 'bold 30px "PingFang SC", sans-serif'; g.fillStyle = worker ? color : '#eaf2fb';
+    g.fillText(title,28,46);
+    g.textAlign = 'right'; g.font = '24px "PingFang SC", sans-serif'; g.fillStyle = '#93a6bf';
+    g.fillText(worker ? `#${worker.customerId}` : role === 'maker' ? `${ready} 杯待送` : `${ready} 杯已送达`,worker ? 470 : 576,45);
+    if (worker) { g.font = 'bold 34px ui-monospace, Menlo, monospace'; g.fillStyle = '#eaf2fb'; g.fillText(`${Math.round(worker.progress*100)}%`,576,47); }
     const steps = workSteps(role, worker?.progress ?? 0);
+    const segW = 176, gap = 10;
     steps.forEach((step,i) => {
-      const x = 20+i*194;
-      g.fillStyle = step.progress >= 1 ? '#79f2bd' : step.progress > 0 ? color : '#8b9aaa';
-      g.textAlign = 'left'; g.font = 'bold 26px "PingFang SC", sans-serif';
-      g.fillText(`${step.progress >= 1 ? '✓' : i+1} ${step.label}`,x,91);
-      g.fillStyle = '#2b3b4a'; g.fillRect(x,110,174,13);
-      g.fillStyle = color; g.fillRect(x,110,174*step.progress,13);
+      const x = 28+i*(segW+gap);
+      const done = step.progress >= 1, active = step.progress > 0 && !done;
+      g.fillStyle = done ? '#eaf2fb' : active ? color : '#6c7f99';
+      g.textAlign = 'left'; g.font = `${active ? 'bold ' : ''}24px "PingFang SC", sans-serif`;
+      g.fillText(`${done ? '✓' : i+1}  ${step.label}`,x,90);
+      g.fillStyle = '#00000080'; g.fillRect(x,104,segW,14);
+      g.fillStyle = '#ffffff10'; g.fillRect(x,104,segW,1);
+      g.fillStyle = done ? '#eaf2fbcc' : color; g.fillRect(x,104,segW*Math.min(1,step.progress),14);
     });
     resource.texture.needsUpdate = true;
   }, [resource, role, worker?.id, worker?.customerId, worker?.progress, ready, frame.makerQueue, frame.cashierQueue]);

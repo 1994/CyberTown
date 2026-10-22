@@ -63,11 +63,11 @@ export function TeaCounterGame({controller:c,onExit,onPhone,onHall}:{controller:
    <div className="counter-tools"><button onClick={onPhone} aria-label="查看钱包"><Coins size={17}/>{home.wallet.balance}</button><button className="counter-phone" onClick={onPhone} aria-label="手机：任务与钱包" data-testid="counter-phone-trigger"><Smartphone size={18}/><span>手机</span></button><button onClick={()=>setHelp(!help)} aria-label="怎么玩"><HelpCircle size={19}/></button><SoundMenu/></div>
   </header>
   {playing&&<div className="counter-status" inert={modal}>
-   <span><i className="counter-dot"/>{time(Math.max(0,ch.duration-(frame?.t??0)))}<small>{c.paused?'已暂停':'剩余'}</small></span>
-   <span><b data-testid="counter-served">{frame?.served??0}</b><small>已送达 / 目标 {ch.target}</small></span>
-   <span><b>{currentRun?.result.revenue??0}</b><small>营业收入</small></span>
-   <span className={(frame?.lost??0)>0?'counter-warning':''}><b>{frame?.lost??0}</b><small>流失</small></span>
-   <button onClick={c.togglePause} aria-label={c.paused?'继续营业':'暂停营业'}>{c.paused?<Play size={16}/>:<Pause size={16}/>}<span>{c.paused?'继续':'暂停'}</span></button>
+   <span className={`counter-clock ${c.paused?'is-paused':''}`}><i className="counter-dot"/><b>{time(Math.max(0,ch.duration-(frame?.t??0)))}</b><small>{c.paused?'已暂停':'剩余'}</small></span>
+   <span className="counter-goal"><span><b data-testid="counter-served">{frame?.served??0}</b><small>/ {ch.target} 杯</small></span><i aria-hidden="true"><i style={{width:`${Math.min(100,((frame?.served??0)/Math.max(1,ch.target))*100)}%`}}/></i></span>
+   <span className="counter-revenue"><Coins size={15} aria-hidden="true"/><b>{currentRun?.result.revenue??0}</b><small>收入</small></span>
+   <span className={`counter-lost ${(frame?.lost??0)>0?'counter-warning':''}`}><b>{frame?.lost??0}</b><small>流失</small></span>
+   <button className="counter-pause" onClick={c.togglePause} aria-label={c.paused?'继续营业':'暂停营业'}>{c.paused?<Play size={16}/>:<Pause size={16}/>}<span>{c.paused?'继续':'暂停'}</span></button>
   </div>}
   <section className="counter-scene" aria-label="奶茶店：左边制作台，右边取餐台，前方客人座位" inert={modal}>
    <TeaCounterScene level={home.shop.level} team={team} roles={roles} frame={frame} liveFrame={frame} stockMax={currentRun?.plan.stock??c.stock} events={c.events} supportAt={c.supportAt} selfAvatar={me?.avatarUrl} selfId="self" live={playing&&!c.paused} canAssign={playing&&!c.paused&&!modal&&!selfTask?.queuedRole} onAssign={assign}/>
@@ -76,7 +76,7 @@ export function TeaCounterGame({controller:c,onExit,onPhone,onHall}:{controller:
      const workers=frame.workersState.filter(w=>w.role===role&&w.customerId!=null);
      const worker=workers.find(w=>w.id==='self')??workers[0];
      return <section key={role} className={`station-${role}`}><header><b>{roleName(role)}</b><span>{worker?`${Math.round(worker.progress*100)}%`:role==='maker'?`${orders} 单待做`:`${ready} 杯待送`}</span></header>
-      {workSteps(role,worker?.progress??0).map((step,i)=><div key={step.label} className={step.progress>=1?'done':step.progress>0?'active':''}><span>{step.progress>=1?'✓':i+1} {step.label}</span><progress aria-label={`${roleName(role)}：${step.label}`} max={1} value={step.progress}/></div>)}
+      <ol>{workSteps(role,worker?.progress??0).map((step,i)=><li key={step.label} className={step.progress>=1?'done':step.progress>0?'active':''}><progress aria-label={`${roleName(role)}：${step.label}`} max={1} value={step.progress}/><span>{step.progress>=1?'✓':i+1} {step.label}</span></li>)}</ol>
      </section>;
     })}
    </div>}
@@ -89,10 +89,10 @@ export function TeaCounterGame({controller:c,onExit,onPhone,onHall}:{controller:
    </div>}
   </section>
   {view==='prep'&&<aside className="counter-prep tea-prep" inert={modal}>
-   <div className="counter-section-title"><h2>备料开店</h2><p>营业 {Math.ceil(ch.duration/60)} 分钟 · 目标 {ch.target} 杯</p></div>
+   <div className="counter-section-title"><h2>备料开店</h2><p><span>营业 {Math.ceil(ch.duration/60)} 分钟</span><span>目标 {ch.target} 杯</span></p></div>
    {help&&<p className="counter-prep-help">选好备料后开店；营业时点制作、端送，员工自动工作。</p>}
-   <div className="counter-recipe"><CupSoda size={26}/><div><b>招牌珍珠奶茶</b></div><strong>{ch.price}<small>金币 / 杯</small></strong></div>
-   <div className="counter-stock"><h3><Package size={16}/>备料</h3><div>{(home.business?.stockOptions??[20,40,60]).map(n=><button key={n} aria-pressed={c.stock===n} onClick={()=>c.setStock(n as typeof c.stock)}>{n} 份{n===home.business?.recommendedStock&&<small>推荐</small>}</button>)}</div></div>
+   <div className="counter-recipe"><span className="counter-recipe-icon"><CupSoda size={24}/></span><b>招牌珍珠奶茶</b><strong>{ch.price}<small>金币 / 杯</small></strong></div>
+   <div className="counter-stock"><h3><Package size={16}/>备料</h3><div>{(home.business?.stockOptions??[20,40,60]).map(n=><button key={n} aria-pressed={c.stock===n} onClick={()=>c.setStock(n as typeof c.stock)}><b>{n}</b><span>份</span>{n===home.business?.recommendedStock&&<small>推荐</small>}<em>原料 {n*ch.materialCost}</em></button>)}</div></div>
    <details className="counter-staff-settings"><summary>员工安排 <span>{staff.length ? `${staff.length} 人上岗` : '亲自经营'}</span></summary>
    <div className="counter-positions">
     {(['maker','cashier'] as const).map(r=><div key={r}><span>{r==='maker'?<CupSoda size={20}/>:<HandPlatter size={20}/>}<b>{roleName(r)}岗</b></span><strong>{cover(r).length?cover(r).map(w=>w.name).join('、'):'你亲自来'}</strong><small>{cover(r).length?'自动':`熟练 Lv.${1+Math.min(5,Math.floor((r==='maker'?(home.counter?.makerXp??0):(home.counter?.serviceXp??0))/10))}`}</small></div>)}
@@ -104,11 +104,13 @@ export function TeaCounterGame({controller:c,onExit,onPhone,onHall}:{controller:
     </div>})}</div>:<p className="counter-empty">暂无员工 · 可直接亲自营业</p>}
    </section>
    </details>
+   <div className="counter-prep-foot">
    <div className="counter-budget"><span>预付成本 <strong>{c.totalCost}</strong></span><small>原料 {c.stock*ch.materialCost} + 工资 {staff.reduce((n,w)=>n+w.salary,0)} + 运营 {ch.operatingCost}</small></div>
    {c.problems.map(p=><p className="counter-warning" key={p}>{p}</p>)}
    {home.mission.status==='offered'&&<button className="tea-btn" data-testid="town-accept-mission" disabled={c.busy} onClick={()=>void c.acceptMission()}>接下手机里的救店任务</button>}
    <button className="tea-btn primary counter-open" disabled={c.busy||c.problems.length>0||home.wallet.balance<c.totalCost} onClick={()=>setConfirm('official')}>正式开店 <ArrowLeft className="counter-arrow" size={18}/></button>
    <button className="counter-practice" disabled={c.busy||c.problems.length>0} onClick={()=>setConfirm('practice')}>免费试营业</button>
+   </div>
    {home.business?.upgradeReady&&home.shop.level<3&&<button className="counter-upgrade" disabled={c.busy||home.wallet.balance<home.shop.nextUpgradeCost} onClick={()=>void c.upgrade()}>升级门店 · {home.shop.nextUpgradeCost} 金币</button>}
   </aside>}
   {playing&&<footer className="counter-dock" inert={modal}>
@@ -120,7 +122,7 @@ export function TeaCounterGame({controller:c,onExit,onPhone,onHall}:{controller:
    <div className="counter-hint" role="status" data-testid="counter-next-action">{hint}{!home.counter?.guideSeen&&<button className="counter-guide-dismiss" onClick={finishGuide}>{served>0?'完成引导':'跳过引导'}</button>}</div>
    <div className="counter-action-row">
     {(['maker','cashier'] as const).map(r=><button key={r} data-testid={`counter-${r}`} className={`counter-action action-${r} ${recommended===r?'needs-you':''}`} disabled={!can(r)} onClick={()=>assign(r)}>
-     {r==='maker'?<CupSoda size={26}/>:<HandPlatter size={26}/>}<span><b>{r==='maker'?'制作':'端送'}{recommended===r&&<em className="counter-tap">{touch?'点这里':'下一步'}</em>}</b><small>{r==='maker'?`${orders} 单`:`${ready} 杯`}{cover(r).length?' · 自动':''}</small></span>{!touch&&<kbd>{r==='maker'?'1':'2'}</kbd>}
+     <i className="counter-action-icon">{r==='maker'?<CupSoda size={24}/>:<HandPlatter size={24}/>}</i><span><b>{r==='maker'?'制作':'端送'}{recommended===r&&<em className="counter-tap">{touch?'点这里':'下一步'}</em>}</b><small>{cover(r).length?'员工自动 · 可帮忙':r==='maker'?'待做订单':'待送杯数'}</small></span><strong className="counter-action-count">{r==='maker'?orders:ready}<small>{r==='maker'?'单':'杯'}</small></strong>{!touch&&<kbd>{r==='maker'?'1':'2'}</kbd>}
     </button>)}
    </div>
    <div className="counter-jobline"><span data-testid="counter-occupancy">店内 {occupants-waiting}/8 · 等位 {waiting}/2</span><span aria-label={`剩余原料 ${Math.floor(frame?.stock??0)}份`} title="剩余原料"><Package size={13} aria-hidden="true"/>{Math.floor(frame?.stock??0)}</span></div>
