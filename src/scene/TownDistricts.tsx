@@ -16,8 +16,8 @@ import { TownExpansion } from './TownExpansion.tsx';
 export const useTownMode = () => true;
 
 export const PALETTE: Record<DistrictId, { walls: string[]; awning: [string, string]; window: string; sign: string; trim: string }> = {
-  commerce: { walls: ['#3a2f36', '#33333f', '#3b3130', '#2f3442'], awning: ['#ffb347', '#ff5f8f'], window: '#ffcf8a', sign: '#ffd08a', trim: '#ff9f43' },
-  leisure: { walls: ['#2b2a46', '#24324a', '#302848', '#22303f'], awning: ['#b18bff', '#3ef0ff'], window: '#c9b6ff', sign: '#9ef8ff', trim: '#b18bff' },
+  commerce: { walls: ['#705065', '#546579', '#8b605b', '#536f7c'], awning: ['#ffb347', '#ff5f8f'], window: '#ffcf8a', sign: '#ffd08a', trim: '#ff9f43' },
+  leisure: { walls: ['#67538e', '#436c8d', '#875b92', '#427b80'], awning: ['#b18bff', '#3ef0ff'], window: '#c9b6ff', sign: '#9ef8ff', trim: '#b18bff' },
   plaza: { walls: ['#2d3a44'], awning: ['#ffd166', '#fff3e6'], window: '#ffe2b0', sign: '#ffd166', trim: '#ffd166' },
   expansion: { walls: ['#2a2f3a'], awning: ['#6f7d99', '#2a2f3a'], window: '#8d9bb8', sign: '#8d9bb8', trim: '#6f7d99' },
 };
@@ -59,9 +59,10 @@ export function House({ h: raw, i }: { h: Shophouse; i: number }) {
   return <group position={[h.x, 0, h.z]} rotation-y={raw.side ? (raw.side * Math.PI) / 2 : 0}>
     <mesh position={[0, h.h / 2, 0]} material={std(wall, 0.75, 0.15)} castShadow receiveShadow><boxGeometry args={[h.w, h.h, h.d]} /></mesh>
     {/* 错落屋顶：檐口 + 后退的小阁楼/水箱 */}
-    <mesh position={[0, h.h + 0.06, 0]} material={std('#151b24', 0.5, 0.5)}><boxGeometry args={[h.w + 0.16, 0.12, h.d + 0.16]} /></mesh>
-    <mesh position={[(i % 3 - 1) * h.w * 0.2, h.h + step / 2 + 0.1, -f * h.d * 0.18]} material={std('#222a36', 0.7, 0.2)}><boxGeometry args={[h.w * 0.45, step, h.d * 0.45]} /></mesh>
+    <mesh position={[0, h.h + 0.06, 0]} material={std('#34465e', 0.5, 0.3)}><boxGeometry args={[h.w + 0.16, 0.12, h.d + 0.16]} /></mesh>
+    <mesh position={[(i % 3 - 1) * h.w * 0.2, h.h + step / 2 + 0.1, -f * h.d * 0.18]} material={std('#52647d', 0.7, 0.2)}><boxGeometry args={[h.w * 0.45, step, h.d * 0.45]} /></mesh>
     {i % 2 === 0 && <mesh position={[h.w * 0.32, h.h + 0.45, -f * h.d * 0.25]} material={std('#3c4654', 0.5, 0.6)}><cylinderGeometry args={[0.28, 0.28, 0.7, 10]} /></mesh>}
+    <mesh position={[0,h.h+.15,front]} material={glow(i%2 ? '#ff64c8' : '#52e9ff',1.7)}><boxGeometry args={[h.w,.045,.045]}/></mesh>
     {/* 门脸：暖窗 + 门 */}
     <mesh position={[-h.w * 0.18, 1.15, front + f * 0.011]} rotation-y={f > 0 ? 0 : Math.PI}>
       <planeGeometry args={[h.w * 0.5, 1.1]} />

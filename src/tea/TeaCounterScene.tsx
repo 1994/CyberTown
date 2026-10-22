@@ -407,8 +407,8 @@ export function TeaCounterScene(props: ShopProps) {
     <color attach="background" args={['#172b38']} />
     <fog attach="fog" args={['#172b38', 28, 65]} />
     <TeaAtmosphere />
-    <ambientLight intensity={0.65} color="#c8d2ff" />
-    <hemisphereLight args={['#bfe8ff', '#3a2a1c', 0.65]} />
+    <ambientLight intensity={1.05} color="#e6eaff" />
+    <hemisphereLight args={['#d9efff', '#a58c83', 1.3]} />
     <directionalLight position={[-3, 10, 5]} intensity={2.5} color="#ffe3bc" castShadow={!low} shadow-mapSize={[1024, 1024]} shadow-camera-left={-12} shadow-camera-right={12} shadow-camera-top={10} shadow-camera-bottom={-10} shadow-normalBias={0.035} shadow-bias={-0.0002} />
     <directionalLight position={[-6, 5, 4]} intensity={0.8} color="#ffb070" />
     <Environment resolution={64} frames={1}>

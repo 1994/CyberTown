@@ -1,0 +1,20 @@
+{
+  "checks": [
+    "typecheck",
+    "production build",
+    "14 render budget checks",
+    "UI entrance -> plaza -> arcade -> commerce -> shop"
+  ],
+  "changes": [
+    "lifted ambient and hemisphere light floor",
+    "cyan magenta amber street light spills",
+    "lighter district wall materials and roof trim",
+    "reduced vignette and login veil",
+    "shop fill light"
+  ],
+  "constraints": [
+    "existing bounded point-light pool",
+    "no extra shadow-casting lights",
+    "no gameplay or save changes"
+  ]
+}

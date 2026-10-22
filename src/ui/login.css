@@ -9,9 +9,9 @@
 .town-entry *{box-sizing:border-box}
 .entry-veil{position:fixed;inset:0;z-index:-1;pointer-events:none;
   background:
-    linear-gradient(90deg,#050915e6 0,#050915a8 28%,#0509153a 55%,transparent 75%),
-    linear-gradient(0deg,#050915d9 0,transparent 42%),
-    linear-gradient(180deg,#0509158c 0,transparent 18%);
+    linear-gradient(90deg,#050915bd 0,#05091570 28%,#05091518 55%,transparent 75%),
+    linear-gradient(0deg,#05091588 0,transparent 36%),
+    linear-gradient(180deg,#05091540 0,transparent 18%);
 }
 .entry-veil:after{content:"";position:absolute;inset:0;opacity:.18;
   background:repeating-linear-gradient(0deg,#000 0 1px,transparent 1px 3px);mix-blend-mode:multiply}

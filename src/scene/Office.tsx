@@ -1,3 +1,4 @@
+import { NeonStreetLight } from './NeonStreetLight';
 import { TownAmbientLight } from './TownAtmosphere';
 import { TownLife } from './TownLife.tsx';
 import { LocalPointLight, LocalLightPool } from './LocalLights.tsx';
@@ -73,7 +74,7 @@ function Sun() {
   return (
     <directionalLight
       ref={light}
-      intensity={1.95}
+      intensity={2.5}
       color="#d3e7e5"
       castShadow={!LOW_FX}
       shadow-mapSize={[settings.shadow, settings.shadow]}
@@ -93,11 +94,12 @@ function Lights() {
   return (
     <>
       <TownAmbientLight />
+      <ambientLight intensity={0.7} color="#d9e5ff" />
       <Sun />
       <directionalLight
         position={[-24, 12, -18]}
-        intensity={0.8}
-        color="#ff6f48"
+        intensity={1.5}
+        color="#ff79bc"
       />
       {[-3.3, 0, 3.3].map((x) => (
         <LocalPointLight
@@ -195,8 +197,8 @@ export function OfficeCanvas({ myId, covered: townCovered = false }: { myId: str
       gl={{ antialias: false, powerPreference: 'high-performance' }}
       onCreated={({ gl, scene }) => {
         gl.toneMapping = THREE.ACESFilmicToneMapping;
-        gl.toneMappingExposure = 1.02;
-        scene.fog = new THREE.Fog('#10142e', 65, 230);
+        gl.toneMappingExposure = 1.16;
+        scene.fog = new THREE.Fog('#303858', 85, 260);
       }}
     >
       <Suspense fallback={null}>
@@ -226,6 +228,7 @@ export function OfficeCanvas({ myId, covered: townCovered = false }: { myId: str
         <Campus onGround={onGround} />
         <UrbanDetails />
         <TownLife />
+        <NeonStreetLight />
         {playing && !LOW_FX && <NightRain />}
         <Room />
         <TownLandmarks />
@@ -246,7 +249,7 @@ export function OfficeCanvas({ myId, covered: townCovered = false }: { myId: str
               intensity={0.34}
               radius={0.5}
             />
-            <Vignette offset={0.3} darkness={0.22} />
+            <Vignette offset={0.3} darkness={0.08} />
           </EffectComposer>
         )}
       </Suspense>
