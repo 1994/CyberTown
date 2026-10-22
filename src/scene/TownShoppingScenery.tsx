@@ -11,7 +11,7 @@ import { Neon } from './TownDistricts';
 import { rt } from '../world/runtime';
 export function TownShoppingScenery(){
  const {riding,shared,parked}=useRide();const label=useRef<THREE.Group>(null);
- useFrame(()=>{if(label.current)label.current.visible=Math.hypot(rt.me.x-parked.x,rt.me.z-parked.z)<12;});
+ useFrame(()=>{if(label.current)label.current.visible=Math.hypot(rt.me.x-parked.x,rt.me.z-parked.z)<26;});
  return <>
  <group name="shopping-frontage"><StaticBatch>
  {SHOPPING_STORES.map((store,i)=>{
@@ -38,6 +38,15 @@ export function TownShoppingScenery(){
  <group position={[-15,.25,13.25]} rotation-y={Math.PI/2}><Bicycle color="#f2b94e"/></group>
 
  </group>
- {!(riding&&shared)&&<group name="shared-bicycle" position={[parked.x,0,parked.z]} rotation-y={parked.yaw}><Bicycle/><group ref={label}><Label3D text="骑行 · 免费" tone="on" position={[0,2.2,0]} height={.35}/></group></group>}
+ {!(riding&&shared)&&<group name="shared-bicycle" position={[parked.x,0,parked.z]} rotation-y={parked.yaw}><Bicycle/>
+ <StaticBatch>
+ {/* Painted luminous parking bay follows the shared bike when it is parked elsewhere. */}
+ <mesh position={[0,.018,0]} rotation-x={-Math.PI/2} material={std('#183a43',.9)}><planeGeometry args={[1.35,2.45]}/></mesh>
+ {[-1,1].flatMap(x=>[-1,1].map(z=><group key={`${x}:${z}`} position={[x*.68,.025,z*1.23]}>
+ <mesh position={[-x*.18,0,0]} material={glow('#50dfd3',1.1)}><boxGeometry args={[.4,.025,.045]}/></mesh>
+ <mesh position={[0,0,-z*.24]} material={glow('#50dfd3',1.1)}><boxGeometry args={[.045,.025,.52]}/></mesh>
+ </group>))}
+ </StaticBatch>
+ <group ref={label}><Label3D text="免费骑行" tone="on" position={[0,2,0]} height={.48} minPixels={24}/></group></group>}
  </>;
 }
