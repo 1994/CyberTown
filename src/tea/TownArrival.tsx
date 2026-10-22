@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import type { PlayerPublic } from '../../shared/types.ts';
 import { nearbyPlayers } from '../../shared/proximity.ts';
-import { zoneAt } from '../../shared/world.ts';
+import { districtAt, type DistrictId } from '../../shared/townPlan.ts';
 import { dressed } from '../look.ts';
 import { sessionKey } from '../runtime-config.ts';
 import { useGame } from '../store.ts';
@@ -25,17 +25,16 @@ function Face({ p, size = 28 }: { p: PlayerPublic | undefined; size?: number }) 
   return <span className="town-face" style={{ width: size, height: size, background: p.color }}>{p.name.slice(-1)}</span>;
 }
 
-/** 当前所在区域（按真实坐标，0.5s 刷新）。 */
-function useZoneName() {
-  const [name, setName] = useState('');
+/** 当前所在大区（shared/townPlan districtAt，按真实坐标 0.5s 刷新）。 */
+function useDistrict() {
+  const [d, setD] = useState<{ id: DistrictId; name: string }>(() => districtAt(rt.me.x, rt.me.z));
   useEffect(() => {
-    // 原咖啡区现为奶茶小镇门店所在，只改显示名
-    const read = () => { const z = zoneAt(rt.me.x, rt.me.z); setName(z?.id === 'coffee' ? '奶茶小镇' : z?.name ?? '小镇街头'); };
+    const read = () => { const n = districtAt(rt.me.x, rt.me.z); setD(o => (o.id === n.id ? o : { id: n.id, name: n.name })); };
     read();
     const id = setInterval(read, 500);
     return () => clearInterval(id);
   }, []);
-  return name;
+  return d;
 }
 
 /** 常驻位置/社交提示：区域、本人、附近真实玩家（不含 NPC）。 */
@@ -44,7 +43,7 @@ export function TownPresence({ myId, ready, collapsed = false }: { myId: string;
   const snapPlayers = useGame(s => s.snapshot?.players);
   const me = snapPlayers?.find(p => p.id === myId);
   const players = useWorld(s => s.players);
-  const zone = useZoneName();
+  const district = useDistrict();
   const [open, setOpen] = useState(false);
   const live = ready && conn === 'live';
   const near = live ? nearbyPlayers(players, myId) : [];
@@ -57,7 +56,7 @@ export function TownPresence({ myId, ready, collapsed = false }: { myId: string;
     data-state={conn === 'offline' ? 'offline' : live ? 'live' : 'connecting'} data-nearby={near.length}>
     <button className="town-presence-main" data-testid="town-presence-toggle" onClick={() => { if (!collapsed) setOpen(v => !v); }} disabled={!live || !near.length || collapsed} aria-expanded={expanded}>
       <i className={`town-conn ${live ? 'on' : conn === 'offline' ? 'off' : ''}`} aria-hidden />
-      <span><b>{live ? zone : '连接中'}</b>{me && <em>{me.name}</em>}</span>
+      <span><b data-testid="town-district" data-district={live ? district.id : undefined}>{live ? district.name : '连接中'}</b>{me && <em>{me.name}</em>}</span>
       <small>{status}</small>
     </button>
     {expanded && <ul className="town-nearby" data-testid="town-nearby-list">
@@ -79,7 +78,7 @@ export function markArrival(id: string) { try { localStorage.setItem(arrivalKey(
 export function TownArrival({ myId, touch, onPhone, onClose }: { myId: string; touch: boolean; onPhone: () => void; onClose: () => void }) {
   const me = useGame(s => s.snapshot?.players.find(p => p.id === myId));
   // 跟随真实坐标：新玩家在共享广场，老位置（如奶茶店门口）照实显示
-  const zone = useZoneName() || '小镇街头';
+  const zone = useDistrict().name;
   return <section className="town-arrival" data-testid="town-arrival" role="dialog" aria-label={`到达${zone}`}>
     <button className="town-x" onClick={onClose} aria-label="关闭引导，自由逛逛" data-testid="town-arrival-dismiss">×</button>
     <div className="town-arrival-me">

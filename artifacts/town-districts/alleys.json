@@ -1,0 +1,52 @@
+{
+  "checked": [
+    {
+      "between": [
+        "杂货",
+        "面馆"
+      ],
+      "width": 1.2,
+      "walkThrough": true
+    },
+    {
+      "between": [
+        "面馆",
+        "花店"
+      ],
+      "width": 1.2,
+      "walkThrough": true
+    },
+    {
+      "between": [
+        "花店",
+        "烘焙"
+      ],
+      "width": 1.2,
+      "walkThrough": true
+    },
+    {
+      "between": [
+        "旧书",
+        "修理"
+      ],
+      "width": 1.2,
+      "walkThrough": true
+    },
+    {
+      "between": [
+        "桌游",
+        "唱片"
+      ],
+      "width": 1.3,
+      "walkThrough": true
+    },
+    {
+      "between": [
+        "抓娃娃",
+        "甜品"
+      ],
+      "width": 1.3,
+      "walkThrough": true
+    }
+  ]
+}

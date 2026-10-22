@@ -1,0 +1,10 @@
+{
+  "groundClickCancelsOldLabel": true,
+  "phoneCancelsNavigation": true,
+  "choosingNearbyDestinationStopsOldPath": true,
+  "noTeleport": true,
+  "coinsBefore": 2000,
+  "coinsAfter": 2000,
+  "mission": "offered",
+  "errors": []
+}

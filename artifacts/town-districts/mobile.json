@@ -1,0 +1,18 @@
+{
+  "demo": "wang",
+  "portrait": {
+    "width": 390,
+    "height": 844,
+    "noOverflow": true,
+    "closeReopen": true
+  },
+  "landscape": {
+    "width": 844,
+    "height": 390,
+    "noOverflow": true,
+    "closeReopen": true
+  },
+  "coinsBefore": 2000,
+  "coinsAfter": 2000,
+  "mission": "offered"
+}

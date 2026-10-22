@@ -1,0 +1,48 @@
+{
+  "preview": "http://127.0.0.1:8897",
+  "existingTablesUnchanged": true,
+  "businessTablePresent": true,
+  "backendRestarted": false,
+  "tables": {
+    "players": {
+      "rows": 4,
+      "sha256": "067a4791a346665753bad759692a6679f4cb200e80a4fd1ad63145b9bd61f9c3"
+    },
+    "ledger": {
+      "rows": 17,
+      "sha256": "f088a08700bc0396b9d363fd2b25cbb7949c8550f11bafeae90e52bb54e7832a"
+    },
+    "tea_shops": {
+      "rows": 4,
+      "sha256": "fbb7301d63b4f35ec0dc8ed77d92a537ccec77f8a60a6b9d900d0be9cd8b3414"
+    },
+    "tea_missions": {
+      "rows": 0,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "tea_runs": {
+      "rows": 6,
+      "sha256": "9e7755be9f4cc6bb3a5f2663890184191aedb719b705bf6c9b93cd873538bd2b"
+    },
+    "tea_sessions": {
+      "rows": 2,
+      "sha256": "900d343395952f713cbb6380c3f6a9481bcd5c0311df9ae746aae120f0137978"
+    },
+    "tea_live_jobs": {
+      "rows": 0,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "tea_jobs": {
+      "rows": 1,
+      "sha256": "7c1b8c1457d85bd3ff5cc2647766450b9e00b14aefb199294ee9e44160fb5984"
+    },
+    "tea_chapters": {
+      "rows": 2,
+      "sha256": "9471b0c29f814dbb99a0b05f7213b2c30f1ad3209fd14204b4ecdec3f1945c15"
+    },
+    "tea_business_progress": {
+      "rows": 0,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    }
+  }
+}

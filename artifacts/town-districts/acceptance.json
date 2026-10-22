@@ -1,0 +1,41 @@
+{
+  "status": "accepted",
+  "scope": "town districts, streetscape and walking guidance",
+  "districts": [
+    "共享广场",
+    "商业街",
+    "娱乐街",
+    "北区·规划中"
+  ],
+  "artAndUi": "Claude, reused existing session",
+  "regressionTests": "dsh, reused cached session",
+  "acceptance": "Codex source review, normal-graphics screenshots and actual UI walks",
+  "checks": {
+    "web": true,
+    "go": true,
+    "houseAlleys": 6,
+    "distinctRegressionCasesCovered": 15,
+    "initialFullRun": {
+      "passed": 13,
+      "failed": 2
+    },
+    "targetedFollowup": {
+      "passed": 5,
+      "failed": 0
+    },
+    "normalGraphicsDesktopAndTouch": true,
+    "realGroundClickCancelsOldNavigation": true,
+    "navigationDoesNotChangeMissionOrWallet": true
+  },
+  "initialRunFollowup": "Removed an invalid test assumption that presence must remain visible over the map. A dual-player reload readiness timeout also occurred in the initial run; the unchanged build passed the complete arrival and map followup without concurrent visual QA. The initial failure log is retained in e2e.txt.",
+  "existingPreviewDatabaseUnchanged": true,
+  "backendRestarted": false,
+  "notPlayableYet": [
+    "街机厅",
+    "街角舞台",
+    "合影馆",
+    "夜市",
+    "新增装饰店面"
+  ],
+  "published": "http://127.0.0.1:8897"
+}

@@ -1,6 +1,7 @@
 // 园区地图：区域、出生点、碰撞体与寻路（前端使用；数值与 /api/world 的边界一致）。
 // 坐标单位米，x 向东（右），z 向南（朝向默认镜头）。原办公室位于中心 [-8.5,8.5]×[-6,6]。
 import { createCollisionIndex } from './collision.ts';
+import { CIVIC_POSTS, EXPANSION_FENCE, GATE_POST_Z, TOWN_GATES, TOWN_SHOPHOUSES } from './townPlan.ts';
 
 export const WORLD_BOUNDS = { minX: -45, maxX: 45, minZ: -33, maxZ: 33 };
 export const PLAYER_RADIUS = 0.36;
@@ -58,7 +59,7 @@ export const ZONES: Zone[] = [
   { id: 'plaza', name: '共享广场', icon: '⛲', x: 0, z: 12, color: '#ffd166' },
   {
     id: 'office',
-    name: '总部办公室',
+    name: '社区中心',
     icon: '🏢',
     x: 0,
     z: 0,
@@ -66,7 +67,7 @@ export const ZONES: Zone[] = [
   },
   {
     id: 'coffee',
-    name: '咖啡社交区',
+    name: '奶茶小镇',
     icon: '☕',
     x: -17,
     z: 0,
@@ -82,7 +83,7 @@ export const ZONES: Zone[] = [
   },
   {
     id: 'project',
-    name: '小游戏俱乐部',
+    name: '街机厅',
     icon: '🎮',
     x: 18,
     z: 0,
@@ -204,6 +205,9 @@ export const BOXES: Box[] = [
   centered(5.6, 8.6, 2.0, 0.6),
   // ── 路演舞台（东南） ──
   centered(22, 16.5, 7, 3),
+  // ── 小镇街屋与北区围挡（shared/townPlan.ts） ──
+  ...TOWN_SHOPHOUSES.map(h => centered(h.x, h.z, h.w, h.d)),
+  box(EXPANSION_FENCE.minX, EXPANSION_FENCE.maxX, EXPANSION_FENCE.minZ, EXPANSION_FENCE.maxZ),
 ];
 
 export const CIRCLES: Circle[] = [
@@ -227,16 +231,15 @@ export const CIRCLES: Circle[] = [
   { x: -17.6, z: -3.6, r: 0.75 },
   // 露台花园水池
   { x: 18, z: -13.2, r: 2.4 },
+  // 区界门楼立柱、社区中心凉棚前柱
+  ...TOWN_GATES.map(g => ({ x: g.x, z: GATE_POST_Z, r: 0.1 })),
+  ...CIVIC_POSTS.map(([x, z]) => ({ x, z, r: 0.12 })),
 ];
 
 /** 园区树木（装饰 + 碰撞） */
 export const TREES: [number, number][] = [
-  [-27, 8],
-  [-22, 9],
-  [-27, 15],
   [-21, 19],
   [-14, 20],
-  [-12, 14],
   [-26, -20],
   [-20, -20],
   [-12, -20],
@@ -247,7 +250,6 @@ export const TREES: [number, number][] = [
   [-11, 6.5],
   [11, 7.5],
   [11, -7],
-  [27, 8],
   [27, -7],
   [12, 19],
   [27, 20],

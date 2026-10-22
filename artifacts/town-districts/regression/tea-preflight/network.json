@@ -1,0 +1,11 @@
+{
+  "demo": "mei",
+  "session": "4a5d7df11a63c3a0f2b7695ed5ea1fdd768f126d1a7393dc",
+  "openFaults": 1,
+  "stepFaults": 2,
+  "hold": 240,
+  "doublePosts": 1,
+  "coinsBefore": 2000,
+  "coinsAfterSettle": 1760,
+  "settledOnce": true
+}

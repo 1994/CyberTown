@@ -1,0 +1,19 @@
+{
+  "demo": "wang",
+  "districts": [
+    "commerce",
+    "leisure",
+    "plaza"
+  ],
+  "visited": [
+    "leisure",
+    "plaza",
+    "shop"
+  ],
+  "wasdInterrupts": true,
+  "noIndoorBeforeClick": true,
+  "coinsBefore": 2000,
+  "coinsAfter": 2000,
+  "mission": "offered",
+  "errors": []
+}

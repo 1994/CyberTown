@@ -1,0 +1,105 @@
+
+Running 15 tests using 1 worker
+
+(node:95527) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   1 tests/e2e/login-entry.spec.ts:13:1 › demo 身份先确认姓名与头像，进入小镇前不挂载世界，刷新可恢复 (2.0s)
+  ✓   2 tests/e2e/login-entry.spec.ts:37:1 › 企业 SPI 假 fixture：SSO 姓名与坏头像回退，不显示 demo 身份列表 (2.0s)
+  ✓   3 tests/e2e/tea-business.spec.ts:99:1 › 经营强化：确认开班/真实报表/免费试营/升级业务挑战 (44.7s)
+  ✓   4 tests/e2e/tea-preflight.spec.ts:149:1 › 三段真实经营：20/32/48 客、升级、次数耗尽与主线完成 (11.5s)
+  ✓   5 tests/e2e/tea-preflight.spec.ts:238:1 › 网络故障回归：开门回包丢失、双击防重、step 两次失败后恢复 (11.6s)
+  ✓   6 tests/e2e/tea-town.spec.ts:45:1 › 大地图救店：手机可暂缓→不招募独自赚钱→回地图查账→升级保存 (1.4m)
+  ✓   7 tests/e2e/tea-town.spec.ts:73:1 › 手机自由动线：广场可选招募两人→步行奶茶小镇→同事自动赚金币 (43.5s)
+  ✓   8 tests/e2e/tea-town.spec.ts:87:1 › 正常画质：大地图→手机→步行入店，配乐随动线切换且静音可用 (30.9s)
+  ✘   9 tests/e2e/town-arrival.spec.ts:107:1 › 演示账号双端到达：真实名牌/SSE移动/离开与首次引导 (1.0m)
+(node:99059) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  10 tests/e2e/town-arrival.spec.ts:205:1 › welcome 未确认入镇时不会建立 world SSE (7.8s)
+  ✓  11 tests/e2e/town-arrival.spec.ts:222:1 › 断网恢复：offline 提示真实、恢复后仍在小镇且不扣费 (15.4s)
+  ✓  12 tests/e2e/town-districts.spec.ts:82:1 › 桌面街区导航：地图分区、真实步行到娱乐/广场/店门与 WASD 中断 (25.6s)
+  ✘  13 tests/e2e/town-districts.spec.ts:154:1 › 移动端地图布局：竖屏/横屏目标可点、无溢出、可关闭重开且不扣金币 (16.8s)
+(node:99762) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  14 tests/e2e/town-guide.spec.ts:55:1 › 桌面首次入镇：真实手机任务、帮助重开与刷新持久化 (18.8s)
+  ✓  15 tests/e2e/town-guide.spec.ts:108:1 › 触屏竖屏/横屏：旧 v1 与已接任务仍首次显示 v2，且无 WASD/P (23.0s)
+
+
+  1) tests/e2e/town-arrival.spec.ts:107:1 › 演示账号双端到达：真实名牌/SSE移动/离开与首次引导 ────────────────────────────
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: getByTestId('town-world')
+    Expected: visible
+    Timeout: 10000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" getByTestId('town-world') with timeout 10000ms
+      - waiting for getByTestId('town-world')
+
+
+      145 |   // 首次引导已手动关闭；刷新不能再出现，而且没有替玩家接受任务。
+      146 |   await a.reload();
+    > 147 |   await expect(a.getByTestId('town-world')).toBeVisible();
+          |                                             ^
+      148 |   await expect(a.getByTestId('town-arrival')).toHaveCount(0);
+      149 |   await waitLive(a, 1);
+      150 |   await a.getByTestId('town-world').getByRole('button', { name: '手机', exact: true }).click();
+        at /Users/r/code/boss-works-for-me/tests/e2e/town-arrival.spec.ts:147:45
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/town-arrival-演示账号双端到达：真实名牌-SSE移动-离开与首次引导/test-failed-2.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/town-arrival-演示账号双端到达：真实名牌-SSE移动-离开与首次引导/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/town-arrival-演示账号双端到达：真实名牌-SSE移动-离开与首次引导/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/town-arrival-演示账号双端到达：真实名牌-SSE移动-离开与首次引导/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2) tests/e2e/town-districts.spec.ts:154:1 › 移动端地图布局：竖屏/横屏目标可点、无溢出、可关闭重开且不扣金币 ─────────────────────
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: getByTestId('town-presence')
+    Expected: visible
+    Timeout: 10000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" getByTestId('town-presence') with timeout 10000ms
+      - waiting for getByTestId('town-presence')
+
+
+      75 |   await enter(page, 'wang');
+      76 |   await openMap(page);
+    > 77 |   await expect(page.getByTestId('town-presence')).toBeVisible();
+         |                                                   ^
+      78 |   await mapUnobstructed(page);
+      79 |   return { ctx, page };
+      80 | }
+        at openMapForViewport (/Users/r/code/boss-works-for-me/tests/e2e/town-districts.spec.ts:77:51)
+        at /Users/r/code/boss-works-for-me/tests/e2e/town-districts.spec.ts:156:20
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/town-districts-移动端地图布局：竖屏-横屏目标可点、无溢出、可关闭重开且不扣金币/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/town-districts-移动端地图布局：竖屏-横屏目标可点、无溢出、可关闭重开且不扣金币/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/town-districts-移动端地图布局：竖屏-横屏目标可点、无溢出、可关闭重开且不扣金币/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/town-districts-移动端地图布局：竖屏-横屏目标可点、无溢出、可关闭重开且不扣金币/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2 failed
+    tests/e2e/town-arrival.spec.ts:107:1 › 演示账号双端到达：真实名牌/SSE移动/离开与首次引导 ─────────────────────────────
+    tests/e2e/town-districts.spec.ts:154:1 › 移动端地图布局：竖屏/横屏目标可点、无溢出、可关闭重开且不扣金币 ──────────────────────
+  13 passed (6.9m)

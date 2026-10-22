@@ -7,6 +7,7 @@ import { FLOOR, WALL_H, ELEVATOR, DESK_SLOTS, BOSS_DESK, MEETING, LOUNGE } from 
 import { OFFICE_DOORS } from '../../shared/world.ts';
 import { PALETTE, glassMat, glow, partitionGlass, std } from './materials.ts';
 import { neonText, rugTexture, woodFloor } from './textures.ts';
+import { useGame } from '../store.ts';
 import {
   BossDesk,
   Chair,
@@ -249,7 +250,22 @@ function MeetingPartition() {
   );
 }
 
+/** 小镇社区中心：原工位/老板桌占地（碰撞不变）改为居民服务柜台与便民服务台。 */
+function ServiceCounter({ position, w, d, accent, label }: { position: [number, number, number]; w: number; d: number; accent: string; label: string }) {
+  return <group position={position}>
+    <mesh position={[0, 0.5, 0]} material={std('#2a3442', 0.6, 0.25)} castShadow receiveShadow><boxGeometry args={[w, 1.0, d]} /></mesh>
+    <mesh position={[0, 1.03, 0]} material={std('#c9b48f', 0.45, 0.1)}><boxGeometry args={[w + 0.06, 0.06, d + 0.06]} /></mesh>
+    <mesh position={[0, 0.55, d / 2 + 0.006]} material={glow(accent, 1.3)}><boxGeometry args={[w * 0.9, 0.05, 0.01]} /></mesh>
+    {/* 台面小物：登记牌/盆栽/传单架 */}
+    <mesh position={[-w * 0.3, 1.18, 0]} material={std('#e8f4ff', 0.5)}><boxGeometry args={[0.3, 0.22, 0.02]} /></mesh>
+    <mesh position={[w * 0.3, 1.14, 0]} material={std('#3f8f5a', 0.7)}><sphereGeometry args={[0.12, 10, 8]} /></mesh>
+    <mesh position={[0, 1.55, 0]}><planeGeometry args={[Math.min(1.5, w * 0.8), 0.32]} />
+      <meshBasicMaterial map={neonText([{ text: label, color: accent, size: 150 }])} transparent toneMapped={false} depthWrite={false} side={THREE.DoubleSide} /></mesh>
+  </group>;
+}
+
 export const Room = memo(function Room() {
+  const town = useGame(s => s.phase === 'game');
   return (
     <group>
       <StaticBatch worldStatic>
@@ -267,8 +283,14 @@ export const Room = memo(function Room() {
         </mesh>
         <FloorLamp position={[LOUNGE.x - 1.6, 0, LOUNGE.z - 0.3]} />
         <FloorLamp position={[BOSS_DESK.x + 1.9, 0, BOSS_DESK.z - 1.0]} />
-        <BossDesk position={[BOSS_DESK.x, 0, BOSS_DESK.z]} />
-        <Chair position={[BOSS_DESK.x, 0, BOSS_DESK.seatZ]} rotation={0} exec color="#3a2a2a" />
+        {town
+          ? <ServiceCounter position={[BOSS_DESK.x, 0, BOSS_DESK.z]} w={2.3} d={1.1} accent="#ffd166" label="便民服务台" />
+          : <>
+            <BossDesk position={[BOSS_DESK.x, 0, BOSS_DESK.z]} />
+            <Chair position={[BOSS_DESK.x, 0, BOSS_DESK.seatZ]} rotation={0} exec color="#3a2a2a" />
+          </>}
+        {town && DESK_SLOTS.map((d, i) => <ServiceCounter key={i} position={[d.x, 0, d.deskZ]} w={1.9} d={0.96}
+          accent={['#3ef0ff', '#ffb347', '#b18bff'][i]} label={['居民登记', '公告栏', '失物招领'][i]} />)}
         <CoffeeBar position={[FLOOR.maxX - 0.45, 0, -0.9]} rotation={-Math.PI / 2} />
         <VendingMachine position={[FLOOR.maxX - 0.5, 0, 0.9]} rotation={-Math.PI / 2} />
         <Printer position={[-0.6, 0, 4.9]} rotation={Math.PI} />
@@ -284,7 +306,7 @@ export const Room = memo(function Room() {
       <ElevatorCore />
       <OfficeCat position={[LOUNGE.x + 0.55, 0.5, LOUNGE.z + 0.05]} />
       <RoboVac />
-      {DESK_SLOTS.map((d, i) => (
+      {!town && DESK_SLOTS.map((d, i) => (
         <group key={i}>
           <Desk position={[d.x, 0, d.deskZ]} slot={i} accent={['#3ef0ff', '#ffd166', '#ff4fb8'][i]} />
           <Chair position={[d.x, 0, d.seatZ]} color={['#3c4f7d', '#2f7c7a', '#7a3c5a'][i]} />

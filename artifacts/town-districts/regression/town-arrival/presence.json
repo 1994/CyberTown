@@ -1,0 +1,41 @@
+{
+  "demo": true,
+  "players": [
+    "li",
+    "wang"
+  ],
+  "arrival": {
+    "first": true,
+    "dismissed": true,
+    "reloadPersisted": true,
+    "mission": "offered"
+  },
+  "presence": {
+    "aState": "live",
+    "aNearby": 0,
+    "bState": "live",
+    "bNearby": 1,
+    "npcExcluded": true
+  },
+  "nearbyNames": {
+    "li": [
+      "老王"
+    ],
+    "wang": [
+      "小李"
+    ]
+  },
+  "movement": {
+    "from": {
+      "x": 2,
+      "z": 11
+    },
+    "to": {
+      "x": 0.08,
+      "z": 8.4
+    },
+    "bPackets": 1,
+    "sse": "/api/events?world=2"
+  },
+  "errors": []
+}

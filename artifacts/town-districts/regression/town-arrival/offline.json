@@ -1,0 +1,19 @@
+{
+  "demo": true,
+  "account": "li",
+  "offline": {
+    "state": "offline",
+    "text": "重连中",
+    "nearby": 0,
+    "arrival": true
+  },
+  "online": {
+    "state": "live",
+    "world": true,
+    "relogin": false,
+    "coins": 2000,
+    "mission": "offered"
+  },
+  "coinsBefore": 2000,
+  "coinsAfter": 2000
+}

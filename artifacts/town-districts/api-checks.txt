@@ -1,0 +1,9 @@
+?   	github.com/1994/boss-works-for-me/artifacts/performance-v3/qa	[no test files]
+ok  	github.com/1994/boss-works-for-me/backend	4.352s
+?   	github.com/1994/boss-works-for-me/cmd/boss	[no test files]
+ok  	github.com/1994/boss-works-for-me/cmd/boss-server	(cached)
+ok  	github.com/1994/boss-works-for-me/gameplay	2.422s
+?   	github.com/1994/boss-works-for-me/identity	[no test files]
+ok  	github.com/1994/boss-works-for-me/identity/mock	(cached)
+ok  	github.com/1994/boss-works-for-me/internal/playercli	2.754s
+ok  	github.com/1994/boss-works-for-me/server	(cached)

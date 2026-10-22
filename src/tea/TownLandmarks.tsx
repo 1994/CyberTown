@@ -8,6 +8,7 @@ import type { TeaMission } from '../../shared/teaTown.ts';
 import { glow, std } from '../scene/materials.ts';
 import { neonText } from '../scene/textures.ts';
 import { LocalPointLight } from '../scene/LocalLights.tsx';
+import { rt } from '../world/runtime.ts';
 
 /** 大地图上奶茶小镇的外观状态：由 TownGame 从 home 写入，场景只读。 */
 export const useTownLook = create<{ active: boolean; level: number; mission: TeaMission['status'] | null; target: 'shop' | 'recruit' | null }>(() => ({
@@ -122,12 +123,55 @@ function TownGate() {
     <mesh position={[-11, 3.55, 0]} material={std('#141b22', 0.4, 0.6)}><boxGeometry args={[0.16, 0.16, 9.6]} /></mesh>
     <mesh position={[-10.95, 3.95, 0]} rotation-y={Math.PI / 2} material={std('#0b1016', 0.5, 0.4)}><boxGeometry args={[3.6, 0.7, 0.08]} /></mesh>
     <Neon text="奶茶小镇" color="#ff7ab8" w={3.5} h={0.7} rotation-y={Math.PI / 2} position={[-10.89, 3.95, 0]} />
+    {/* 广场路牌：两臂分别指向商业街与娱乐街 */}
     <group position={[-8.4, 0, 9.4]} rotation-y={Math.PI / 4}>
-      <mesh position-y={1.1} material={std('#1a232b', 0.5, 0.5)}><boxGeometry args={[0.1, 2.2, 0.1]} /></mesh>
-      <mesh position={[0, 2.0, 0.06]} material={std('#ff7ab8', 0.5)}><boxGeometry args={[1.3, 0.34, 0.05]} /></mesh>
-      <Neon text="← 奶茶小镇" color="#fff3e6" w={1.25} h={0.3} size={140} position={[0, 2.0, 0.09]} />
+      <mesh position-y={1.3} material={std('#1a232b', 0.5, 0.5)}><boxGeometry args={[0.1, 2.6, 0.1]} /></mesh>
+      <mesh position={[0, 2.25, 0.06]} material={std('#ff9f43', 0.5)}><boxGeometry args={[1.6, 0.34, 0.05]} /></mesh>
+      <Neon text="← 商业街 · 奶茶店" color="#fff3e6" w={1.55} h={0.3} size={120} position={[0, 2.25, 0.09]} />
+      <mesh position={[0, 1.8, 0.06]} material={std('#8a6bff', 0.5)}><boxGeometry args={[1.6, 0.34, 0.05]} /></mesh>
+      <Neon text="娱乐街 →" color="#f2fbff" w={1.4} h={0.3} size={130} position={[0, 1.8, 0.09]} />
     </group>
   </group>;
+}
+
+/** 3D 地面路线：沿当前 rt.path 每隔约 1.1m 放一个箭头，手动行走取消/改道时同步消失或刷新。 */
+const ROUTE_MAX = 90;
+function TownRoute() {
+  const mesh = useMemo(() => {
+    const shape = new THREE.Shape();
+    shape.moveTo(0, 0.28); shape.lineTo(0.24, -0.08); shape.lineTo(0.1, -0.08); shape.lineTo(0, 0.08); shape.lineTo(-0.1, -0.08); shape.lineTo(-0.24, -0.08); shape.closePath();
+    const geo = new THREE.ShapeGeometry(shape);
+    geo.rotateX(-Math.PI / 2);
+    const m = new THREE.InstancedMesh(geo, glow('#3ef0ff', 2), ROUTE_MAX);
+    m.count = 0;
+    m.frustumCulled = false;
+    return m;
+  }, []);
+  const last = useRef({ at: 0, path: null as [number, number][] | null, len: -1 });
+  const o = useMemo(() => new THREE.Object3D(), []);
+  useFrame(({ clock }) => {
+    const now = clock.elapsedTime;
+    const path = rt.path;
+    if (now - last.current.at < 0.12 && path === last.current.path && (path?.length ?? 0) === last.current.len) return;
+    last.current = { at: now, path, len: path?.length ?? 0 };
+    if (!path || !path.length) { mesh.count = 0; return; }
+    let n = 0, px = rt.me.x, pz = rt.me.z, carry = 0.9;
+    for (const [x, z] of path) {
+      const seg = Math.hypot(x - px, z - pz);
+      const yaw = Math.atan2(x - px, z - pz);
+      let d = carry;
+      while (d < seg && n < ROUTE_MAX) {
+        o.position.set(px + ((x - px) * d) / seg, 0.035, pz + ((z - pz) * d) / seg);
+        o.rotation.set(0, yaw + Math.PI, 0);
+        o.updateMatrix(); mesh.setMatrixAt(n++, o.matrix);
+        d += 1.1;
+      }
+      carry = d - seg; px = x; pz = z;
+    }
+    mesh.count = n;
+    mesh.instanceMatrix.needsUpdate = true;
+  });
+  return <group name="town-route"><primitive object={mesh} /></group>;
 }
 
 export function TownLandmarks() {
@@ -138,5 +182,6 @@ export function TownLandmarks() {
     <Beacon x={SHOP.x} z={SHOP.z} color={LOOK[Math.max(0, Math.min(2, level - 1))].color} hot={target === 'shop' || mission === 'accepted'} />
     <RecruitStand hot={target === 'recruit'} />
     <TownGate />
+    <TownRoute />
   </group>;
 }

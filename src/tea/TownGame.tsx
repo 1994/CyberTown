@@ -1,10 +1,11 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Smartphone } from 'lucide-react';
 import { TEA_TOWN_SITES } from '../../shared/teaTown.ts';
+import { TOWN_DESTINATIONS, type DestinationId } from '../../shared/townPlan.ts';
+import { TownMap } from './TownMap.tsx';
 import { OfficeCanvas } from '../scene/Office.tsx';
 import { useGame } from '../store.ts';
 import { Joystick } from '../ui/Joystick.tsx';
-import { Minimap } from '../ui/Minimap.tsx';
 import { SoundMenu } from '../ui/SoundControl.tsx';
 import { useTouchUi } from '../ui/useTouchUi.ts';
 import { walkNear } from '../world/navigation.ts';
@@ -23,6 +24,12 @@ type Place = 'map' | 'recruit' | 'shop';
 type Site = 'shop' | 'recruit';
 const SITES = TEA_TOWN_SITES;
 const distTo = (s: Site) => Math.hypot(rt.me.x - SITES[s].x, rt.me.z - SITES[s].z);
+const DEST = TOWN_DESTINATIONS;
+const distDest = (d: DestinationId) => Math.hypot(rt.me.x - DEST[d].x, rt.me.z - DEST[d].z);
+// 交互点沿用各自范围；街区目的地走到 2.2m 内即算到达
+const reach = (d: DestinationId) => d === 'shop' || d === 'recruit' ? SITES[d].range : 2.2;
+const DEST_ORDER: DestinationId[] = ['shop', 'leisure', 'plaza', 'recruit'];
+const DEST_LABEL: Record<DestinationId, string> = { shop: '商业街 · 奶茶店', leisure: '娱乐街', plaza: '回广场', recruit: '广场招募' };
 
 export function TownGame() {
   const myId = useGame(s => s.snapshot!.me.id);
@@ -51,7 +58,10 @@ export function TownGame() {
   const closeArrival = () => { markArrival(myId); setArrival(false); };
   const [map, setMap] = useState(false);
   const [near, setNear] = useState<Site | null>(null);
-  const [travel, setTravel] = useState<Site | null>(null);
+  const [travel, setTravel] = useState<DestinationId | null>(null);
+  const [arrived, setArrived] = useState<DestinationId | null>(null);
+  // go() 创建的路线引用：地面点击/键盘/摇杆换掉或清空它 = 取消这次带路（逐点 shift 同一数组不算）
+  const travelPath = useRef<[number, number][] | null>(null);
   const [far, setFar] = useState(0);
   const [hint, setHint] = useState('');
 
@@ -65,7 +75,7 @@ export function TownGame() {
   useEffect(() => { setOutside(place !== 'shop'); }, [place, setOutside]);
 
   // 场景外观：等级、任务状态、当前导航目标
-  useEffect(() => { useTownLook.setState({ level: home?.shop.level ?? 1, mission, target: travel }); }, [home?.shop.level, mission, travel]);
+  useEffect(() => { useTownLook.setState({ level: home?.shop.level ?? 1, mission, target: travel === 'shop' || travel === 'recruit' ? travel : null }); }, [home?.shop.level, mission, travel]);
 
   // 5Hz：判断是否走到交互点、导航是否到达/被玩家自己的操作取消
   useEffect(() => {
@@ -73,16 +83,16 @@ export function TownGame() {
     const id = setInterval(() => {
       const n: Site | null = distTo('shop') <= SITES.shop.range ? 'shop' : distTo('recruit') <= SITES.recruit.range ? 'recruit' : null;
       setNear(n);
-      setTravel(t => {
-        if (!t) return t;
-        if (n === t) return null;
-        if (!rt.path) return null;
-        return t;
-      });
-      setFar(f => { const d = travel ? Math.round(distTo(travel)) : 0; return f === d ? f : d; });
+      if (travel) {
+        const d = distDest(travel);
+        // 只在真实可交互/到达范围内算到达；路线被换掉或清空即取消
+        if (d <= reach(travel)) { setArrived(travel); setTravel(null); travelPath.current = null; }
+        else if (rt.path !== travelPath.current) { setTravel(null); travelPath.current = null; }
+        else setFar(f => { const m = Math.round(d); return f === m ? f : m; });
+      } else if (arrived && distDest(arrived) > reach(arrived) + 1.5) setArrived(null);
     }, 200);
     return () => clearInterval(id);
-  }, [place, travel]);
+  }, [place, travel, arrived]);
 
   // 招募面板、店内时锁住地图移动（手机由 openPhone 自带 phone 锁）
   const away = place !== 'map';
@@ -125,15 +135,20 @@ export function TownGame() {
   });
 
   // 导航：只设置真实寻路，不瞬移、不自动开店
-  const go = (s: Site) => {
+  const go = (s: DestinationId) => {
     closePhone();
     setNotice(false);
+    setMap(false);
     useWorld.getState().setOverview(false);
-    if (distTo(s) <= SITES[s].range) { setTravel(null); setHint(`已在${SITES[s].name}，点下方按钮`); return; }
-    walkNear(SITES[s].x, SITES[s].z);
+    if (distDest(s) <= reach(s)) { rt.path = null; rt.npcNavigation = null; travelPath.current = null; setTravel(null); setArrived(s); setHint(s === 'shop' || s === 'recruit' ? `已在${DEST[s].name}，点下方按钮` : `已在${DEST[s].name}`); return; }
+    walkNear(DEST[s].x, DEST[s].z);
     if (!rt.path) { setHint('这里走不过去，换个位置再试'); return; }
+    travelPath.current = rt.path;
+    setArrived(null);
+    setFar(Math.round(distDest(s)));
     setTravel(s);
   };
+  useEffect(() => { if (!arrived) return; const t = setTimeout(() => setArrived(null), 3000); return () => clearTimeout(t); }, [arrived]);
 
   const exitShop = () => {
     // 回地图：活动营业先暂停，回来按“继续”恢复同一 session
@@ -152,10 +167,6 @@ export function TownGame() {
   const offered = mission === 'offered';
   // 操作指引卡：服务端世界里有自己即可显示（短暂断线也能重开）；手机/小地图打开时让位
   const guided = worldReady && !!home && arrival && place === 'map' && !phone && !map;
-  const marks = [
-    { x: SITES.shop.x, z: SITES.shop.z, color: '#ff7ab8', icon: '🧋', hot: travel === 'shop' || mission === 'accepted' },
-    { x: SITES.recruit.x, z: SITES.recruit.z, color: '#3ef0ff', icon: '🙋', hot: travel === 'recruit' },
-  ];
 
   return <div className="town" data-testid="town-world">
     <OfficeCanvas myId={myId} covered={!!phone || place === 'recruit'} />
@@ -176,29 +187,35 @@ export function TownGame() {
         </div>
       </header>
 
-      {map && home && <div className="town-map">
-        <Minimap marks={marks} onNavigate={() => setTravel(null)} />
-        <div className="town-row">
-          <button className="tea-btn" onClick={() => { setMap(false); go('recruit'); }}>去广场</button>
-          <button className="tea-btn primary" onClick={() => { setMap(false); go('shop'); }}>去奶茶店</button>
+      {map && home && <div className="town-map" role="dialog" aria-label="小镇地图">
+        <header><b>小镇地图</b><span>点地图或选目的地</span>
+          <button className="town-x" onClick={() => setMap(false)} aria-label="收起地图" data-testid="town-map-close">×</button></header>
+        <TownMap target={travel} onWalk={() => { setTravel(null); setArrived(null); }} />
+        <div className="town-dests">
+          {DEST_ORDER.map(d => <button key={d} className={`tea-btn ${d === 'shop' ? 'primary' : ''} dest-${d}`} onClick={() => go(d)}
+            data-testid={`town-map-destination-${d}`}>{DEST_LABEL[d]}</button>)}
         </div>
       </div>}
 
-      <TownPresence myId={myId} ready={worldReady} collapsed={guided} />
+      {/* 地图打开时让位：位置条与通知不盖住地图 */}
+      {!map && <TownPresence myId={myId} ready={worldReady} collapsed={guided} />}
 
       {guided &&
         <TownArrival myId={myId} touch={touch} onClose={closeArrival} onPhone={() => { closeArrival(); setNotice(false); openPhone('mission'); }} />}
 
-      {ready && !arrival && home && notice && offered && !phone && place === 'map' && <div className="town-notice" role="status">
+      {ready && !arrival && !map && home && notice && offered && !phone && place === 'map' && <div className="town-notice" role="status">
         <button className="town-notice-main" onClick={() => { setNotice(false); openPhone('mission'); }}>
           <b>📱 手机</b><span>有新任务，打开看看</span>
         </button>
         <button className="town-x" onClick={() => setNotice(false)} aria-label="稍后再说">×</button>
       </div>}
 
-      {travel && <div className="town-travel" role="status">
-        <span>前往 <b>{SITES[travel].name}</b> · {far}m</span>
-        <button onClick={() => { rt.path = null; setTravel(null); }} aria-label="取消带路">×</button>
+      {(travel || arrived) && <div className={`town-travel ${travel ? '' : 'done'}`} role="status" data-testid="town-navigation"
+        data-target={travel ?? arrived ?? undefined} data-status={travel ? 'walking' : 'arrived'}>
+        {travel
+          ? <><span>前往 <b>{DEST[travel].name}</b> · {far}m</span>
+            <button onClick={() => { rt.path = null; travelPath.current = null; setTravel(null); }} aria-label="取消带路">×</button></>
+          : <span>已到达 <b>{DEST[arrived!].name}</b></span>}
       </div>}
 
       {live && <button className="town-resume" onClick={() => go('shop')}>营业已暂停 · 回店继续</button>}

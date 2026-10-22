@@ -230,3 +230,36 @@
   .town-arrival::before { display: none; }
 }
 @media (prefers-reduced-motion: reduce) { .town-phone-btn[data-guided="true"] { animation: none; } }
+
+/* ───── 小镇地图：大区/街道/地标/路线 + 目的地 ───── */
+.town-map { width: min(440px, calc(100vw - 28px)); max-height: calc(100dvh - var(--st) - 72px); overflow-y: auto; gap: 8px; }
+.town-map > header { display: flex; align-items: baseline; gap: 8px; }
+.town-map > header b { font-size: 14px; }
+.town-map > header span { color: var(--tea-dim); font-size: 11px; }
+.town-map > header .town-x { margin-left: auto; min-width: 36px; min-height: 36px; }
+.town-mapsvg { display: block; width: 100%; aspect-ratio: 90 / 66; max-height: calc(100dvh - var(--st) - 210px); border: 1px solid rgba(255, 255, 255, 0.12); cursor: crosshair; }
+.town-mapsvg text { pointer-events: none; font-family: system-ui, 'PingFang SC', sans-serif; }
+.town-map-district { font-size: 3.4px; font-weight: 800; letter-spacing: 0.4px; opacity: 0.9; }
+.town-map-street { font-size: 1.9px; fill: #e8f4ff; opacity: 0.85; font-weight: 600; }
+.town-map-landmark circle { fill: #e8f4ff; }
+.town-map-landmark text { font-size: 1.8px; fill: #e8f4ff; }
+.town-map-landmark.closed circle { fill: #6f7d99; }
+.town-map-landmark.closed text { fill: #8d9bb8; font-style: italic; }
+.town-map-dest circle { fill: rgba(255, 212, 0, 0.18); stroke: #ffd400; stroke-width: 0.3; }
+.town-map-dest.on circle { fill: rgba(62, 240, 255, 0.3); stroke: #3ef0ff; stroke-width: 0.5; }
+.town-map-route { fill: none; stroke: #3ef0ff; stroke-width: 0.6; stroke-dasharray: 1.4 0.8; stroke-linecap: round; stroke-linejoin: round; }
+.town-dests { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+.town-dests .tea-btn { min-height: 44px; padding: 6px 4px; font-size: 13px; }
+.town-dests .dest-leisure { border-color: rgba(177, 139, 255, 0.6); color: #d6c6ff; }
+.town-travel.done { border-bottom-color: #7dffb0; padding-right: 14px; }
+.town-travel.done b { color: #7dffb0; }
+@media (max-width: 600px) {
+  .town-dests { grid-template-columns: repeat(2, 1fr); }
+  .town-map { right: 14px; }
+}
+@media (max-height: 500px) {
+  .town-map { top: calc(var(--st) + 54px); width: min(560px, calc(100vw - 28px)); display: grid; grid-template-columns: 1fr 150px; grid-template-rows: auto 1fr; }
+  .town-map > header { grid-column: 1 / -1; }
+  .town-mapsvg { max-height: calc(100dvh - var(--st) - 120px); width: auto; height: calc(100dvh - var(--st) - 120px); }
+  .town-dests { grid-template-columns: 1fr; align-content: start; }
+}

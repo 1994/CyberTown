@@ -483,6 +483,7 @@ function StringLights({ from, to }: { from: P3; to: P3 }) {
 }
 
 function CoffeeZone() {
+  const town = useGame(s => s.phase === 'game');
   return (
     <group>
       {/* 原咖啡亭位置由 TownLandmarks 的街角奶茶店接管（碰撞不变） */}
@@ -505,7 +506,7 @@ function CoffeeZone() {
       )}
       <Sign
         position={[-11.6, 0, 7.4]}
-        text="午后咖啡馆"
+        text={town ? "商业街 · 奶茶店" : "午后咖啡馆"}
         color="#e57bd1"
         rotation={0.3}
       />
@@ -581,6 +582,7 @@ function Booth({
 }
 
 function TalentStreet() {
+  const town = useGame(s => s.phase === 'game');
   const north = [-25, -21, -17, -13, -9.5];
   const bossAway = useGame(
     (s) => !!s.snapshot?.colleagues.find((c) => c.id === 'c-zhang')?.ownerId,
@@ -620,7 +622,7 @@ function TalentStreet() {
           <planeGeometry args={[4, 1]} />
           <meshBasicMaterial
             map={neonText([
-              { text: '人才街 · 自愿挂牌', color: '#7dffa8', size: 120 },
+              { text: town ? '集市巷' : '人才街 · 自愿挂牌', color: '#7dffa8', size: 120 },
             ])}
             transparent
             toneMapped={false}
@@ -707,7 +709,22 @@ function PodDesk({
   );
 }
 
+/** 小镇模式：原工位 footprint（1.9×0.96）改为两台街机，碰撞不变；玩法未开放。 */
+function ArcadePair({ position, hue }: { position: P3; hue: number }) {
+  const screen = new THREE.Color().setHSL(hue / 360, 0.85, 0.55).multiplyScalar(1.6);
+  const body = std(['#2b2350', '#1f3350', '#3a2240', '#22383f'][Math.floor(hue / 90) % 4], 0.5, 0.3);
+  return <group position={position}>
+    {[-0.47, 0.47].map(x => <group key={x} position={[x, 0, 0]}>
+      <mesh position={[0, 0.85, 0]} material={body} castShadow><boxGeometry args={[0.86, 1.7, 0.9]} /></mesh>
+      <mesh position={[0, 1.15, 0.452]}><planeGeometry args={[0.62, 0.46]} /><meshBasicMaterial color={screen} toneMapped={false} /></mesh>
+      <mesh position={[0, 1.6, 0.46]} material={glow(x < 0 ? '#3ef0ff' : '#ff6fd8', 1.6)}><boxGeometry args={[0.7, 0.12, 0.02]} /></mesh>
+      <mesh position={[0, 0.82, 0.5]} rotation-x={-0.5} material={std('#111620', 0.4, 0.4)}><boxGeometry args={[0.7, 0.05, 0.28]} /></mesh>
+    </group>)}
+  </group>;
+}
+
 function ProjectZone() {
+  const town = useGame(s => s.phase === 'game');
   const owners = useGame(useShallow(s => POD_ORDER.flatMap(id => {
     const p = s.snapshot?.players.find(player => player.id === id);
     return [p?.name ?? id, p?.color ?? '#5ee1ff'];
@@ -719,7 +736,7 @@ function ProjectZone() {
         const color = owners[i * 2 + 1];
         return (
           <group key={i}>
-            {POD_DESK_DX.map((dx, k) => (
+            {POD_DESK_DX.map((dx, k) => town ? <ArcadePair key={k} position={[p.x + dx, 0, p.z]} hue={([200, 160, 280, 30][i] + k * 40) % 360} /> : (
               <PodDesk
                 key={k}
                 position={[p.x + dx, 0, p.z]}
@@ -734,7 +751,7 @@ function ProjectZone() {
               <planeGeometry args={[1.6, 0.4]} />
               <meshBasicMaterial
                 map={signTexture(
-                  `${name}的工位组`,
+                  town ? '街机厅 · 筹备中' : `${name}的工位组`,
                   color,
                 )}
                 toneMapped={false}
@@ -764,7 +781,7 @@ function ProjectZone() {
           <planeGeometry args={[3.2, 0.8]} />
           <meshBasicMaterial
             map={neonText([
-              { text: '老板来接招', color: '#f4bd67', size: 130 },
+              { text: town ? '街机厅 · 筹备中' : '老板来接招', color: '#f4bd67', size: 130 },
             ])}
             transparent
             toneMapped={false}
@@ -799,7 +816,7 @@ function ProjectZone() {
       </group>
       <Sign
         position={[11.4, 0, 7.6]}
-        text="小游戏俱乐部"
+        text={town ? "街机厅" : "小游戏俱乐部"}
         color="#dc9bfc"
         rotation={-0.3}
       />
@@ -914,6 +931,7 @@ function Garden() {
 }
 
 function Stage() {
+  const town = useGame(s => s.phase === 'game');
   return (
     <group position={[22, 0, 16.5]}>
       <RoundedBox
@@ -927,11 +945,13 @@ function Stage() {
       <mesh position={[0, 0.52, 1.51]} material={glow(PALETTE.neonPink, 1.6)}>
         <boxGeometry args={[7, 0.04, 0.02]} />
       </mesh>
-      <mesh position={[0, 2.6, -1.4]}>
-        <planeGeometry args={[6, 1.5]} />
+      {/* 小镇模式：小型有底板的筹备牌放到舞台背侧，不悬在主街镜头前 */}
+      {town && <mesh position={[0, 1.55, 1.45]} material={std('#0b1016', 0.5, 0.4)}><boxGeometry args={[3.3, 0.7, 0.08]} /></mesh>}
+      <mesh position={town ? [0, 1.55, 1.5] : [0, 2.6, -1.4]}>
+        <planeGeometry args={town ? [3.1, 0.62] : [6, 1.5]} />
         <meshBasicMaterial
           map={neonText([
-            { text: '年终派对 · 今天你最大', color: '#ffd166', size: 110 },
+            { text: town ? '街角舞台 · 筹备中' : '年终派对 · 今天你最大', color: '#ffd166', size: 110 },
           ])}
           transparent
           toneMapped={false}

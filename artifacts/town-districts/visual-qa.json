@@ -1,0 +1,9 @@
+{
+  "normalGraphics": true,
+  "desktop": true,
+  "touchPortrait": true,
+  "touchLandscape": true,
+  "noNavigationCharge": true,
+  "missionNotAutoAccepted": true,
+  "errors": []
+}

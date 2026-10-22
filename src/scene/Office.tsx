@@ -28,6 +28,7 @@ import { rt, useWorld } from '../world/runtime.ts';
 import type { Near } from '../world/runtime.ts';
 import { useGame } from '../store.ts';
 import { TownLandmarks } from '../tea/TownLandmarks.tsx';
+import { TownDistricts, useTownMode } from './TownDistricts.tsx';
 
 const params = new URLSearchParams(location.search);
 /** ?lowfx=1：关闭后期与阴影（低端设备/无 GPU 的录制环境） */
@@ -172,6 +173,7 @@ export function OfficeCanvas({ myId, covered: townCovered = false }: { myId: str
   const projectOpen = useWorld(s => s.projectOpen);
   const covered = coveredUi || projectOpen || townCovered;
   const introPlaying = useGame(s => s.introPlaying);
+  const town = useTownMode();
   const playing = !!myId;
   const onGround = useCallback((e: ThreeEvent<MouseEvent>) => {
     if (!playing || e.delta > 6) return;
@@ -216,12 +218,14 @@ export function OfficeCanvas({ myId, covered: townCovered = false }: { myId: str
             scale={[12, 4, 1]}
           />
         </Environment>
-        <City />
+        {/* 小镇模式：远处天际线压低，近景让给低层街屋 */}
+        <group scale-y={town ? 0.55 : 1}><City /></group>
         <Campus onGround={onGround} />
         <UrbanDetails />
         {playing && !LOW_FX && <NightRain />}
         <Room />
         <TownLandmarks />
+        <TownDistricts />
         <Colleagues />
         {myId && <MePlayer key={myId} myId={myId} />}
         {myId && <RemotePlayers myId={myId} />}

@@ -1,0 +1,15 @@
+{
+  "preview": "http://127.0.0.1:8897",
+  "validatedAssets": [
+    {
+      "path": "/assets/index-1TgqvN8i.js",
+      "sha256": "b0deda2cc746716d589b1b44dba1a50af6bf276956c9afa0454581a98b0b83c8"
+    },
+    {
+      "path": "/assets/index-C46Fxohl.css",
+      "sha256": "5691c88886edbe1a082c036d727d717b37088a7b13efd4f4d137fd314af7f3c2"
+    }
+  ],
+  "backendRestarted": false,
+  "sourceFilesUnchangedAfterBuild": 109
+}
