@@ -92,7 +92,7 @@ export function TownGame() {
   const conn = useGame(s => s.conn);
   const ready = worldReady && conn === 'live';
   // 明确点击进入时在片头后显示简短指引；刷新沿用 seen，不反复打断。右上「?」可重开。
-  const [arrival, setArrival] = useState(() => (useGame.getState().introPlaying || !arrivalSeen(myId)) && place === 'map');
+  const [arrival, setArrival] = useState(() => useGame.getState().introPlaying || !arrivalSeen(myId));
   const closeArrival = () => { markArrival(myId); setArrival(false); };
   const [map, setMap] = useState(false);
   const [near, setNear] = useState<Site | null>(null);
@@ -107,8 +107,7 @@ export function TownGame() {
   const [hint, setHint] = useState('');
 
   const mission = home?.mission.status ?? null;
-  // 打开手机即视为看过；在店内只是不显示，不记 seen
-  useEffect(() => { if (arrival && phoneOpen) closeArrival(); });
+  // 手机或室内暂时遮住指引，不代表已读；只有指引中的明确操作才记已读。
   const hires = c.team.filter(w => w.id !== home?.self.id).length;
   const live = c.view === 'play' && c.session?.status === 'active';
 
@@ -276,7 +275,7 @@ export function TownGame() {
         <div className="town-tools">
           <SoundMenu className="tea-sound" />
           <button className={`town-chip ${map ? 'on' : ''}`} onClick={() => setMap(v => !v)} aria-expanded={map} aria-label="小地图">地图</button>
-          <button className="town-chip town-help" onClick={() => { setMap(false); setArrival(true); }} aria-label="操作指引" data-testid="town-guide-help">?</button>
+          <button className="town-chip town-help" onClick={() => { closePhone(); setMap(false); setArrival(true); }} aria-label="操作指引" data-testid="town-guide-help">?</button>
           <button className="town-chip town-phone-btn" onClick={() => openPhone('home')} aria-label="手机" aria-expanded={phoneOpen} disabled={!home}
             data-testid="town-phone-trigger" data-guided={guided ? 'true' : undefined} aria-describedby={guided ? 'town-guide-phone' : undefined}>
             <Smartphone size={16} aria-hidden /><span>手机</span>{!touch && <kbd>P</kbd>}{offered && <i className="town-dot" />}

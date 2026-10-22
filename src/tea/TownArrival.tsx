@@ -69,10 +69,13 @@ export function TownPresence({ myId, ready, collapsed = false }: { myId: string;
   </div>;
 }
 
-// v2：新版操作指引，旧版一次性记录不再沿用
+// 首次进入的自动提示按当前浏览器会话记录；长期已读记录仍保留，供教程进度使用。
 const arrivalKey = (id: string) => `${sessionKey()}.town-arrival:v2:${id}`;
-export function arrivalSeen(id: string) { try { return localStorage.getItem(arrivalKey(id)) === '1'; } catch { return false; } }
-export function markArrival(id: string) { try { localStorage.setItem(arrivalKey(id), '1'); } catch { /* 仅为便利 */ } }
+export function arrivalSeen(id: string) { try { return sessionStorage.getItem(arrivalKey(id)) === '1'; } catch { return false; } }
+export function markArrival(id: string) {
+  try { sessionStorage.setItem(arrivalKey(id), '1'); } catch { /* 存储不可用时仍可关闭 */ }
+  try { localStorage.setItem(arrivalKey(id), '1'); } catch { /* 保留长期教程已读记录 */ }
+}
 
 /** 入镇操作指引：所在区域 + 本人 + 怎么走 + 手机在哪。可关闭，右上「指引」随时重开。 */
 export function TownArrival({ myId, touch, missionStatus, onPhone, onGoShop, onClose }: { myId: string; touch: boolean; missionStatus: TeaMission['status']; onPhone: () => void; onGoShop: () => void; onClose: () => void }) {
