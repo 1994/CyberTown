@@ -1,0 +1,12 @@
+{
+  "checks": [
+    "typecheck passed",
+    "production build passed",
+    "390x640 and 320x568 iframe viewport screenshots reviewed",
+    "guide no longer obscures player or yellow identity marker",
+    "320px toolbar labels remain on one line",
+    "guide dismissal and joystick interaction checked"
+  ],
+  "save": "QA used isolated spawn-qa.db; live save unchanged",
+  "preview": "8897 serves final build"
+}

@@ -129,7 +129,7 @@ function Bubble({
     >
       {said && <div className="bubble">{said}</div>}
       {emote && <div className="emote-pop">{EMOTE_ICON[emote] ?? ''}</div>}
-      {!you && <div className="pname">{name}</div>}
+      {you ? <div className="self-location" data-testid="world-self-marker" aria-label={`${name}，你的位置`}>◆ 你<span aria-hidden>▾</span></div> : <div className="pname">{name}</div>}
     </div>
   );
 }

@@ -78,19 +78,19 @@ export function TownArrival({ myId, touch, onPhone, onClose }: { myId: string; t
   const me = useGame(s => s.snapshot?.players.find(p => p.id === myId));
   // 跟随真实坐标：新玩家在小镇广场，老位置（如奶茶店门口）照实显示
   const zone = useDistrict().name;
-  return <section className="town-arrival" data-testid="town-arrival" role="dialog" aria-label={`到达${zone}`}>
+  return <section className={`town-arrival${touch ? " compact-arrival" : ""}`} data-testid="town-arrival" role="dialog" aria-label={`到达${zone}`}>
     <button className="town-x" onClick={onClose} aria-label="关闭引导，自由逛逛" data-testid="town-arrival-dismiss">×</button>
     <div className="town-arrival-me">
-      <Face p={me} size={44} />
+      <Face p={me} size={touch ? 28 : 44} />
       <div><small>已到达</small><b>{zone}</b></div>
     </div>
-    <ul className="town-guide">
+    {touch ? <p className="town-arrival-short" id="town-guide-phone">黄色「你」是自己 · 拖动左下摇杆走路</p> : <ul className="town-guide">
       <li><b>移动</b><span>{touch ? '左下摇杆，或点地面' : '点地面，或 WASD'}</span></li>
       <li><b>开始</b><span>手机接任务 → 去奶茶店；雇员工可选</span></li>
       <li id="town-guide-phone"><b>手机</b><span>右上角「手机」看任务和钱包{!touch && <>，或按 <kbd>P</kbd></>}</span></li>
-    </ul>
+    </ul>}
     <div className="town-row">
-      <button className="tea-btn primary" onClick={onPhone}>查看手机消息</button>
+      <button className="tea-btn primary" onClick={onPhone}>{touch ? "手机接任务" : "查看手机消息"}</button>
       <button className="tea-btn ghost" onClick={onClose}>先逛逛</button>
     </div>
   </section>;
