@@ -309,3 +309,11 @@
 .counter-camera button[aria-pressed="true"]{background:#66ead5;color:#102334}.counter-camera button:focus-visible{outline:2px solid #ffe27b;outline-offset:-2px}
 .counter-camera kbd{padding:0 7px;color:#b6cfdb;font-size:11px}
 @media(max-width:650px){.counter-camera{left:6px;top:6px}.counter-camera button{min-width:44px;padding:4px 7px}}
+
+.counter-onshift{display:flex;gap:8px;min-width:0;flex-wrap:wrap}
+.counter-onshift>div{display:flex;align-items:center;gap:8px;flex:1;min-width:0;padding:7px 9px;border:1px solid #4d858d;background:#142f3b;border-left:3px solid #6de8da}
+.counter-onshift span{display:grid;gap:3px;min-width:0}
+.counter-onshift b{color:#e6fffb;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.counter-onshift small{font-size:11px;color:#a6d6d8}
+.counter-onshift .hall-face{flex-shrink:0;object-fit:cover}
+@media(max-width:640px){.counter-onshift>div{padding:5px 7px;gap:6px}.counter-onshift small{font-size:10px}.counter-onshift b{font-size:12px}}

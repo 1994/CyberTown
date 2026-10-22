@@ -242,8 +242,8 @@ function PickStation({ ready }: { ready: number }) {
 
 // ───────── 人物 ─────────
 /** 平滑走向目标；移动时摆腿，坐下时屈腿；carry=手上拿杯 */
-function Actor({ look, target, sit = false, act = false, carry = false, fade = false, dots, patience = null, pop, mood, spawn, frozen = false, staff = false, identity = 'guest' }: {
-  look: ReturnType<typeof lookOf>; target: Spot; sit?: boolean; act?: boolean; carry?: boolean;
+function Actor({ look, target, sit = false, act = false, carry = false, fade = false, dots, patience = null, pop, mood, spawn, frozen = false, staff = false, identity = 'guest', nameplate }: {
+  nameplate?: string; look: ReturnType<typeof lookOf>; target: Spot; sit?: boolean; act?: boolean; carry?: boolean;
   fade?: boolean; dots?: { done: number; total: number } | null; patience?: number | null; pop?: string; mood?: ReturnType<typeof customerMood>;
   /** 首次出现的位置（顾客从门口进来）；frozen=暂停时原地定格 */ spawn?: P3; frozen?: boolean; staff?: boolean; identity?: 'self' | 'staff' | 'guest';
 }) {
@@ -299,7 +299,7 @@ function Actor({ look, target, sit = false, act = false, carry = false, fade = f
     <mesh rotation-x={-Math.PI/2} position-y={.025} material={glow(identity==='self'?'#ffd400':identity==='staff'?'#3ef0ff':'#8794a8',identity==='guest'?.35:1.3)}>
       <ringGeometry args={identity==='self'?[.43,.52,4]:identity==='staff'?[.37,.43,24]:[.3,.32,20]}/>
     </mesh>
-    {identity!=='guest'&&!fade&&<Label3D text={identity==='self'?'◆ 你':identity==='staff'?'员工':'NPC'} tone={identity==='self'?'self':identity==='staff'?'on':'off'} position={[0,1.98,0]} height={.38} minPixels={17}/>}
+    {identity!=='guest'&&!fade&&<Label3D text={identity==='self'?'◆ 你':identity==='staff'?(nameplate??'员工'):'NPC'} tone={identity==='self'?'self':identity==='staff'?'on':'off'} position={[0,1.98,0]} height={.38} minPixels={17}/>}
 
     {mood&&<Label3D text={mood.icon} tone={mood.tone} position={[0,2.02,0]} height={.42} minPixels={23}/>}
     {carry && <group position={[0, 0.95, 0.42]}><mesh material={std('#2a313d', 0.4, 0.4)}><boxGeometry args={[0.46, 0.03, 0.32]} /></mesh><Cup position={[0, 0.02, 0]} scale={1.35} /></group>}
@@ -370,7 +370,7 @@ function Staff({ team, roles, frame, selfId, selfAvatar, frozen }: { team: TeaWo
       else spot = SUPPORT_SPOT;
       const working = !!frame && (role === 'maker' || role === 'cashier') && (ws ? ws.progress > 0 || ws.customerId != null : true);
       const st = isSelf && frame ? frame.selfTask : null;
-      return <Actor key={w.id} look={isSelf?lookOf(w.id,w.name,w.color,selfAvatar):{...lookOf(w.id,w.name,'#38a7b5'),hairStyle:'cap',accessory:'none'}} identity={isSelf?'self':'staff'} target={spot}
+      return <Actor key={w.id} look={isSelf?lookOf(w.id,w.name,w.color,selfAvatar):{...lookOf(w.id,w.name,w.color,w.avatarUrl),hairStyle:'cap',accessory:'none'}} identity={isSelf?'self':'staff'} nameplate={`${w.name} · ${role==='maker'?'制作':role==='cashier'?'端送':'补位'}`} target={spot}
         staff act={working && !delivering && !frozen} carry={delivering} frozen={frozen}
         dots={st && st.role !== 'idle' ? { done: st.done, total: Math.min(3, st.done + st.remaining) } : null} />;
     })}

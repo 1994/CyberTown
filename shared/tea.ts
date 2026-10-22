@@ -11,6 +11,9 @@ export type TeaSkill =
   | 'steady_hand';
 
 export interface TeaWorker {
+  /** Optional display metadata; older storage adapters may omit it. */
+  avatarUrl?: string;
+  level?: number;
   id: string;
   playerId: string;
   name: string;
