@@ -1,3 +1,6 @@
+import { useRide } from '../tea/rideState';
+import { liveVehicles } from './traffic.ts';
+import { touchesVehicle } from '../../shared/trafficCollision.ts';
 import type { ColleagueView } from '../../shared/types.ts';
 import { npcWalkAt } from '../../shared/npcWalk.ts';
 import { BOOTHS, findPath, podSeat } from '../../shared/world.ts';
@@ -15,7 +18,7 @@ export function walkNear(x: number, z: number, keep = 0) {
     x -= ((x - me.x) / d) * keep;
     z -= ((z - me.z) / d) * keep;
   }
-  const path = findPath(me.x, me.z, x, z);
+  const path = findPath(me.x, me.z, x, z, { radius: useRide.getState().riding ? 1.3 : undefined });
   rt.path = path?.length ? path : null;
 }
 
@@ -74,4 +77,22 @@ export function updateNpcNavigation(now: number) {
   }
   walkNear(p.x, p.z, 1.5);
   if (rt.path) rt.npcNavigation = { id: target.id, path: rt.path, nextAt: now + 1000 };
+}
+
+/** Keep the array identity: town navigation and NPC tracking use it to detect
+ * manual cancellation. A temporary obstruction must not cancel the trip. */
+export function recoverNavigation() {
+  const path = rt.path;
+  const end = path?.at(-1);
+  if (!path || !end) return;
+  const vehicles = [...liveVehicles.values()].map(p => ({ ...p }));
+  const next = findPath(rt.me.x, rt.me.z, end[0], end[1], {
+    radius: useRide.getState().riding ? 1.3 : undefined,
+    blocked: (x, z, radius) => vehicles.some(p => touchesVehicle(x, z, radius + .15, p)),
+  });
+  // If a vehicle temporarily occupies the destination, wait and retry rather
+  // than declaring arrival at an unrelated nearby cell.
+  const last = next?.at(-1);
+  if (next && last && Math.hypot(last[0] - end[0], last[1] - end[1]) < .15)
+    path.splice(0, path.length, ...next);
 }

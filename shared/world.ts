@@ -384,13 +384,13 @@ const toWorld = (i: number, j: number): [number, number] => [
 const free = (i: number, j: number) =>
   i >= 0 && j >= 0 && i < GW && j < GH && grid![j * GW + i] === 0;
 
-function nearestFree(i: number, j: number): [number, number] | null {
-  if (free(i, j)) return [i, j];
+function nearestFree(i: number, j: number, freeCell = free): [number, number] | null {
+  if (freeCell(i, j)) return [i, j];
   for (let r = 1; r < 12; r++) {
     for (let dj = -r; dj <= r; dj++) {
       for (let di = -r; di <= r; di++) {
         if (Math.max(Math.abs(di), Math.abs(dj)) !== r) continue;
-        if (free(i + di, j + dj)) return [i + di, j + dj];
+        if (freeCell(i + di, j + dj)) return [i + di, j + dj];
       }
     }
   }
@@ -399,7 +399,7 @@ function nearestFree(i: number, j: number): [number, number] | null {
 
 /** 视线检测：0.05m 步长 + 0.08m 安全余量，保证拉直后的路线不会擦进圆形/方形碰撞体 */
 const LOS_MARGIN = 0.08;
-function lineClear(ax: number, az: number, bx: number, bz: number): boolean {
+function lineClear(ax: number, az: number, bx: number, bz: number, radius = PLAYER_RADIUS, extra?: (x: number, z: number, radius: number) => boolean): boolean {
   const d = Math.hypot(bx - ax, bz - az);
   const steps = Math.max(1, Math.ceil(d / 0.05));
   for (let s = 1; s <= steps; s++) {
@@ -408,12 +408,18 @@ function lineClear(ax: number, az: number, bx: number, bz: number): boolean {
       blockedAt(
         ax + (bx - ax) * t,
         az + (bz - az) * t,
-        PLAYER_RADIUS + LOS_MARGIN,
-      )
+        radius + LOS_MARGIN,
+      ) || extra?.(ax + (bx - ax) * t, az + (bz - az) * t, radius + LOS_MARGIN)
     )
       return false;
   }
   return true;
+}
+
+export interface PathOptions {
+  radius?: number;
+  /** Snapshot of temporary obstacles; queried lazily only for visited cells. */
+  blocked?: (x: number, z: number, radius: number) => boolean;
 }
 
 /** A* 寻路（8 方向，网格 0.5m），返回已拉直的折线（不含起点）。找不到返回 null。 */
@@ -422,15 +428,30 @@ export function findPath(
   sz: number,
   tx: number,
   tz: number,
+  options: PathOptions = {},
 ): [number, number][] | null {
   if (!grid) buildGrid();
+  const radius = Math.max(PLAYER_RADIUS, options.radius ?? PLAYER_RADIUS);
+  const clear = (ax: number, az: number, bx: number, bz: number) => lineClear(ax, az, bx, bz, radius, options.blocked);
+  const memo = new Map<number, boolean>();
+  const freeCell = (i: number, j: number): boolean => {
+    if (!free(i, j)) return false;
+    if (radius === PLAYER_RADIUS && !options.blocked) return true;
+    const key = j * GW + i;
+    const cached = memo.get(key);
+    if (cached !== undefined) return cached;
+    const [x, z] = toWorld(i, j);
+    const ok = !blockedAt(x, z, radius + .12) && !options.blocked?.(x, z, radius + .12);
+    memo.set(key, ok);
+    return ok;
+  };
   if (
-    !blockedAt(tx, tz, PLAYER_RADIUS + LOS_MARGIN) &&
-    lineClear(sx, sz, tx, tz)
+    !blockedAt(tx, tz, radius + LOS_MARGIN) &&
+    clear(sx, sz, tx, tz)
   )
     return [[tx, tz]];
-  const s = nearestFree(...toCell(sx, sz));
-  const t = nearestFree(...toCell(tx, tz));
+  const s = nearestFree(...toCell(sx, sz), freeCell);
+  const t = nearestFree(...toCell(tx, tz), freeCell);
   if (!s || !t) return null;
   const N = GW * GH;
   const g = new Float32Array(N).fill(Infinity);
@@ -502,8 +523,8 @@ export function findPath(
     for (const [di, dj, cost] of dirs) {
       const ni = ci + di;
       const nj = cj + dj;
-      if (!free(ni, nj)) continue;
-      if (di && dj && (!free(ci + di, cj) || !free(ci, cj + dj))) continue; // 不切角
+      if (!freeCell(ni, nj)) continue;
+      if (di && dj && (!freeCell(ci + di, cj) || !freeCell(ci, cj + dj))) continue; // 不切角
       const n = nj * GW + ni;
       const ng = g[cur] + cost;
       if (ng < g[n]) {
@@ -522,8 +543,8 @@ export function findPath(
   // 终点用真实目标（若可站立）
   const [lx, lz] = cells[cells.length - 1];
   if (
-    !blockedAt(tx, tz, PLAYER_RADIUS + LOS_MARGIN) &&
-    lineClear(lx, lz, tx, tz)
+    !blockedAt(tx, tz, radius + LOS_MARGIN) &&
+    clear(lx, lz, tx, tz)
   )
     cells.push([tx, tz]);
   // 拉直：从当前点出发，尽量直连更远的点
@@ -534,7 +555,7 @@ export function findPath(
   while (k < cells.length) {
     let far = k;
     for (let m = cells.length - 1; m > k; m--) {
-      if (lineClear(ax, az, cells[m][0], cells[m][1])) {
+      if (clear(ax, az, cells[m][0], cells[m][1])) {
         far = m;
         break;
       }

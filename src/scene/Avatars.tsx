@@ -1,3 +1,4 @@
+import { NavigationRecovery } from '../../shared/navigationRecovery.ts';
 import { riderBlocked, vehicleBlocked } from '../world/traffic.ts';
 import { useRide } from '../tea/rideState';
 import { Bicycle } from './Bicycle';
@@ -29,7 +30,7 @@ import { selectCrowd } from '../../shared/proximity.ts';
 import { Crowd } from './Crowd.tsx';
 import { renderCounters } from '../performance.ts';
 import { useTouchUi } from '../ui/useTouchUi.ts';
-import { updateNpcNavigation } from '../world/navigation.ts';
+import { updateNpcNavigation, recoverNavigation } from '../world/navigation.ts';
 export { walkNear } from '../world/navigation.ts';
 
 const PLAYER_SCALE = 1.25;
@@ -179,6 +180,7 @@ export function MePlayer({ myId }: { myId: string }) {
   const rig = useRef<Rig>(null);
   const phase = useRef(0);
   const marker = useRef<THREE.Mesh>(null);
+  const recovery = useRef(new NavigationRecovery());
   useEffect(() => {
     const on = (e: Event) => {
       const id = (e as CustomEvent<{ id: string }>).detail?.id;
@@ -221,7 +223,7 @@ export function MePlayer({ myId }: { myId: string }) {
       const dx = tx - me.x;
       const dz = tz - me.z;
       const d = Math.hypot(dx, dz);
-      if (d < 0.12) {
+      if (d < 0.005) {
         rt.path.shift();
         if (!rt.path.length) rt.path = null;
       } else {
@@ -238,7 +240,8 @@ export function MePlayer({ myId }: { myId: string }) {
         rt.correction = null;
       vx = vz = 0;
     }
-    const moving = Math.hypot(vx, vz) > 0.05;
+    const beforeX = me.x, beforeZ = me.z;
+    let moving = Math.hypot(vx, vz) > 0.05;
     if (moving) {
       const [nx, nz] = moveWithCollision(me.x, me.z, vx * dt, vz * dt);
       const yaw = turnTowards(me.yaw, Math.atan2(vx, vz), dt, 12);
@@ -247,7 +250,9 @@ export function MePlayer({ myId }: { myId: string }) {
       else { vx = vz = 0; }
       phase.current += dt * 10;
     }
-    me.moving = moving && (vx !== 0 || vz !== 0);
+    moving = Math.hypot(me.x - beforeX, me.z - beforeZ) > .0001;
+    me.moving = moving;
+    if (recovery.current.update(rt.path, me.x, me.z, dt)) recoverNavigation();
     pushTrail(myId, me.x, me.z);
     if (group.current) {
       group.current.position.set(me.x, 0, me.z);
