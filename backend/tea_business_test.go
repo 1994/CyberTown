@@ -14,7 +14,7 @@ func openBusiness(t *testing.T, g *Game, player, mode string) TeaSession {
 	}
 	p := livePlan("demo-wang", "demo-li")
 	p.Stock = h.Business.RecommendedStock
-	s, err := g.TeaOpen(player, TeaOpenSession{Plan: p, Lesson: "rescue", Mode: mode, Key: randomID()})
+	s, err := g.TeaOpen(player, TeaOpenSession{Plan: p, Lesson: "rescue", Mode: mode, Key: randomID(), Duration: 60})
 	if err != nil {
 		t.Fatal(err)
 	}

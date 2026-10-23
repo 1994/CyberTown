@@ -10,7 +10,7 @@ import { useTeaAudio } from './useTeaAudio.ts';
 type View = 'street' | 'prep' | 'play' | 'report' | 'ending';
 const uid = () => crypto.randomUUID();
 const message = (e: unknown) => e instanceof Error ? e.message : '暂时无法连接小镇';
-interface SavedPlan { selected: string[]; roles: Record<string, TeaRole>; stock: TeaPlan['stock']; strategy: TeaStrategy }
+interface SavedPlan { duration?: 30 | 60; selected: string[]; roles: Record<string, TeaRole>; stock: TeaPlan['stock']; strategy: TeaStrategy }
 function read<T>(key: string): T | null { try { return JSON.parse(localStorage.getItem(key) ?? 'null') as T | null; } catch { return null; } }
 function save(key: string, value: unknown) { try { if (value === null) localStorage.removeItem(key); else localStorage.setItem(key, JSON.stringify(value)); } catch { /* optional storage */ } }
 
@@ -29,6 +29,7 @@ export function useTeaChapter() {
   const [selected, setSelected] = useState<string[]>([]);
   const [roles, updateRoles] = useState<Record<string, TeaRole>>({ self: 'support' });
   const [stock, updateStock] = useState<TeaPlan['stock']>(20);
+  const [duration, updateDuration] = useState<30 | 60>(30);
   const [strategy, updateStrategy] = useState<TeaStrategy>('balanced');
   const [session, updateSession] = useState<TeaSession | null>(null);
   const [legacyRun, setLegacyRun] = useState<TeaRun | null>(null);
@@ -60,6 +61,7 @@ export function useTeaChapter() {
     const valid = new Set(h.workers.filter(w => w.enabled).map(w => w.id));
     const ids = s ? s.run.workers.filter(w => w.id !== 'self').map(w => w.id) : (stored?.selected ?? []).filter(id => valid.has(id)).slice(0, 2);
     setSelected(ids);
+    updateDuration(s?.run.challenge.duration === 60 ? 60 : s ? 30 : stored?.duration === 60 ? 60 : 30);
     updateRoles(s ? Object.fromEntries(s.run.plan.assignments.map(a => [a.workerId, a.role])) : stored?.roles ?? { self: 'support' });
     const options = h.business?.stockOptions ?? [20, 40, 60];
     updateStock(s?.run.plan.stock ?? (options.some(option => option === stored?.stock) ? stored!.stock : h.business?.recommendedStock ?? 20));
@@ -93,8 +95,8 @@ export function useTeaChapter() {
     totalCost > (home?.business?.challenge.budget ?? home?.challenge.budget ?? 1100) ? '筹备费用超出预算' : '',
   ].filter(Boolean);
   useEffect(() => {
-    if (home && !active) save(planKey, { selected, roles, stock, strategy } satisfies SavedPlan);
-  }, [home, active, selected, roles, stock, strategy, planKey]);
+    if (home && !active) save(planKey, { selected, roles, stock, strategy, duration } satisfies SavedPlan);
+  }, [home, active, selected, roles, stock, strategy, duration, planKey]);
 
   const pick = (id: string) => {
     if (current.current?.status === 'active' || lesson === 'solo') return;
@@ -125,6 +127,7 @@ export function useTeaChapter() {
     setToast(`${w.name} 已安排${role === 'maker' ? '制作' : '端送'}，准备好再开店`);
   };
   const setRole = (id: string, role: TeaRole) => { if (!active) updateRoles(old => ({ ...old, [id]: role })); };
+  const setDuration = (n: 30 | 60) => { if (!active && !locked.current) updateDuration(n); };
   const setStock = (n: TeaPlan['stock']) => { if (!active) updateStock(n); };
   const setStrategy = (s: TeaStrategy) => { if (!active) updateStrategy(s); };
   const goShop = () => { if (!active) setView('prep'); };
@@ -134,8 +137,8 @@ export function useTeaChapter() {
     if (!home || locked.current || current.current?.status === 'active' || problems.length) return;
     const plan: TeaPlan = { assignments: team.map(w => ({ workerId: w.id, role: roles[w.id] ?? 'support' })), stock, strategy };
     const old = read<TeaOpenSession>(openingKey);
-    const same = old && old.lesson === lesson && old.mode === mode && JSON.stringify(old.plan) === JSON.stringify(plan);
-    const input: TeaOpenSession = same ? old : { plan, lesson, mode, idempotencyKey: uid() };
+    const same = old && old.lesson === lesson && old.mode === mode && (old.duration ?? 30) === duration && JSON.stringify(old.plan) === JSON.stringify(plan);
+    const input: TeaOpenSession = same ? old : { plan, lesson, mode, duration, idempotencyKey: uid() };
     save(openingKey, input); locked.current = true; setBusy(true);
     try {
       const s = await teaLiveApi.open(input);
@@ -287,7 +290,7 @@ export function useTeaChapter() {
               : home?.shop.level === 3 ? '首店篇完成，继续探索商圈' : '升级到夜城茶饮旗舰';
   useTeaAudio({ view: outside ? 'street' : view === 'ending' ? 'report' : view, run, frame, shopLevel: home?.shop.level ?? 0, teamKey: selected.join('|') });
 
-  return { home, business: home?.business, error, toast, busy, view, lesson, goal, hiresNeeded, team, pool, roles, stock, strategy, totalCost, problems,
+  return { duration, setDuration, home, business: home?.business, error, toast, busy, view, lesson, goal, hiresNeeded, team, pool, roles, stock, strategy, totalCost, problems,
     session, run, frame, events, supportAt, paused, speed, canAssign, dismissGuide, load, pick, assignStaff, setRole, setStock, setStrategy,
     goShop, goStreet, start, assign, togglePause, pause, setOutside, acceptMission, refresh, setSpeed, skip, next, upgrade, openRun, toggleHire, logout };
 }

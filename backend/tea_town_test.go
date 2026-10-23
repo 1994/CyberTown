@@ -11,7 +11,7 @@ func rescueOpen(t *testing.T, g *Game, player, mode string, ids ...string) TeaSe
 	t.Helper()
 	p := livePlan(ids...)
 	p.Stock = 20
-	s, err := g.TeaOpen(player, TeaOpenSession{Plan: p, Lesson: "rescue", Mode: mode, Key: randomID()})
+	s, err := g.TeaOpen(player, TeaOpenSession{Plan: p, Lesson: "rescue", Mode: mode, Key: randomID(), Duration: 60})
 	if err != nil {
 		t.Fatal(err)
 	}

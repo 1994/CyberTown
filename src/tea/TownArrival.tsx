@@ -96,7 +96,7 @@ export function TownArrival({ myId, touch, missionStatus, onPhone, onGoShop, onC
       <p><b>帮手</b><span>可以亲自做奶茶、端给顾客，也能雇同事分身或 NPC。排好制作、端送两岗，员工就会自动干活。</span></p>
     </div>
     <p className="town-arrival-next" id="town-guide-phone">{first ? '第一步：打开手机，接下奶茶店任务。' : complete ? '下一步：回店备料，继续赚钱升级。' : '下一步：跟着带路去奶茶店，备料开店。'}</p>
-    <p className="town-arrival-route">接任务 → 到店备料 → 营业 1 分钟 → 看报表、拿收入</p>
+    <p className="town-arrival-route">接任务 → 到店备料 → 营业 30 秒起 → 看报表、拿收入</p>
     <p className="town-arrival-controls">{touch ? '左下摇杆走路，靠近店门点「进店」。' : '点地面走路，靠近店门按 E 进店。'}</p>
     <div className="town-row">
       <button className="tea-btn primary" onClick={first ? onPhone : onGoShop}>{first ? '打开手机 · 接任务' : complete ? '带路回奶茶店' : '带路去奶茶店'}</button>

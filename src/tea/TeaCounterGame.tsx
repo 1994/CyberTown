@@ -48,7 +48,8 @@ export function TeaCounterGame({controller:c,onExit,onPhone,onHall}:{controller:
   };window.addEventListener('keydown',key);return()=>window.removeEventListener('keydown',key);
  });
  if(!home)return <div className="counter-root counter-loading"><p>{c.error||'正在打开奶茶店…'}</p>{c.error&&<button onClick={()=>void c.load()}>重新连接</button>}<button onClick={onExit}>回小镇</button></div>;
- const ch=currentRun?.challenge??home.business?.challenge??home.challenge;
+ const baseChallenge=home.business?.challenge??home.challenge;
+ const ch=currentRun?.challenge??{...baseChallenge,duration:c.duration};
  const staff=team.filter(w=>w.id!=='self');
  const cover=(r:TeaRole)=>staff.filter(w=>roles[w.id]===r||roles[w.id]==='support');
  const fullyAuto=staff.some(w=>roles[w.id]==='maker')&&staff.some(w=>roles[w.id]==='cashier');
@@ -101,9 +102,10 @@ export function TeaCounterGame({controller:c,onExit,onPhone,onHall}:{controller:
    </div>}
   </section>
   {view==='prep'&&<aside className="counter-prep tea-prep" inert={modal}>
-   <div className="counter-section-title"><h2>备料开店</h2><p><span>营业 {Math.ceil(ch.duration/60)} 分钟</span><span>目标 {ch.target} 杯</span></p></div>
+   <div className="counter-section-title"><h2>备料开店</h2><p><span>营业 {ch.duration === 30 ? '30 秒' : '1 分钟'}</span><span>目标 {ch.target} 杯</span></p></div>
    {help&&<p className="counter-prep-help">选好备料后开店；营业时点制作、端送，员工自动工作。</p>}
    <div className="counter-recipe"><span className="counter-recipe-icon"><CupSoda size={24}/></span><b>招牌珍珠奶茶</b><strong>{ch.price}<small>金币 / 杯</small></strong></div>
+   <div className="counter-duration" role="group" aria-label="营业时长"><h3>营业时长</h3><div>{([30,60] as const).map(n=><button key={n} type="button" aria-pressed={c.duration===n} onClick={()=>c.setDuration(n)}><b>{n===30?'30 秒':'1 分钟'}</b>{n===30&&<small>快速营业</small>}</button>)}</div></div>
    <div className="counter-stock"><h3><Package size={16}/>备料</h3><div>{(home.business?.stockOptions??[20,40,60]).map(n=><button key={n} aria-pressed={c.stock===n} onClick={()=>c.setStock(n as typeof c.stock)}><b>{n}</b><span>份</span>{n===home.business?.recommendedStock&&<small>推荐</small>}<em>原料 {n*ch.materialCost}</em></button>)}</div></div>
    {crew}
    <details className="counter-staff-settings"><summary>员工安排 <span>{staff.length ? `${staff.length} 人上岗` : c.pool.length ? `${c.pool.length} 人待安排 · 点击展开` : '亲自经营'}</span></summary>

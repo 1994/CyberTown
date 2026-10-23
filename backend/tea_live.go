@@ -56,10 +56,11 @@ type TeaSession struct {
 	Hold     int          `json:"hold"`
 }
 type TeaOpenSession struct {
-	Plan   TeaPlan `json:"plan"`
-	Lesson string  `json:"lesson"`
-	Mode   string  `json:"mode"`
-	Key    string  `json:"idempotencyKey"`
+	Duration int     `json:"duration,omitempty"`
+	Plan     TeaPlan `json:"plan"`
+	Lesson   string  `json:"lesson"`
+	Mode     string  `json:"mode"`
+	Key      string  `json:"idempotencyKey"`
 }
 type TeaStep struct {
 	Revision  int    `json:"revision"`
@@ -195,6 +196,9 @@ func teaResolveLive(tx storage.Tx, player, day, lesson string, plan TeaPlan) ([]
 }
 func (g *Game) TeaOpen(player string, input TeaOpenSession) (TeaSession, error) {
 	var out TeaSession
+	if input.Duration != 0 && input.Duration != 30 && input.Duration != 60 {
+		return out, fail(400, "TEA_DURATION", "营业时长只能选择30秒或1分钟")
+	}
 	if input.Mode != "practice" && input.Mode != "official" {
 		return out, fail(400, "TEA_MODE", "营业模式无效")
 	}
@@ -285,6 +289,11 @@ func (g *Game) TeaOpen(player string, input TeaOpenSession) (TeaSession, error) 
 				return e
 			}
 			ch = counterChallenge(day, level, progress.Day)
+			duration := input.Duration
+			if duration == 0 {
+				duration = 30
+			}
+			ch.Duration = duration
 			day = fmt.Sprintf("town-day-%d", progress.Day)
 		}
 		s := teaLiveRecord{ID: randomID(), Lesson: input.Lesson, Status: "active", Day: day, Key: input.Key, OpeningCoins: coins, Commands: []TeaCommand{}, Receipts: map[string]string{}, ReceiptOrder: []string{}}

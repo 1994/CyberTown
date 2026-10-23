@@ -68,6 +68,7 @@ export interface TeaSession {
 }
 
 export interface TeaOpenSession {
+  duration?: 30 | 60;
   plan: TeaPlan;
   lesson: TeaLesson;
   mode: 'practice' | 'official';
