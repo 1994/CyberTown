@@ -125,7 +125,7 @@ func TestPrivateTownRoomsAndVisitorMutationBoundary(t *testing.T) {
 		t.Fatal("not a read-only visit", visit)
 	}
 	awaitWorld(t, sa, func(ps []WorldPlayer) bool { return len(ps) == 2 })
-	for _, p := range []string{"/api/tea/town/hire", "/api/tea/town/jobs", "/api/tea/town/upgrade", "/api/tea/explore", "/api/tea/mission/accept", "/api/tea/sessions"} {
+	for _, p := range []string{"/api/tea/town/poach", "/api/tea/town/hire", "/api/tea/town/jobs", "/api/tea/town/upgrade", "/api/tea/explore", "/api/tea/mission/accept", "/api/tea/sessions"} {
 		status, body = e.call(t, p, b, map[string]any{})
 		assertCode(t, status, body, 403, "TOWN_VISITOR")
 	}

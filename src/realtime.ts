@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { session } from './api.ts';
 import { apiURL } from './runtime-config.ts';
+import { useTownState } from './tea/townState.ts';
 import { useGame } from './store.ts';
 import type { GameEvent, WorldPlayer } from '../shared/types.ts';
 import { applyWorld } from './world/net.ts';
@@ -17,6 +18,7 @@ export function useRealtime(enabled: boolean, townOwner?: string | null) {
     if (!token) return;
     const { refresh, setConn, handleEvent } = useGame.getState();
     const sync = createSyncQueue(refresh, handleEvent);
+    const townSync = createSyncQueue<never>(()=>useTownState.getState().refresh(),()=>{});
     setConn('connecting');
     const es = new EventSource(apiURL(`/api/events?token=${encodeURIComponent(token)}&world=2${townOwner ? '&town='+encodeURIComponent(townOwner) : ''}`));
     let poll: number | null = null;
@@ -48,6 +50,7 @@ export function useRealtime(enabled: boolean, townOwner?: string | null) {
           applyWorld(msg.players, msg.serverTime, { ...msg, stream: true });
         } else if (msg.type === 'sync') {
           sync.enqueue(msg.event);
+          if(townOwner && msg.event && ['identity','town_changed'].includes(msg.event.kind)) townSync.enqueue();
         }
       } catch {
         /* ignore malformed */
@@ -64,6 +67,7 @@ export function useRealtime(enabled: boolean, townOwner?: string | null) {
     return () => {
       alive = false;
       sync.dispose();
+      townSync.dispose();
       es.close();
       window.removeEventListener('offline', markOffline);
       if (poll) clearInterval(poll);

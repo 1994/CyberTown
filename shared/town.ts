@@ -5,7 +5,12 @@ export interface TownJob {
   id: string; cloneId: string; kind: TownJobKind; startedAt: number; endsAt: number;
   status: 'active' | 'completed'; reward: number; xp: number; earned: number;
 }
+export interface TownEmployment {
+  sourceId: string; employer: TownOwner; value: number; poachPrice: number;
+  level: number; job: string; busy: boolean;
+}
 export interface TownCandidate extends TeaWorker {
+  employments?: TownEmployment[];
   price: number; hireCount: number; owned: boolean; avatarUrl?: string;
 }
 export interface TownClone extends TeaWorker {
@@ -22,6 +27,7 @@ export interface TownListing extends TownOwner {
   level: number; title: string; earned: number; cloneCount: number;
 }
 export interface TownHome {
+  myEmployments?: TownEmployment[];
   properties?: string[];
   owner: TownOwner; visitor: boolean; level: number; title: string; earned: number;
   coins: number; serverTime: number; shopLevel: number;

@@ -10,6 +10,7 @@ interface TownState {
   error: string;
   enterTown: (myId: string, ownerId?: string) => Promise<void>;
   refresh: () => Promise<void>;
+  poach: (sourceId:string,employerId:string,expectedPrice:number,requestKey:string)=>Promise<void>;
   hire: (sourceId: string, expectedPrice: number) => Promise<void>;
   startJob: (cloneId: string, kind: TownJobKind) => Promise<void>;
   upgrade: (expectedLevel: number) => Promise<void>;
@@ -116,6 +117,7 @@ export const useTownState = create<TownState>((set, get) => {
       }
     },
 
+    poach(sourceId,employerId,expectedPrice,requestKey) { return mutate(()=>townApi.poach(sourceId,employerId,expectedPrice,requestKey)); },
     hire(sourceId, expectedPrice) {
       return mutate(() => townApi.hire(sourceId, expectedPrice));
     },

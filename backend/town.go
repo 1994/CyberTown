@@ -7,6 +7,7 @@ import (
 	"github.com/1994/boss-works-for-me/storage"
 	"math"
 	"sort"
+	"strings"
 )
 
 type TownOwner struct {
@@ -27,6 +28,7 @@ type TownJob struct {
 	Earned    int    `json:"earned"`
 }
 type TownCandidate struct {
+	Employments []TownEmployment `json:"employments"`
 	TeaWorker
 	Price     int    `json:"price"`
 	HireCount int    `json:"hireCount"`
@@ -61,22 +63,23 @@ type TownUpgrade struct {
 	Reason         string `json:"reason"`
 }
 type TownHome struct {
-	Properties  []string              `json:"properties"`
-	Owner       TownOwner             `json:"owner"`
-	Visitor     bool                  `json:"visitor"`
-	Level       int                   `json:"level"`
-	Title       string                `json:"title"`
-	Earned      int                   `json:"earned"`
-	Coins       int                   `json:"coins"`
-	ServerTime  int64                 `json:"serverTime"`
-	ShopLevel   int                   `json:"shopLevel"`
-	NextUpgrade *TownUpgrade          `json:"nextUpgrade"`
-	Clones      []TownClone           `json:"clones"`
-	Candidates  []TownCandidate       `json:"candidates"`
-	Jobs        []TownJob             `json:"jobs"`
-	Visitable   []TownListing         `json:"visitable"`
-	Market      []TownEmployeeListing `json:"market"`
-	Trades      []TownEmployeeListing `json:"trades"`
+	MyEmployments []TownEmployment      `json:"myEmployments"`
+	Properties    []string              `json:"properties"`
+	Owner         TownOwner             `json:"owner"`
+	Visitor       bool                  `json:"visitor"`
+	Level         int                   `json:"level"`
+	Title         string                `json:"title"`
+	Earned        int                   `json:"earned"`
+	Coins         int                   `json:"coins"`
+	ServerTime    int64                 `json:"serverTime"`
+	ShopLevel     int                   `json:"shopLevel"`
+	NextUpgrade   *TownUpgrade          `json:"nextUpgrade"`
+	Clones        []TownClone           `json:"clones"`
+	Candidates    []TownCandidate       `json:"candidates"`
+	Jobs          []TownJob             `json:"jobs"`
+	Visitable     []TownListing         `json:"visitable"`
+	Market        []TownEmployeeListing `json:"market"`
+	Trades        []TownEmployeeListing `json:"trades"`
 }
 
 var townTitles = []string{"", "初创小镇", "商业街区", "繁华商都", "摩天新城", "霓虹都会"}
@@ -152,9 +155,12 @@ func townEnsure(tx storage.Tx, player string, now int64) error {
 // Legacy Tea APIs keep their frozen hire rules. Private-town players can staff
 // stores with their own clones, including apprentices that are not currently on another job.
 func teaWorkers(tx storage.Tx, player, day string) ([]TeaWorker, error) {
-	ws, err := teaWorkerCatalog(tx, player, day)
-	if err != nil || !townExists(tx, player) {
-		return ws, err
+	if !townExists(tx, player) {
+		return teaWorkerCatalog(tx, player, day)
+	}
+	ws, err := townWorkerCatalog(tx, player)
+	if err != nil {
+		return nil, err
 	}
 	out := []TeaWorker{}
 	for _, w := range ws {
@@ -324,7 +330,15 @@ func townRead(tx storage.Tx, viewer, owner string, now int64) (TownHome, error) 
 	if err != nil {
 		return h, err
 	}
-	workers, err := teaWorkerCatalog(tx, owner, teaDay(now))
+	employments, err := townEmployments(tx)
+	if err != nil {
+		return h, err
+	}
+	h.MyEmployments = employments["employee:"+viewer]
+	if h.MyEmployments == nil {
+		h.MyEmployments = []TownEmployment{}
+	}
+	workers, err := townWorkerCatalog(tx, owner)
 	if err != nil {
 		return h, err
 	}
@@ -361,7 +375,16 @@ func townRead(tx storage.Tx, viewer, owner string, now int64) (TownHome, error) 
 			h.Clones = append(h.Clones, TownClone{townGrownWorker(w, xp), lv, xp, next, listingID == nil, lv >= 3 && listingID == nil, price, active[w.ID], avatar, listingID})
 		}
 		if !h.Visitor {
-			h.Candidates = append(h.Candidates, TownCandidate{w, clonePrice(count), count, owned, avatar})
+			jobs := employments[w.ID]
+			if jobs == nil {
+				jobs = []TownEmployment{}
+			}
+			price := clonePrice(count)
+			if len(jobs) > 0 && !owned {
+				price = jobs[0].PoachPrice
+				w = townGrownWorker(w, jobs[0].XP)
+			}
+			h.Candidates = append(h.Candidates, TownCandidate{Employments: jobs, TeaWorker: w, Price: price, HireCount: count, Owned: owned, AvatarURL: avatar})
 		}
 	}
 	if !h.Visitor {
@@ -444,7 +467,15 @@ func (g *Game) TownHire(player, source string, expected int) (TownHome, error) {
 		if count >= 12 {
 			return fail(409, "TOWN_TEAM_FULL", "本镇最多雇佣12位分身")
 		}
-		ws, err := teaWorkerCatalog(tx, player, teaDay(g.Now()))
+		if strings.HasPrefix(source, "employee:") {
+			if err := tx.QueryRow("SELECT COUNT(*) FROM town_clones WHERE source_id=?", source).Scan(&count); err != nil {
+				return err
+			}
+			if count > 0 {
+				return fail(409, "TOWN_ALREADY_EMPLOYED", "同事已被雇佣，请刷新后加价挖人")
+			}
+		}
+		ws, err := townWorkerCatalog(tx, player)
 		if err != nil {
 			return err
 		}

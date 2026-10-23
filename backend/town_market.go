@@ -206,8 +206,8 @@ func (g *Game) TownBuy(player, id string, expected int) (TownHome, error) {
 		if n >= 12 {
 			return fail(409, "TOWN_TEAM_FULL", "员工名额已满，请先流转部分合同")
 		}
-		var sellerXP int
-		if err := tx.QueryRow("SELECT xp FROM town_clones WHERE owner_id=? AND source_id=?", seller, source).Scan(&sellerXP); err != nil {
+		var sellerXP, sellerValue int
+		if err := tx.QueryRow("SELECT xp,hired_price FROM town_clones WHERE owner_id=? AND source_id=?", seller, source).Scan(&sellerXP, &sellerValue); err != nil {
 			return noRow(err, "TOWN_CLONE", "卖家的员工已离开")
 		}
 		if sellerXP != xp {
@@ -239,7 +239,11 @@ func (g *Game) TownBuy(player, id string, expected int) (TownHome, error) {
 		if _, err = tx.Exec("UPDATE players SET coins=coins+? WHERE id=?", price-fee, seller); err != nil {
 			return err
 		}
-		if _, err = tx.Exec("INSERT INTO town_clones(owner_id,source_id,xp,hired_price,hired_at) VALUES(?,?,?,?,?)", player, source, xp, price, g.Now()); err != nil {
+		newValue := price
+		if strings.HasPrefix(source, "employee:") {
+			newValue = max(120, price, sellerValue)
+		}
+		if _, err = tx.Exec("INSERT INTO town_clones(owner_id,source_id,xp,hired_price,hired_at) VALUES(?,?,?,?,?)", player, source, xp, newValue, g.Now()); err != nil {
 			return err
 		}
 		// Completed job rows can be pruned with the seller's copy; the immutable

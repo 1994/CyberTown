@@ -91,6 +91,13 @@ export function HiringHall({ onClose, onChanged, onShop, canAssign = true, assig
   const [placing,setPlacing]=useState(false);
   const busy = remoteBusy || placing;
   const hire = useTownState(s => s.hire);
+  const poach = useTownState(s => s.poach);
+  const [poachQuote,setPoachQuote]=useState<{employerId:string;key:string}|null>(null);
+  useEffect(()=>{
+    const refresh=()=>{if(!document.hidden)void useTownState.getState().refresh().catch(()=>undefined);};
+    refresh();window.addEventListener('focus',refresh);
+    return()=>{window.removeEventListener('focus',refresh);};
+  },[]);
   const startJob = useTownState(s => s.startJob);
   const [tab, setTab] = useState<HallTab>(initialTab);
   const list = useTownState(s => s.list);
@@ -130,17 +137,20 @@ export function HiringHall({ onClose, onChanged, onShop, canAssign = true, assig
 
   // 确认面板始终读最新服务端报价；与打开时不同则提示“报价已更新”
   const confirm: TownCandidate | null = home.candidates.find(c => c.id === confirmId) ?? null;
+  const employment = confirm?.employments?.[0];
+  const quoteChanged = !!confirm && (confirm.price !== quoted || (employment?.employer.id ?? '') !== (poachQuote?.employerId ?? ''));
   const full = home.clones.length >= MAX_STAFF;
   const shown = home.candidates
     .filter(c => (filter === 'all' || best(c) === filter) && c.name.toLocaleLowerCase().includes(search.trim().toLocaleLowerCase()))
     .sort((a, b) => sort === 'price' ? a.price - b.price : potentialScore(b) - potentialScore(a));
 
   const submit = async (placeNow = false) => {
-    if (!confirm || busy) return;
+    if (!confirm || busy || quoteChanged || employment?.busy) return;
     setErr('');setPlacing(true);
     try {
       const before = new Set(home.clones.map(c => c.id));
-      await hire(confirm.id, confirm.price);
+      if(poachQuote) await poach(confirm.id,poachQuote.employerId,quoted,poachQuote.key);
+      else await hire(confirm.id, quoted);
       const added = useTownState.getState().home?.clones.find(c => !before.has(c.id));
       setSuccess(`${confirm.name} 已加入，可立即去奶茶店工作`);
       setFresh(added?.id ?? null);
@@ -194,6 +204,11 @@ export function HiringHall({ onClose, onChanged, onShop, canAssign = true, assig
         <span className="hall-coins"><i className="coin sm" />{home.coins}</span>
         <button className="town-x" disabled={busy} onClick={onClose} aria-label="关闭雇佣大厅" data-testid="hiring-close">×</button>
       </header>
+      <section className="hall-my-employment" aria-label="我的分身" data-testid="my-employment">
+        <strong>我的分身</strong>
+        {(home.myEmployments??[]).length ? (home.myEmployments??[]).map(e=><span key={e.employer.id}>在 <b>{e.employer.name}</b> 的小镇 · {e.job==='shop'?'奶茶店营业中':e.job==='rest'?'待命':JOB[e.job as TownJobKind]?.name??'工作中'} · Lv.{e.level} · 身价 <b>{e.value}</b> 金币</span>) : <span>暂未被雇佣 · 同事可以在大厅找到你的分身</span>}
+        <small>分身工作不影响你经营自己的小镇</small>
+      </section>
       {success && <p className="hall-success" role="status" data-testid="hire-success">✓ {success}</p>}
       {err && <p className="hall-error" role="alert" data-testid="hire-error">{err}<button onClick={() => setErr('')}>知道了</button></p>}
 
@@ -248,7 +263,7 @@ export function HiringHall({ onClose, onChanged, onShop, canAssign = true, assig
            const hasSource=home.candidates.some(c=>kind==='colleague'?!!c.playerId:!c.playerId);
            return <section key={kind} className={`hall-recruit-column source-${kind}`} aria-label={kind==='colleague'?'同事分身':'NPC 员工'} data-testid={`hire-group-${kind}`}>
            <h3>{kind==='colleague'?'同事分身':'NPC 员工'}<span>{candidates.length} 位</span></h3>
-           {kind==='colleague'&&hasSource&&<p className="hall-source-note">更多同事加入小镇后，会出现在这里。</p>}
+           {kind==='colleague'&&hasSource&&<p className="hall-source-note">全镇共享 · 加入即显示 · 每 5 秒同步雇主与身价。</p>}
           {totalPages>1&&<nav className="hall-pagination" aria-label={`${kind==='colleague'?'同事':'NPC'}列表分页`}>
             <button disabled={page===1} aria-label={`${kind==='colleague'?'同事':'NPC'}上一页`} onClick={()=>setPages(p=>({...p,[kind]:page-1}))}>上一页</button>
             <span role="status" aria-live="polite">{page} / {totalPages}</span>
@@ -256,12 +271,13 @@ export function HiringHall({ onClose, onChanged, onShop, canAssign = true, assig
           </nav>}
            <ul className="hall-list hall-recruit-grid">
             {visible.map(c => <li key={c.id}>
-              <button className={`hall-cand ${c.owned ? 'owned' : ''}`} disabled={busy || full || c.owned || !c.enabled || home.coins<c.price} onClick={() => {setErr('');setQuoted(c.price);setConfirmId(c.id);}}
+              <button className={`hall-cand ${c.owned ? 'owned' : ''}`} disabled={busy || full || c.owned || !c.enabled || !!c.employments?.[0]?.busy || home.coins<c.price} onClick={() => {setErr('');setQuoted(c.price);setPoachQuote(c.employments?.length?{employerId:c.employments[0].employer.id,key:crypto.randomUUID()}:null);setConfirmId(c.id);}}
                 data-testid={`hire-candidate-${c.id}`} data-owned={c.owned ? 'true' : undefined}>
                 <Face w={c} size={64} />
-                <span className="hall-cand-main"><b>{c.name}</b><small className="hall-role-tag">{POTENTIAL[best(c)]}</small><span className="hall-recruit-level">Lv.1 <strong>学徒</strong></span></span>
-                <span className="hall-recruit-cost"><span><small>雇佣费</small><b>{c.price}<small> 金币</small></b></span><span className="hall-recruit-wage"><small>每班工资</small><b>{shiftWage(c)}<small> 金币</small></b></span></span>
-                <span className="hall-recruit-cta">{c.owned?'已雇佣':!c.enabled?'暂不可雇佣':home.coins<c.price?'金币不足':full?'员工已满':busy?'处理中…':'雇佣这位员工 →'}</span>
+                <span className="hall-cand-main"><b>{c.name}</b><small className="hall-role-tag">{POTENTIAL[best(c)]}</small><span className="hall-recruit-level">Lv.{c.employments?.[0]?.level??1} <strong>{LEVEL_TITLE[c.employments?.[0]?.level??1]}</strong></span></span>
+                <span className="hall-recruit-cost"><span><small>{c.owned&&c.employments?.length?'身价':c.employments?.length?'挖人价':'雇佣费'}</small><b>{c.owned&&c.employments?.length?c.employments.find(e=>e.employer.id===home.owner.id)?.value??c.price:c.price}<small> 金币</small></b></span><span className="hall-recruit-wage"><small>每班工资</small><b>{shiftWage(c)}<small> 金币</small></b></span></span>
+                {c.playerId&&<span className="hall-employer">{c.employments?.length?c.employments.map(e=><span key={e.employer.id}>雇主：{e.employer.name} · {e.job==='shop'?'奶茶店营业中':e.job==='rest'?'待命':JOB[e.job as TownJobKind]?.name??'工作中'} · 身价 {e.value}</span>):'自由身 · 等待雇佣'}</span>}
+                <span className="hall-recruit-cta">{c.employments?.[0]?.busy&&!c.owned?'本班结束后可挖人':c.owned?'已雇佣':!c.enabled?'暂不可雇佣':home.coins<c.price?'金币不足':full?'员工已满':busy?'处理中…':c.employments?.length?'加价挖到我的小镇 →':'雇佣这位员工 →'}</span>
               </button>
             </li>)}
             {!candidates.length && <li className="hall-recruit-empty">
@@ -341,20 +357,23 @@ export function HiringHall({ onClose, onChanged, onShop, canAssign = true, assig
 
     {confirm && <div className="hall-confirm-wrap">
       <section ref={sheet} className="hall-confirm tea-sheet" role="dialog" aria-modal="true" aria-label="确认雇佣" data-testid="hire-confirm" tabIndex={-1}>
-        <header><Face w={confirm} size={48} /><div><small>确认雇佣</small><b>{confirm.name}</b></div></header>
+        <header><Face w={confirm} size={48} /><div><small>{poachQuote?'确认挖人':'确认雇佣'}</small><b>{confirm.name}</b></div></header>
         <dl className="tea-slip">
           <dt>现在支付</dt><dd className="bad">−{confirm.price}</dd>
           <dt>雇佣后金币</dt><dd>{home.coins - confirm.price}</dd>
           <dt>奶茶店工资</dt><dd>{shiftWage(confirm)} / 班</dd>
         </dl>
         {confirm.price !== quoted && <p className="tea-hint bad" data-testid="hire-price-changed">报价已更新：{quoted} → {confirm.price}</p>}
-        <p className="hall-note">雇佣后立即上岗，工资只在开店时扣。先准备好，再开始营业。</p>
+        {employment&&<p className="hall-note">从 {employment.employer.name} 的小镇转入，保留 Lv.{employment.level}。原雇主获得 {confirm.price-Math.ceil(confirm.price/20)} 金币补偿，5% 为手续费；下一次挖人价 {Math.min(1000000,Math.max(180,Math.ceil(confirm.price*1.5)))} 金币。</p>}
+        {quoteChanged&&<p className="tea-hint bad">雇主或报价已变化，请关闭后重新选择。</p>}
+        {employment?.busy&&<p className="tea-hint bad">同事正在营业，请等本班结束。</p>}
+        <p className="hall-note">转入后可以安排到店。工资在开店时扣。</p>
         {err && <p className="tea-hint bad" role="alert">{err}</p>}
         <div className="tea-sheet-actions">
           <button className="tea-btn ghost" disabled={busy} onClick={() => setConfirmId(null)}>取消</button>
-          {canAssign&&assignedIds.length<2&&<button className="tea-btn" disabled={busy||home.coins<confirm.price} onClick={()=>void submit(false)}>仅雇佣</button>}
-          <button className="tea-btn primary" disabled={busy || home.coins < confirm.price} onClick={() => void submit(canAssign && assignedIds.length < 2)} data-testid="hire-confirm-submit">
-            {busy ? '雇佣中…' : err ? `重试 · ${confirm.price} 金币` : `${canAssign && assignedIds.length < 2 ? '雇佣并安排到店' : '确认雇佣'} · ${confirm.price} 金币`}</button>
+          {canAssign&&assignedIds.length<2&&<button className="tea-btn" disabled={busy||quoteChanged||!!employment?.busy||home.coins<confirm.price} onClick={()=>void submit(false)}>{poachQuote?'仅挖人':'仅雇佣'}</button>}
+          <button className="tea-btn primary" disabled={busy || quoteChanged || !!employment?.busy || home.coins < confirm.price} onClick={() => void submit(canAssign && assignedIds.length < 2)} data-testid="hire-confirm-submit">
+            {busy ? '雇佣中…' : err ? `重试 · ${confirm.price} 金币` : `${poachQuote ? (canAssign && assignedIds.length < 2 ? '挖人并安排到店' : '确认挖人') : (canAssign && assignedIds.length < 2 ? '雇佣并安排到店' : '确认雇佣')} · ${confirm.price} 金币`}</button>
         </div>
       </section>
     </div>}

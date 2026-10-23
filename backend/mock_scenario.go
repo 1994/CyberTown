@@ -153,7 +153,7 @@ func (g *Game) ApplyMockScenario(s MockScenario) error {
 					return err
 				}
 			}
-			ws, err := teaWorkerCatalog(tx, p.PlayerID, teaDay(g.Now()))
+			ws, err := townWorkerCatalog(tx, p.PlayerID)
 			if err != nil {
 				return err
 			}

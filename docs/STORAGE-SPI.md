@@ -117,3 +117,16 @@ go test -race ./backend ./server -run 'StorageSPI|MockScenario|StorageInjection|
 ### 铺面产权
 
 适配器需在 `Initialize` 中创建 `town_properties(player_id, property_id, price, purchased_at)`，以 `(player_id, property_id)` 为联合主键，`player_id` 关联玩家并级联删除。参考 `storage/sqlite/schema.sql`。购买通过原有 `storage.Tx` 同事务扣金币、写产权与账本；重复购买同一铺面不会再次扣款。`TownHome.properties` 返回当前镇主的铺面 ID。Mock 可插入该表初始化产权，售卖目录与价格统一来自 `gameplay/town-properties.json`。重新开始会清除当前玩家产权。
+
+## 共享同事、雇主与挖人
+
+小镇招募现在从 `players` 读取所有已由身份 SPI 登录创建或 mock 导入的同事（排除自己），不再依赖旧奶茶玩法 `tea_avatars.enabled` 的主动开放开关。该开关仍只控制旧版单班兼职玩法。姓名/头像仍走原身份和同事外观表，无新增外部服务。
+
+- `TownHome.myEmployments`：当前查看者自己的分身在哪些雇主处、等级、身价及工作状态；雇佣大厅各页顶部均可见，手机“员工”也能进入。
+- `TownCandidate.employments`：共享的雇主、工作状态、身价、等级、经验及下一次挖人价。`shop` 表示已冻结进营业班次，`rest` 为待命，其余沿用派工类型。
+- 新雇佣的真人同事分身不能在不同镇重复生成；被雇佣后必须通过挂牌接手或挖人转移。NPC 仍可在不同镇雇佣。旧存档/mock 中已有的多份同事合同不删除、不回收金币；会如实列出所有雇主，默认对最早的合同报价，禁止继续创建副本。
+- `POST /api/tea/town/poach`：`sourceId, employerId, expectedPrice, requestKey`。报价为上次身价的 150% 向上取整，最低 180，最高 1,000,000。原雇主获得报价扣除向上取整的 5% 手续费；转入后身价取本次报价、保留经验，结束原派工并取消旧挂牌。正在营业的冻结员工不可挖走。普通挂牌转让不会降低同事已积累的身价。
+- 复用 `town_employee_market` 保存 sold 收据，request_key 为 `poach:<buyerId>:<requestKey>`。相同请求重试不重复扣款；旧雇主/报价过期必须拒绝；并发只有一个买家成功。金币、归属、派工、挂牌与账本同一事务提交，失败整体回滚。未新增表；自定义存储实现需继续保证串行写事务与级联删除契约。
+- `identity` / `town_changed` 实时事件触发共享列表刷新，原 5 秒轮询继续兜底；打开大厅或窗口回到前台也刷新。候选搜索、分页仍保留。
+
+验证：`go test -race ./backend -run 'TownNewIdentity|TownSharedEmployment|TownPoach|TownMarket'`。

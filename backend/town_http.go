@@ -77,6 +77,17 @@ func (a *App) handleTown(w http.ResponseWriter, r *http.Request, player string) 
 			return err
 		}
 		h, err = a.Game.TownBuyProperty(player, b.PropertyID, b.ExpectedPrice)
+	case "/api/tea/town/poach":
+		var b struct {
+			SourceID      string `json:"sourceId"`
+			EmployerID    string `json:"employerId"`
+			ExpectedPrice int    `json:"expectedPrice"`
+			RequestKey    string `json:"requestKey"`
+		}
+		if err = teaDecode(w, r, &b); err != nil {
+			return err
+		}
+		h, err = a.Game.TownPoach(player, b.SourceID, b.EmployerID, b.ExpectedPrice, b.RequestKey)
 	case "/api/tea/town/hire":
 		var b struct {
 			SourceID      string `json:"sourceId"`

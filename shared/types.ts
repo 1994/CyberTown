@@ -122,6 +122,7 @@ export interface HighfiveEvent {
 }
 
 export type GameEvent =
+  | { kind: 'town_changed'; playerId: string }
   | TradeEvent
   | ProjectEvent
   | HighfiveEvent
