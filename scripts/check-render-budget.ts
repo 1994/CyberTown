@@ -223,3 +223,17 @@ test('manual zoom and aerial camera targets stay before the fog wall', () => {
   assert.deepEqual(townFogRange(17),{near:60,far:220});
   assert.deepEqual(townFogRange(NaN),{near:60,far:220});
 });
+
+test('resolution keeps a native floor and caps supersampling pixel cost', async () => {
+  const {scenePixelRatio,BALANCED_LEVELS}=await import('../src/renderBudget.ts');
+  assert.ok(BALANCED_LEVELS.every(level=>level.dpr>=1));
+  assert.equal(scenePixelRatio(1280,720,1.5),1.5);
+  assert.equal(scenePixelRatio(390,844,2),2);
+  for(const [w,h] of [[1920,1080],[2560,1440],[3840,2160]]){
+    const dpr=scenePixelRatio(w,h,2);
+    assert.ok(dpr>=1&&dpr<=2);
+    assert.ok(w*h*dpr*dpr<=Math.max(3_000_000,w*h)+1);
+  }
+  assert.equal(scenePixelRatio(0,0,2),1);
+  assert.equal(scenePixelRatio(1280,720,NaN),1);
+});

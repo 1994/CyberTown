@@ -1,3 +1,5 @@
+import { useScenePixelRatio } from '../scene/RenderResolution.tsx';
+import { QUALITY, useRenderQuality } from '../renderQuality.ts';
 import { useEffect, useMemo, useRef } from 'react';
 import * as THREE from 'three';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
@@ -448,6 +450,8 @@ function OrthoFit({ view }: { view: CounterView }) {
 
 /** 新版剖面奶茶店。props 与旧 TeaScene 的 ShopProps 相同；指派只经可见岗位牌 onAssign。 */
 export function TeaCounterScene(props: ShopProps & { cameraView?: CounterView }) {
+  const quality = useRenderQuality(s=>s.quality);
+  const dpr = useScenePixelRatio(LOW_FX ? 1 : QUALITY[quality].dpr);
   const { level, team, roles, live, liveFrame, onAssign, canAssign, selfId, selfAvatar } = props;
   // 暂停时 live=false 但保留最后一帧并定格，不删人
   const frame = liveFrame ?? null;
@@ -461,8 +465,8 @@ export function TeaCounterScene(props: ShopProps & { cameraView?: CounterView })
   const portrait = typeof window !== 'undefined' && window.innerHeight > window.innerWidth;
   const low = LOW_FX || (typeof window !== 'undefined' && Math.min(window.innerWidth, window.innerHeight) < 560);
   const can = !!live && !!canAssign && !!onAssign;
-  return <Canvas className="tea-canvas" shadows={!low} orthographic dpr={low ? 1 : [1, 1.75]} camera={{ position: [7, 10, 13], zoom: 50, near: 0.1, far: 100 }}
-    gl={{ antialias: !low, powerPreference: low ? 'low-power' : 'high-performance' }}
+  return <Canvas className="tea-canvas" shadows={!low} orthographic dpr={dpr} camera={{ position: [7, 10, 13], zoom: 50, near: 0.1, far: 100 }}
+    gl={{ antialias: !LOW_FX, powerPreference: low ? 'low-power' : 'high-performance' }}
     onPointerMissed={() => { document.body.style.cursor = ''; }}>
     <color attach="background" args={['#172b38']} />
     <fog attach="fog" args={['#172b38', 28, 65]} />

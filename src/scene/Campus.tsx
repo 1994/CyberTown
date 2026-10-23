@@ -22,6 +22,7 @@ import { rng } from '../../shared/rules.ts';
 import { PALETTE, glow, std } from './materials.ts';
 import {
   chartScreen,
+  plazaPaving,
   industrialGround,
   wetRoughness,
   monitorScreen,
@@ -113,7 +114,7 @@ function Ground({
       {/* 广场圆形铺装 */}
       <mesh rotation-x={-Math.PI / 2} position={[0, -0.015, 13]} receiveShadow>
         <circleGeometry args={[7.2, 64]} />
-        <meshStandardMaterial color="#303f5d" roughness={0.75} />
+        <meshStandardMaterial map={plazaPaving()} bumpMap={plazaPaving()} bumpScale={0.025} color="#b1c5d4" roughness={0.52} metalness={0.23} />
       </mesh>
       <mesh rotation-x={-Math.PI / 2} position={[0, 0, 13]}>
         <ringGeometry args={[6.58, 6.66, 64]} />

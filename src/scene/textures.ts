@@ -173,7 +173,7 @@ export function whiteboard() {
 }
 
 export function neonText(lines: { text: string; color: string; size: number }[], w = 1024, h = 256) {
-  const key = 'neon-' + lines.map((l) => l.text + l.color).join('|');
+  const key = 'neon-' + `${w}x${h}|` + lines.map((l) => l.text + l.color + l.size).join('|');
   return cached(key, () => {
     const [c, g] = canvas(w, h);
     g.clearRect(0, 0, w, h);
@@ -185,9 +185,9 @@ export function neonText(lines: { text: string; color: string; size: number }[],
       y += (l.size * 1.15) / 2;
       g.font = `900 ${l.size}px "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans CJK SC", system-ui, sans-serif`;
       for (const [blur, alpha] of [
-        [40, 0.9],
-        [18, 1],
-        [6, 1],
+        [14, 0.4],
+        [5, 0.7],
+        [1, 1],
       ] as const) {
         g.shadowColor = l.color;
         g.shadowBlur = blur;
@@ -350,5 +350,29 @@ export function wetRoughness() {
       g.fillStyle=grad; g.fillRect(x-w,y-w,w*2,w*2);
     }
     const t=tex(c,false); t.wrapS=t.wrapT=THREE.RepeatWrapping; return t;
+  });
+}
+
+/** One cached paving texture adds stone joints and inlaid metal without geometry. */
+export function plazaPaving() {
+  return cached('plaza-paving-v1', () => {
+    const [c,g] = canvas(1024,1024);
+    const random = rng(4107);
+    g.fillStyle='#33434e';g.fillRect(0,0,1024,1024);
+    for(let ring=0;ring<8;ring++) {
+      const outer=64*(ring+1), inner=ring*64, segments=Math.max(8,(ring+1)*8);
+      for(let segment=0;segment<segments;segment++) {
+        const a=(segment+(ring%2)*.5)*Math.PI*2/segments, b=a+Math.PI*2/segments;
+        g.beginPath();g.arc(512,512,outer,a,b);g.arc(512,512,inner,b,a,true);g.closePath();
+        const shade=25+random()*5;
+        g.fillStyle=`hsl(210,17%,${shade}%)`;g.fill();
+        g.strokeStyle='#24323c';g.lineWidth=2;g.stroke();
+      }
+    }
+    // Brushed grain stays subtle; pale brass inlays frame the central sculpture.
+    for(let i=0;i<10000;i++){g.fillStyle=random()>.5?'#c5d8e009':'#06121a14';g.fillRect(random()*1024,random()*1024,1+random()*3,1);}
+    for(const r of [192,448]){g.beginPath();g.arc(512,512,r,0,Math.PI*2);g.strokeStyle='#a6976f';g.lineWidth=3;g.stroke();}
+    for(let i=0;i<32;i++){g.save();g.translate(512,512);g.rotate(i*Math.PI/16);g.fillStyle=i%4===0?'#c8b67f':'#6a8894';g.fillRect(474,-2,i%4===0?22:10,4);g.restore();}
+    return tex(c);
   });
 }

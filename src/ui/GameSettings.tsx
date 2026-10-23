@@ -1,3 +1,4 @@
+import { QUALITY, useRenderQuality, type Quality } from '../renderQuality.ts';
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Settings, X, RotateCcw } from 'lucide-react';
@@ -11,6 +12,8 @@ import { sessionKey } from '../runtime-config.ts';
 import './game-settings.css';
 
 export function GameSettings({ className = '' }: { className?: string }) {
+ const quality=useRenderQuality(s=>s.quality);
+ const setQuality=useRenderQuality(s=>s.setQuality);
  const [open, setOpen] = useState(false);
  const [confirm, setConfirm] = useState(false);
  const [busy, setBusy] = useState(false);
@@ -52,6 +55,7 @@ export function GameSettings({ className = '' }: { className?: string }) {
     <header><div><small>CYBER TOWN / SYSTEM</small><h2><Settings size={23}/> 小镇设置</h2></div><button aria-label="关闭设置" disabled={busy} onClick={close}><X/></button></header>
     <section className="settings-identity">{me?.avatarUrl ? <img src={me.avatarUrl} alt=""/> : <span className="settings-avatar">{me?.name.slice(0,1)}</span>}<div><strong>{me?.name ?? '小镇居民'}</strong><small>赛博小镇 · 模拟经营试玩版</small></div></section>
     <dl className="settings-stats"><div><dt>金币</dt><dd>{(own?.coins ?? me?.coins ?? 0).toLocaleString()}</dd></div><div><dt>小镇等级</dt><dd>{own ? `Lv.${own.level}` : '参观中'}</dd></div><div><dt>奶茶店</dt><dd>{own ? `Lv.${own.shopLevel}` : '—'}</dd></div><div><dt>员工</dt><dd>{own ? `${own.clones.length} 人` : '—'}</dd></div></dl>
+    <section className="settings-quality"><h3>画面品质</h3><div role="group" aria-label="画面品质">{(Object.keys(QUALITY) as Quality[]).map(q=><button key={q} aria-pressed={quality===q} onClick={()=>setQuality(q)}>{QUALITY[q].label}<small>{q==='sharp'?'精细边缘':q==='smooth'?'节省性能':'平衡画质'}</small></button>)}</div><p>清晰档适合细看小镇与截图，设置会自动保存。</p></section>
     <h3>声音配置</h3><SoundSettings/>
     <section className="settings-restart">
      {!confirm ? <><button disabled={!own} onClick={() => setConfirm(true)}><RotateCcw size={16}/>重新开始</button><small>{own ? '从第一天重新经营你的小镇' : '回到自己的小镇后可重置进度'}</small></> : <><h3>确定从头开始？</h3><p>当前玩家的金币、店铺升级、员工、物品、任务和熟练度将重置，新手引导会重新出现。此操作无法撤销。</p><small>保留身份、同事目录、声音配置和小游戏试玩余额，不影响其他玩家的小镇。</small><div className="settings-actions"><button disabled={busy} onClick={() => setConfirm(false)}>继续当前旅程</button><button className="settings-danger" disabled={busy} onClick={() => void restart()}>{busy ? '正在重置…' : '确认重置并重新开始'}</button></div></>}

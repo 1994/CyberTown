@@ -1,3 +1,4 @@
+import { useScenePixelRatio } from './RenderResolution.tsx';
 import { BasketballCourt } from './BasketballCourt';
 import { TownShoppingScenery } from './TownShoppingScenery';
 import { TownSkyLogo } from './TownSkyLogo';
@@ -97,6 +98,7 @@ function Lights() {
   return (
     <>
       <TownAmbientLight />
+      <directionalLight position={[10, 8, -16]} intensity={0.4} color="#92baff" />
       <Sun />
       <directionalLight
         position={[-24, 12, -18]}
@@ -176,6 +178,7 @@ export function OfficeCanvas({ myId, covered: townCovered = false }: { myId: str
   const quality = useRenderQuality(s => s.quality);
   const tier = useRenderQuality(s => s.tier);
   const settings = quality === 'balanced' ? BALANCED_LEVELS[tier] : QUALITY[quality];
+  const dpr = useScenePixelRatio(LOW_FX ? 1 : settings.dpr);
   const coveredUi = useGame(s => !s.introPlaying && (!!s.drawer || s.phoneOpen || s.projectActive));
   const projectOpen = useWorld(s => s.projectOpen);
   const covered = coveredUi || projectOpen || townCovered;
@@ -193,8 +196,8 @@ export function OfficeCanvas({ myId, covered: townCovered = false }: { myId: str
     <Canvas
       className="office-canvas"
       frameloop={covered ? 'demand' : 'always'}
-      shadows={LOW_FX ? false : { type: THREE.PCFShadowMap }}
-      dpr={LOW_FX ? 1 : [Math.min(1, settings.dpr), settings.dpr]}
+      shadows={LOW_FX ? false : { type: THREE.PCFSoftShadowMap }}
+      dpr={dpr}
       camera={{ position: [34, 34, 46], fov: 38, near: 0.5, far: 600 }}
       gl={{ antialias: false, powerPreference: 'high-performance' }}
       onCreated={({ gl, scene }) => {
@@ -209,7 +212,7 @@ export function OfficeCanvas({ myId, covered: townCovered = false }: { myId: str
         {PERF_ENABLED && <RenderProbe />}
         <Lights />
         <LocalLightPool />
-        <Environment resolution={128} frames={1}>
+        <Environment resolution={256} frames={1}>
           <Lightformer
             form="rect"
             intensity={2.3}
@@ -249,10 +252,10 @@ export function OfficeCanvas({ myId, covered: townCovered = false }: { myId: str
           <EffectComposer multisampling={settings.multisampling}>
             <Bloom
               mipmapBlur
-              luminanceThreshold={1.25}
-              luminanceSmoothing={0.3}
-              intensity={0.48}
-              radius={0.65}
+              luminanceThreshold={1.5}
+              luminanceSmoothing={0.22}
+              intensity={0.36}
+              radius={0.5}
             />
             <Vignette offset={0.32} darkness={0.24} />
           </EffectComposer>
