@@ -150,7 +150,7 @@ func (g *Game) seed(reset, demo bool) error {
 			}
 			return ensureProgress(tx)
 		}
-		for _, t := range []string{"town_clone_demand", "identity_sessions", "sessions", "identity_bindings", "trades", "ledger", "project_runs", "social_rewards", "player_items", "player_styles", "year_awards", "player_years", "player_careers", "messages", "colleagues", "players", "meta"} {
+		for _, t := range []string{"town_properties", "town_clone_demand", "identity_sessions", "sessions", "identity_bindings", "trades", "ledger", "project_runs", "social_rewards", "player_items", "player_styles", "year_awards", "player_years", "player_careers", "messages", "colleagues", "players", "meta"} {
 			if _, err := tx.Exec("DELETE FROM " + t); err != nil {
 				return err
 			}

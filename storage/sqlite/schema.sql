@@ -239,3 +239,9 @@ CREATE TABLE IF NOT EXISTS tea_counter_progress (
  service_xp INTEGER NOT NULL DEFAULT 0,
  guide_seen INTEGER NOT NULL DEFAULT 0
 );
+
+CREATE TABLE IF NOT EXISTS town_properties (
+ player_id TEXT NOT NULL REFERENCES players(id) ON DELETE CASCADE,
+ property_id TEXT NOT NULL, price INTEGER NOT NULL, purchased_at INTEGER NOT NULL,
+ PRIMARY KEY(player_id,property_id)
+);

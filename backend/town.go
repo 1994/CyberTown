@@ -61,6 +61,7 @@ type TownUpgrade struct {
 	Reason         string `json:"reason"`
 }
 type TownHome struct {
+	Properties  []string              `json:"properties"`
 	Owner       TownOwner             `json:"owner"`
 	Visitor     bool                  `json:"visitor"`
 	Level       int                   `json:"level"`
@@ -257,6 +258,24 @@ func townEarned(tx storage.Tx, owner string) (int, error) {
 
 func townRead(tx storage.Tx, viewer, owner string, now int64) (TownHome, error) {
 	h := TownHome{Visitor: viewer != owner, ServerTime: now, Clones: []TownClone{}, Candidates: []TownCandidate{}, Jobs: []TownJob{}, Visitable: []TownListing{}, Market: []TownEmployeeListing{}, Trades: []TownEmployeeListing{}}
+	propRows, propErr := tx.Query("SELECT property_id FROM town_properties WHERE player_id=? ORDER BY property_id", owner)
+	if propErr != nil {
+		return h, propErr
+	}
+	h.Properties = []string{}
+	for propRows.Next() {
+		var id string
+		if err := propRows.Scan(&id); err != nil {
+			propRows.Close()
+			return h, err
+		}
+		h.Properties = append(h.Properties, id)
+	}
+	propErr = propRows.Err()
+	propRows.Close()
+	if propErr != nil {
+		return h, propErr
+	}
 	if !townExists(tx, owner) {
 		return h, fail(404, "TOWN_NOT_READY", "这位同事还没有创建小镇")
 	}

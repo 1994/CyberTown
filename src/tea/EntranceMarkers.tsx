@@ -1,3 +1,5 @@
+import properties from '../../gameplay/town-properties.json';
+import { PropertyOffer } from './PropertyOffer.tsx';
 import { useShopRoster } from './shopRoster.ts';
 import './shop-badge.css';
 import { SHOPPING_STORES } from '../../shared/townActivities';
@@ -6,7 +8,7 @@ import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { TEA_TOWN_SITES } from '../../shared/teaTown';
 import { TOWN_LOCKED_AREAS } from '../../shared/townLockedAreas';
-import { LockKeyhole } from 'lucide-react';
+import { Building2, LockKeyhole } from 'lucide-react';
 import { rt } from '../world/runtime';
 import { WorldLabel } from '../scene/WorldLabel';
 import { Avatar } from '../ui/Avatar';
@@ -71,6 +73,7 @@ function ShopOwnerBadge() {
  </WorldLabel>;
 }
 function LockedArea({area}:{area:typeof TOWN_LOCKED_AREAS[number]}) {
+ const offer=properties.find(p=>p.id===area.id);
  const badge=useRef<HTMLDivElement>(null),detail=useRef<HTMLDivElement>(null);
  useFrame(({camera})=>{
   const distance=Math.hypot(rt.me.x-area.x,rt.me.z-area.z);
@@ -79,7 +82,7 @@ function LockedArea({area}:{area:typeof TOWN_LOCKED_AREAS[number]}) {
  });
  return <WorldLabel position={[area.x,4.3,area.z]} center zIndexRange={[4,0]} style={{pointerEvents:'none'}}>
   <div ref={badge} data-testid={`locked-area-${area.id}`} className="town-locked-area" style={{display:'none'}}>
-   <LockKeyhole size={24} aria-hidden="true"/><div><strong>{area.name}</strong><span className="town-locked-status">未解锁 · 后续开放</span><div ref={detail} className="town-locked-hint" style={{display:'none'}}>{area.hint}</div></div>
+   {offer?<Building2 size={24} aria-hidden="true"/>:<LockKeyhole size={24} aria-hidden="true"/>}<div><strong>{area.name}</strong>{offer?<PropertyOffer offer={offer}/>:<span className="town-locked-status">未解锁 · 后续开放</span>}<div ref={detail} className="town-locked-hint" style={{display:'none'}}>{offer?'先购入铺面，逐步拓展商业版图':area.hint}</div></div>
   </div>
  </WorldLabel>;
 }

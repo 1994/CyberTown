@@ -22,6 +22,7 @@ export interface TownListing extends TownOwner {
   level: number; title: string; earned: number; cloneCount: number;
 }
 export interface TownHome {
+  properties?: string[];
   owner: TownOwner; visitor: boolean; level: number; title: string; earned: number;
   coins: number; serverTime: number; shopLevel: number;
   nextUpgrade: { level: number; title: string; cost: number; requiredEarned: number; ready: boolean; reason: string } | null;

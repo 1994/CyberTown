@@ -113,3 +113,7 @@ go test -race ./backend ./server -run 'StorageSPI|MockScenario|StorageInjection|
 `backend/storage_spi_test.go` 使用自定义 Store/Pool/Tx 包装真实 SQLite，验证注入路径、初始化/种子失败资源回收和 Commit 失败回滚。`backend/mock_scenario_test.go` 验证并发幂等、账本、经验、重开持久化与导入失败回滚；`server/storage_test.go` 验证配置入口和生产隔离。已有市场测试验证并发买家只有一人成交及账本失败整笔回滚。
 
 内网新适配器必须对自己的数据库再运行等价测试；当前测试不代表已验证其他数据库。
+
+### 铺面产权
+
+适配器需在 `Initialize` 中创建 `town_properties(player_id, property_id, price, purchased_at)`，以 `(player_id, property_id)` 为联合主键，`player_id` 关联玩家并级联删除。参考 `storage/sqlite/schema.sql`。购买通过原有 `storage.Tx` 同事务扣金币、写产权与账本；重复购买同一铺面不会再次扣款。`TownHome.properties` 返回当前镇主的铺面 ID。Mock 可插入该表初始化产权，售卖目录与价格统一来自 `gameplay/town-properties.json`。重新开始会清除当前玩家产权。

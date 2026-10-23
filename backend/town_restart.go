@@ -13,7 +13,7 @@ func (g *Game) RestartTown(player string) error {
 		if _, err := tx.Exec("UPDATE town_employee_market SET status='cancelled',closed_at=? WHERE seller_id=? AND status='active'", g.Now(), player); err != nil {
 			return err
 		}
-		for _, table := range []string{"tea_missions", "tea_sessions", "tea_runs", "tea_counter_progress", "tea_business_progress", "tea_chapters", "tea_shops", "tea_avatars", "town_explorations", "town_profiles", "project_runs", "year_awards", "player_years", "player_careers", "player_items", "player_styles"} {
+		for _, table := range []string{"town_properties", "tea_missions", "tea_sessions", "tea_runs", "tea_counter_progress", "tea_business_progress", "tea_chapters", "tea_shops", "tea_avatars", "town_explorations", "town_profiles", "project_runs", "year_awards", "player_years", "player_careers", "player_items", "player_styles"} {
 			if _, err := tx.Exec("DELETE FROM "+table+" WHERE player_id=?", player); err != nil {
 				return err
 			}

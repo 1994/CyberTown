@@ -1,3 +1,4 @@
+import { useCoinFeedback } from './useCoinFeedback.tsx';
 import { useShopRoster } from './shopRoster.ts';
 import { useShowcase } from '../scene/showcaseState';
 import { ShoppingStreet } from './ShoppingStreet';
@@ -69,6 +70,7 @@ export function TownGame() {
   const introPlaying = useGame(s => s.introPlaying);
   const c = useTeaChapter();
   const { home } = c;
+  const coinFeedback = useCoinFeedback(myId, home?.wallet.balance);
   const staffHome = useTownState(s => s.ready ? s.home : null);
   useEffect(() => {
     // During a shift use its frozen assignments, otherwise show the prepared team.
@@ -260,6 +262,7 @@ export function TownGame() {
     hires={hires} toast={c.toast} onAccept={c.acceptMission} onGo={s => { if (place === 'shop') exitShop(); go(s); }} onHall={() => openHall('staff')} />;
 
   if (place === 'shop') return <>
+    {coinFeedback}
     <TeaGame controller={c} onExit={exitShop} onPhone={() => openPhone('home')} onHall={() => openHall('staff')} />
     {phoneUi && <div className="town town-over">{phoneUi}</div>}
   </>;
@@ -269,6 +272,7 @@ export function TownGame() {
   const guided = !introPlaying && worldReady && !!home && arrival && place === 'map' && !phone && !map;
 
   return <div className="town" data-testid="town-world">
+    {coinFeedback}
     <OfficeCanvas myId={myId} covered={!!phone || away} />
     <div inert={introPlaying || away} aria-hidden={introPlaying || away} style={introPlaying ? { visibility: 'hidden' } : undefined} className={`hud town-hud ${touch ? 'touch-ui' : ''}`}>
       <header className="town-top">

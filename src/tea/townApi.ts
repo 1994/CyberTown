@@ -2,6 +2,7 @@ import type { TownHome, TownJobKind } from '../../shared/town.ts';
 import { teaCall } from './liveApi.ts';
 
 export const townApi = {
+  buyProperty: (propertyId:string,expectedPrice:number) => teaCall<TownHome>('POST','/api/tea/town/property/buy',{propertyId,expectedPrice}),
   enter: (ownerId: string) => teaCall<TownHome>('POST', '/api/tea/town/enter', { ownerId }),
   home: () => teaCall<TownHome>('GET', '/api/tea/town'),
   hire: (sourceId: string, expectedPrice: number) => teaCall<TownHome>('POST', '/api/tea/town/hire', { sourceId, expectedPrice }),

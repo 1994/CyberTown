@@ -68,6 +68,15 @@ func (a *App) handleTown(w http.ResponseWriter, r *http.Request, player string) 
 	var h TownHome
 	var err error
 	switch path {
+	case "/api/tea/town/property/buy":
+		var b struct {
+			PropertyID    string `json:"propertyId"`
+			ExpectedPrice int    `json:"expectedPrice"`
+		}
+		if err = teaDecode(w, r, &b); err != nil {
+			return err
+		}
+		h, err = a.Game.TownBuyProperty(player, b.PropertyID, b.ExpectedPrice)
 	case "/api/tea/town/hire":
 		var b struct {
 			SourceID      string `json:"sourceId"`

@@ -16,6 +16,7 @@ interface TownState {
   list: (cloneId: string, price: number, requestKey: string) => Promise<void>;
   withdraw: (listingId: string) => Promise<void>;
   buy: (listingId: string, expectedPrice: number) => Promise<void>;
+  buyProperty: (id:string,price:number) => Promise<void>;
   reset: () => void;
 }
 
@@ -136,6 +137,7 @@ export const useTownState = create<TownState>((set, get) => {
       return mutate(() => townApi.buy(listingId, expectedPrice));
     },
 
+    buyProperty(id,price) { return mutate(() => townApi.buyProperty(id,price)); },
     reset() {
       epoch++;
       mutationToken++;

@@ -1,5 +1,4 @@
-/** These are unopened demo blocks, not purchasable unlocks. Streets and existing
- * exploration stops remain accessible; do not invent level/coin requirements. */
+/** District markers; selected commercial blocks offer property ownership. */
 export const TOWN_LOCKED_AREAS = [
  {id:'old-town',name:'商业南坊',x:-24,z:18,minX:-30,maxX:-18,minZ:13.8,maxZ:18,hint:'南侧餐饮后续开放 · 衣橱、面具与车行已开业'},
  {id:'play-street',name:'娱乐街坊',x:26,z:5,minX:10,maxX:30,minZ:5,maxZ:20,hint:'商铺后续开放 · 小游戏大厅可进入'},
