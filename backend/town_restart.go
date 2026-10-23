@@ -31,6 +31,13 @@ func (g *Game) RestartTown(player string) error {
 		if err := ledger(tx, "player:"+player, StartCoins, "restart", "", g.Now()); err != nil {
 			return err
 		}
+		// Snapshot requires these rows immediately after reload. Recreate only this
+		// player's defaults inside the reset transaction, before readers resume.
+		for _, table := range []string{"player_careers", "player_years", "player_styles"} {
+			if _, err := tx.Exec("INSERT INTO "+table+"(player_id) VALUES(?)", player); err != nil {
+				return err
+			}
+		}
 		return townEnsure(tx, player, g.Now())
 	})
 }

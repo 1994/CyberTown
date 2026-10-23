@@ -64,3 +64,25 @@ func TestRestartTownIsPrivateAndFresh(t *testing.T) {
 		t.Fatal("repeated restart duplicated grant", err)
 	}
 }
+
+// The first request after the browser reload is the full state, not TownHome.
+func TestRestartTownKeepsAuthenticatedSnapshot(t *testing.T) {
+	e := setup(t)
+	token := e.login(t, "wang")
+	for attempt := 0; attempt < 2; attempt++ {
+		if code, body := e.call(t, "/api/tea/restart", token, map[string]string{"confirm": "restart-my-town"}); code != 200 {
+			t.Fatalf("restart: %d %s", code, body)
+		}
+		player, err := e.g.Auth(token)
+		if err != nil || player != "wang" {
+			t.Fatalf("session lost: %s %v", player, err)
+		}
+		snap, err := e.g.Snapshot(player, nil)
+		if err != nil {
+			t.Fatalf("reload snapshot after restart: %v", err)
+		}
+		if snap.Me.ID != player || snap.Me.Coins != 2000 || snap.Career.Rank != 0 || snap.Career.Performance != 0 || snap.Year.Number != 1 {
+			t.Fatalf("invalid fresh snapshot: %+v", snap)
+		}
+	}
+}
