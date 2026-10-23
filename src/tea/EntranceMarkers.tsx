@@ -1,3 +1,5 @@
+import { useShopRoster } from './shopRoster.ts';
+import './shop-badge.css';
 import { SHOPPING_STORES } from '../../shared/townActivities';
 import { useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
@@ -38,14 +40,33 @@ function Marker({x,z,y=4,kind}:{x:number;z:number;y?:number;kind:'enter'|'arcade
 function ShopOwnerBadge() {
  const owner=useTownState(s=>s.ready?s.home?.owner:null);
  const snapshot=useGame(s=>s.snapshot);
+ const roster=useShopRoster();
  if(!owner)return <Marker x={TEA_TOWN_SITES.shop.x} z={TEA_TOWN_SITES.shop.z} y={4.6} kind="enter"/>;
  const player=snapshot?.players.find(p=>p.id===owner.id);
  const colleague=snapshot?.colleagues.find(c=>c.id===player?.avatarColleagueId);
  const base:Look=colleague?dressed(colleague.look,player?.style):{skin:'#f1c7a1',hair:'#2b2b33',hairStyle:'short',shirt:owner.color,pants:'#2a3142',accessory:'none'};
  const look={...base,avatarUrl:owner.avatarUrl??player?.avatarUrl??base.avatarUrl,avatarName:owner.name};
  return <WorldLabel position={[-20.5,4.5,-1]} center zIndexRange={[5,0]} style={{pointerEvents:'none'}}>
-  <div key={owner.id} data-testid="shop-owner-badge" data-owner-id={owner.id} role="img" aria-label={`店主：${owner.name}`} style={{width:32,height:32,padding:2,background:'#101c30',border:'1px solid #f0cd73',borderRadius:8,boxShadow:'0 0 10px #f0cd732b',pointerEvents:'none'}}>
-   <Avatar look={look} size={26}/>
+  <div className="shop-team-badge" data-testid="shop-owner-badge" data-owner-id={owner.id} role="group" aria-label={`${owner.name}的奶茶店`}>
+   <div className="shop-team-owner">
+    <span className="shop-team-face"><Avatar look={look} size={28}/><span className="shop-team-crown">★</span></span>
+    <div className="shop-team-person"><small>老板</small><strong>{owner.name}</strong></div>
+   </div>
+   {roster.ownerId === owner.id && roster.workers.length > 0 && <div className="shop-team-staff" aria-label="奶茶店已排班员工">
+    {roster.workers.map(worker => {
+     const player = snapshot?.players.find(p => p.id === worker.playerId);
+     const colleague = snapshot?.colleagues.find(c => c.id === player?.avatarColleagueId);
+     const workerLook: Look = {
+      ...(colleague ? dressed(colleague.look, player?.style) : {skin:'#f1c7a1',hair:'#2b2b33',hairStyle:'short' as const,shirt:worker.color,pants:'#2a3142',accessory:'none' as const}),
+      avatarUrl:worker.avatarUrl ?? player?.avatarUrl, avatarName:worker.name,
+     };
+     const role = worker.role === 'maker' ? '制作' : worker.role === 'cashier' ? '端送' : '补位';
+     return <div className="shop-team-worker" key={worker.id} data-testid="shop-staff-badge" data-worker-id={worker.id} aria-label={`${worker.demo?'NPC':'同事'}：${worker.name}，${role}，已排班`}>
+      <span className="shop-team-face"><Avatar look={workerLook} size={23}/><i/></span>
+      <div className="shop-team-person"><strong>{worker.name}</strong><small>{worker.demo ? 'NPC' : '同事'} · {role}</small></div>
+     </div>;
+    })}
+   </div>}
   </div>
  </WorldLabel>;
 }

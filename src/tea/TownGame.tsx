@@ -1,3 +1,4 @@
+import { useShopRoster } from './shopRoster.ts';
 import { useShowcase } from '../scene/showcaseState';
 import { ShoppingStreet } from './ShoppingStreet';
 import { useRide, mountBike, parkBike, resetRide } from './rideState';
@@ -69,6 +70,17 @@ export function TownGame() {
   const c = useTeaChapter();
   const { home } = c;
   const staffHome = useTownState(s => s.ready ? s.home : null);
+  useEffect(() => {
+    // During a shift use its frozen assignments, otherwise show the prepared team.
+    const run = c.session?.status === 'active' ? c.session.run : null;
+    const roles = run ? Object.fromEntries(run.plan.assignments.map(a => [a.workerId, a.role])) : c.roles;
+    const workers = (run?.workers ?? c.team).filter(w => w.id !== 'self').map(w => {
+      const clone = staffHome?.clones.find(clone => clone.id === w.id);
+      return { ...w, avatarUrl: clone?.avatarUrl ?? w.avatarUrl, role: roles[w.id] ?? 'support' as const };
+    });
+    useShopRoster.setState({ ownerId: myId, workers });
+  }, [myId, c.team, c.roles, c.session, staffHome]);
+  useEffect(() => () => useShopRoster.setState({ ownerId: null, workers: [] }), []);
   const touch = useTouchUi();
   const placeKey = `town-place:${myId}`;
   // 只记住“在店里”这一件事，刷新后回到同一处（营业 session 由 controller 从服务端恢复）
