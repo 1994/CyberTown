@@ -2,3 +2,13 @@
 @media(max-width:380px){.town-handset .phone-app-icon{width:52px;height:52px}.town-handset .phone-screen{padding:10px 14px}.town-handset .phone-island{width:80px}.town-kim-notification small{font-size:9px}}
 .town-handset .town-kim-notification{color:#20283f}.town-handset .town-kim .tea-btn.primary{color:#fff}.town-handset .town-kim .tea-btn.ghost{color:#31537e}
 .town-handset .town-kim .tea-btn.primary{color:#fff!important;box-shadow:none}.town-handset .town-mission h3 em{margin-left:6px;padding:2px 5px;font-size:11px;font-style:normal;border-radius:4px}
+
+/* Phone actions keep a quiet handset palette, independent of game-yellow CTAs. */
+.town-handset .tea-btn.primary{background:#284d60;border-color:#60899a;color:#eff8fc!important;box-shadow:none;clip-path:none;border-radius:8px}
+.town-handset .tea-btn.primary:not(:disabled):hover{background:#325c70;box-shadow:none}
+.town-handset .tea-btn.primary:not(:disabled):active{background:#213e50;box-shadow:none}
+.town-handset .town-kim .tea-btn.primary{background:#365e8b;border-color:#365e8b;color:#fff!important;box-shadow:none}
+.town-handset .town-kim .tea-btn.primary:not(:disabled):hover{background:#2c527e}
+.town-handset .town-kim .tea-btn.primary:not(:disabled):active{background:#24466d}
+.town-handset .tea-btn:not(.primary){border-color:#526b80;background:#1e3045;color:#d6e4ef;clip-path:none;border-radius:8px;box-shadow:none}
+.town-handset .town-kim .tea-btn:not(.primary){border-color:#c8d6e9;background:#edf2fa;color:#31537e;box-shadow:none}

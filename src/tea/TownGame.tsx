@@ -348,19 +348,20 @@ export function TownGame() {
 
       <div className="town-action-dock" data-testid="town-action-dock">
       {place === 'map' && !phone && !introPlaying && !map && near && <div className="town-interact">
-        {near === 'shop'
-          ? <button className="tea-btn primary" onClick={() => enter('shop')} data-testid="town-enter-shop">
-            进{['街角奶茶', '霓虹奶茶', '夜城茶饮旗舰'][(home?.shop.level ?? 1) - 1] ?? '奶茶店'}{!touch && !ride.riding && <kbd>E</kbd>}</button>
-          : near === 'arcade' ? <button className="tea-btn primary" onClick={() => enter('arcade')} data-testid="town-enter-arcade"><Gamepad2 size={18}/>进小游戏大厅{!touch && !ride.riding && <kbd>E</kbd>}</button>
-          : <button className="tea-btn" onClick={() => enter('recruit')} data-testid="town-recruit">
-            进雇佣大厅 <small>可选</small>{!touch && !ride.riding && <kbd>E</kbd>}</button>}
+        <button className="tea-btn town-entry-button" onClick={() => enter(near)}
+          data-testid={near === 'recruit' ? 'town-recruit' : `town-enter-${near}`}>
+          <span className="town-entry-key" aria-hidden="true">{!touch && !ride.riding ? <kbd>E</kbd> : <LogIn size={24}/>}</span>
+          <span className="town-entry-copy"><strong>{!touch && !ride.riding ? '按 E 进入' : '点击进入'}</strong>
+            <span>{near === 'shop' ? (['街角奶茶', '霓虹奶茶', '夜城茶饮旗舰'][(home?.shop.level ?? 1) - 1] ?? '奶茶店') : near === 'arcade' ? '小游戏大厅' : '雇佣大厅'}</span></span>
+          <LogIn className="town-entry-arrow" size={20} aria-hidden="true"/>
+        </button>
       </div>}
 
       {place === 'map' && nearSite && !map && !phone && !introPlaying && <SurveyCard id={nearSite} home={home} busy={survey.busy} error={survey.error} onSurvey={() => void doSurvey(nearSite)} />}
 
 
       {place==='map'&&!phone&&!map&&!introPlaying&&<>
-        {nearShopping&&!near&&<div className="town-interact"><button className="tea-btn primary" data-testid="town-enter-shopping" onClick={()=>setPlace('shopping')}><ShoppingBag size={18}/>{nearShopping==='shirt'?'买衣服':nearShopping==='accessory'?'买面具':'买载具'}{!touch&&!ride.riding&&<kbd>E</kbd>}</button></div>}
+        {nearShopping&&!near&&<div className="town-interact"><button className="tea-btn town-entry-button" data-testid="town-enter-shopping" onClick={()=>setPlace('shopping')}><span className="town-entry-key" aria-hidden="true">{!touch&&!ride.riding?<kbd>E</kbd>:<ShoppingBag size={24}/>}</span><span className="town-entry-copy"><strong>{!touch&&!ride.riding?'按 E 进入':'点击进入'}</strong><span>{nearShopping==='shirt'?'服装店':nearShopping==='accessory'?'面具店':'载具店'}</span></span><LogIn className="town-entry-arrow" size={20} aria-hidden="true"/></button></div>}
         {(ride.riding||(!near&&!nearShopping&&(nearBike||vehicles.length>0)))&&<div className="ride-controls" data-testid="ride-controls">
           {ride.riding?<>{!touch&&<small>WASD 骑行 · E 下车</small>}<button className="tea-btn" onClick={parkBike} data-testid="bike-dismount"><Bike size={18}/>下车{!touch&&<kbd>E</kbd>}</button></>:<>
             {nearBike&&<button className="tea-btn primary" onClick={()=>mountBike()} data-testid="bike-mount"><Bike size={18}/>上车 · 免费{!touch&&<kbd>E</kbd>}</button>}
