@@ -61,8 +61,8 @@ func TestTeaEconomyAndRetry(t *testing.T) {
 	if h.Coins != 2000 {
 		t.Fatal(h.Coins)
 	}
-	if _, err := e.g.TeaUpgrade("wang", 1); err == nil {
-		t.Fatal("upgrade spent opening funds before mainline challenge")
+	if !h.Business.UpgradeReady {
+		t.Fatal("fresh shop upgrade unavailable")
 	}
 	var before int
 	e.g.DB.QueryRow("SELECT COUNT(*) FROM ledger").Scan(&before)
@@ -75,8 +75,8 @@ func TestTeaEconomyAndRetry(t *testing.T) {
 	if h.Coins != 2000 || h.Shop.Runs != 0 || h.AttemptsRemaining != 3 || before != after {
 		t.Fatal("practice changed economy")
 	}
-	if _, err := e.g.TeaUpgrade("wang", 1); err == nil {
-		t.Fatal("practice unlocked a paid upgrade")
+	if !h.Business.UpgradeReady {
+		t.Fatal("practice hid manual upgrade")
 	}
 	p := teaPlan("demo-li", "demo-wang")
 	r, err := e.g.TeaRun("wang", p, "official", "once")

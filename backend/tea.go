@@ -418,8 +418,8 @@ func (g *Game) TeaUpgrade(player string, expected int) (TeaHome, error) {
 		if err := teaEnsure(tx, player, now); err != nil {
 			return err
 		}
-		var level, coins, best int
-		if err := tx.QueryRow("SELECT s.level,p.coins,s.best FROM tea_shops s JOIN players p ON p.id=s.player_id WHERE s.player_id=?", player).Scan(&level, &coins, &best); err != nil {
+		var level, coins int
+		if err := tx.QueryRow("SELECT s.level,p.coins FROM tea_shops s JOIN players p ON p.id=s.player_id WHERE s.player_id=?", player).Scan(&level, &coins); err != nil {
 			return err
 		}
 		if level > expected {
@@ -428,21 +428,12 @@ func (g *Game) TeaUpgrade(player string, expected int) (TeaHome, error) {
 		if level != expected {
 			return fail(409, "TEA_LEVEL_CHANGED", "店铺等级已变化，请刷新")
 		}
-		mission, err := teaMission(tx, player)
-		if err != nil {
+		var active int
+		if err := tx.QueryRow("SELECT COUNT(*) FROM tea_sessions WHERE player_id=? AND status='active'", player).Scan(&active); err != nil {
 			return err
 		}
-		if best < teaChallenge(teaDay(now)).Target && mission.Status != "completed" {
-			return fail(409, "TEA_UPGRADE_LOCKED", "先完成救店任务或正式高峰，再用营业收入升级门店")
-		}
-		if level == 2 && best < teaChallenge(teaDay(now)).Target {
-			var regularBest int
-			if err := tx.QueryRow("SELECT regular_best FROM tea_business_progress WHERE player_id=?", player).Scan(&regularBest); err != nil {
-				return err
-			}
-			if regularBest < 24 {
-				return fail(409, "TEA_UPGRADE_LOCKED", "先在霓虹奶茶正式营业中盈利并完成24杯，再扩建旗舰店")
-			}
+		if active > 0 {
+			return fail(409, "TEA_ACTIVE", "营业中不能装修，请结束本班后升级")
 		}
 		price := 600
 		if level == 2 {

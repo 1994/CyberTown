@@ -19,6 +19,7 @@ const roleName = (r:string) => r === 'maker' ? '制作' : r === 'cashier' ? '端
 export function TeaCounterGame({controller:c,onExit,onPhone,onHall}:{controller:TeaChapterController;onExit:()=>void;onPhone:()=>void;onHall:()=>void}) {
  const [confirm,setConfirm]=useState<'practice'|'official'|null>(null);
  const [help,setHelp]=useState(false);
+ const [upgradeConfirm,setUpgradeConfirm]=useState(false);
  const [cameraView,setCameraView]=useState<CounterView>('overview');
  const touch=useTouchUi();
  const me=useGame(s=>s.snapshot?.me);
@@ -103,6 +104,11 @@ export function TeaCounterGame({controller:c,onExit,onPhone,onHall}:{controller:
   </section>
   {view==='prep'&&<aside className="counter-prep tea-prep" inert={modal}>
    <div className="counter-section-title"><h2>备料开店</h2><p><span>营业 {ch.duration === 30 ? '30 秒' : '1 分钟'}</span><span>目标 {ch.target} 杯</span></p></div>
+   <section className="counter-renovation" aria-label="店铺升级">
+    <div><strong>Lv.{home.shop.level} · {home.shop.level===3?'夜城旗舰':home.shop.level===2?'霓虹奶茶':'街角奶茶'}</strong><small>{home.shop.level===3?'已达最高等级':`升至 Lv.${home.shop.level+1} · 每杯 ${home.shop.level===1?22:24} 金币 · 更多客流`}</small></div>
+    {home.shop.level<3&&<button data-testid="tea-prep-upgrade" disabled={c.busy} onClick={()=>setUpgradeConfirm(!upgradeConfirm)}>升级店铺 <b>{home.shop.nextUpgradeCost} 金币</b></button>}
+    {upgradeConfirm&&home.shop.level<3&&<div className="counter-renovation-confirm"><p>花费 {home.shop.nextUpgradeCost} 金币装修，立即生效。</p><small>{home.wallet.balance<home.shop.nextUpgradeCost?`还差 ${home.shop.nextUpgradeCost-home.wallet.balance} 金币`:`升级后余额 ${home.wallet.balance-home.shop.nextUpgradeCost} 金币`}</small><div><button disabled={c.busy} onClick={()=>setUpgradeConfirm(false)}>暂不升级</button><button disabled={c.busy||home.wallet.balance<home.shop.nextUpgradeCost} onClick={()=>void c.upgrade().then(()=>setUpgradeConfirm(false))}>{c.busy?'装修中…':'确认升级'}</button></div></div>}
+   </section>
    {help&&<p className="counter-prep-help">选好备料后开店；营业时点制作、端送，员工自动工作。</p>}
    <div className="counter-recipe"><span className="counter-recipe-icon"><CupSoda size={24}/></span><b>招牌珍珠奶茶</b><strong>{ch.price}<small>金币 / 杯</small></strong></div>
    <div className="counter-duration" role="group" aria-label="营业时长"><h3>营业时长</h3><div>{([30,60] as const).map(n=><button key={n} type="button" aria-pressed={c.duration===n} onClick={()=>c.setDuration(n)}><b>{n===30?'30 秒':'1 分钟'}</b>{n===30&&<small>快速营业</small>}</button>)}</div></div>
@@ -126,7 +132,7 @@ export function TeaCounterGame({controller:c,onExit,onPhone,onHall}:{controller:
    <button className="tea-btn primary counter-open" disabled={c.busy||c.problems.length>0||home.wallet.balance<c.totalCost} onClick={()=>setConfirm('official')}>正式开店 <ArrowLeft className="counter-arrow" size={18}/></button>
    <button className="counter-practice" disabled={c.busy||c.problems.length>0} onClick={()=>setConfirm('practice')}>免费试营业</button>
    </div>
-   {home.business?.upgradeReady&&home.shop.level<3&&<button className="counter-upgrade" disabled={c.busy||home.wallet.balance<home.shop.nextUpgradeCost} onClick={()=>void c.upgrade()}>升级门店 · {home.shop.nextUpgradeCost} 金币</button>}
+
   </aside>}
   {playing&&<footer className="counter-dock" inert={modal}>
    {crew}

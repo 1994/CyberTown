@@ -54,21 +54,21 @@ func teaBusiness(tx storage.Tx, player, day string, shop TeaShop, mission TeaMis
 	legacyPassed := shop.Best >= teaChallenge(day).Target
 	switch shop.Level {
 	case 1:
-		b.Stage, b.Title, b.Goal, b.Reward = "rescue", "救回街角店", "正式营业赚到第一笔净收益", "解锁门店焕新"
+		b.Stage, b.Title, b.Goal, b.Reward = "rescue", "救回街角店", "正式营业赚到第一笔净收益", "救店奖励 · 继续经营"
 		b.Progress, b.Target = shop.Best, 12
-		b.UpgradeReady = mission.Status == "completed" || legacyPassed
-		b.UpgradeReason = "救店成功后解锁"
-		if b.UpgradeReady {
+		b.UpgradeReady = true
+		b.UpgradeReason = "停业时可随时升级"
+		if mission.Status == "completed" || legacyPassed {
 			b.Stage, b.Title, b.Goal, b.Reward = "renovate", "焕新小店", "投入600金币，升级霓虹奶茶", "32位顾客 · 每杯22金币"
 			b.Progress, b.Target, b.Unit = min(coins, 600), 600, "金币"
 			b.UpgradeReason = "已解锁门店焕新"
 		}
 	case 2:
-		b.Stage, b.Title, b.Goal, b.Reward = "regulars", "站稳脚跟", "正式营业盈利并完成24杯", "解锁旗舰扩建"
+		b.Stage, b.Title, b.Goal, b.Reward = "regulars", "站稳脚跟", "正式营业盈利并完成24杯", "积累收益 · 扩建旗舰"
 		b.Progress, b.Target = regular, 24
-		b.UpgradeReady = regular >= 24 || legacyPassed
-		b.UpgradeReason = "先在本店正式盈利并完成24杯"
-		if b.UpgradeReady {
+		b.UpgradeReady = true
+		b.UpgradeReason = "停业时可随时升级"
+		if regular >= 24 || legacyPassed {
 			b.Stage, b.Title, b.Goal, b.Reward = "expand", "扩建旗舰", "投入1200金币，升级夜城旗舰", "48位顾客 · 每杯24金币"
 			b.Progress, b.Target, b.Unit = min(coins, 1200), 1200, "金币"
 			b.UpgradeReason = "已解锁旗舰扩建"

@@ -38,15 +38,12 @@ func TestTeaBusinessProgressionAndActualRewards(t *testing.T) {
 		}
 		before := h.Coins
 		if level == 2 {
-			if _, err = g.TeaUpgrade("mei", 2); err == nil {
-				t.Fatal("flagship unlocked before regular service")
-			}
 			practice := driveLive(t, g, "mei", openBusiness(t, g, "mei", "practice"))
 			if !practice.Run.Result.Passed {
 				t.Fatal("practice plan cannot meet the new goal")
 			}
 			h, _ = g.TeaHome("mei")
-			if h.Business.Stage != "regulars" || h.Coins != before || h.Business.UpgradeReady {
+			if h.Business.Stage != "regulars" || h.Coins != before || !h.Business.UpgradeReady {
 				t.Fatal("practice advanced paid progression", h.Business)
 			}
 		}
@@ -140,5 +137,60 @@ func TestTeaBusinessMigrationPreservesWalletAndOldSession(t *testing.T) {
 	restored, err := g.TeaGetSession("wang", s.ID)
 	if err != nil || restored.Run.Challenge.RuleVersion != "tea.3" || restored.Run.Challenge.Price != 20 {
 		t.Fatal("legacy challenge not frozen", err)
+	}
+}
+
+func TestTeaManualUpgradeBeforeFirstService(t *testing.T) {
+	e := setup(t)
+	g := e.g
+	h, err := g.TeaHome("wang")
+	if err != nil {
+		t.Fatal(err)
+	}
+	for level := 1; level <= 2; level++ {
+		before := h.Coins
+		cost := h.Shop.NextUpgradeCost
+		h, err = g.TeaUpgrade("wang", level)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if h.Shop.Level != level+1 || h.Coins != before-cost || h.Shop.Runs != 0 || h.Counter.Day != 1 {
+			t.Fatal("manual upgrade changed day or wallet", h)
+		}
+		retry, err := g.TeaUpgrade("wang", level)
+		if err != nil || retry.Coins != h.Coins {
+			t.Fatal("retry charged twice", err)
+		}
+	}
+	if h.Business.UpgradeReady {
+		t.Fatal("max level still upgradeable")
+	}
+	checkAudit(t, g)
+}
+func TestTeaManualUpgradeRejectsActiveAndInsufficientFunds(t *testing.T) {
+	e := setup(t)
+	g := e.g
+	if _, err := g.TeaAcceptMission("wang"); err != nil {
+		t.Fatal(err)
+	}
+	s := openBusiness(t, g, "wang", "practice")
+	before, _ := g.TeaHome("wang")
+	if _, err := g.TeaUpgrade("wang", 1); err == nil {
+		t.Fatal("upgraded during service")
+	}
+	after, _ := g.TeaHome("wang")
+	if before.Coins != after.Coins || before.Shop.Level != after.Shop.Level {
+		t.Fatal("failed upgrade mutated state")
+	}
+	driveLive(t, g, "wang", s)
+	if _, err := g.DB.Exec("UPDATE players SET coins=599 WHERE id='wang'"); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := g.TeaUpgrade("wang", 1); err == nil {
+		t.Fatal("upgraded without funds")
+	}
+	after, _ = g.TeaHome("wang")
+	if after.Coins != 599 || after.Shop.Level != 1 {
+		t.Fatal("insufficient funds mutated state")
 	}
 }
